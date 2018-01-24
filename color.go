@@ -1,0 +1,215 @@
+package canvas
+
+import (
+	"fmt"
+	"image/color"
+	"strconv"
+	"strings"
+)
+
+func colorToGL(color color.Color) (r, g, b, a float32) {
+	ir, ig, ib, ia := color.RGBA()
+	r = float32(ir) / 65535
+	g = float32(ig) / 65535
+	b = float32(ib) / 65535
+	a = float32(ia) / 65535
+	return
+}
+
+func parseHexRune(rn rune) (int, bool) {
+	switch {
+	case rn >= '0' && rn <= '9':
+		return int(rn - '0'), true
+	case rn >= 'a' && rn <= 'f':
+		return int(rn-'a') + 10, true
+	case rn >= 'A' && rn <= 'F':
+		return int(rn-'A') + 10, true
+	}
+	return 0, false
+}
+
+func parseHexRunePair(rn1, rn2 rune) (int, bool) {
+	i1, ok := parseHexRune(rn1)
+	if !ok {
+		return 0, false
+	}
+	i2, ok := parseHexRune(rn2)
+	if !ok {
+		return 0, false
+	}
+	return i1*16 + i2, true
+}
+
+func parseColorComponent(value interface{}) (float32, bool) {
+	switch v := value.(type) {
+	case float32:
+		return v, true
+	case float64:
+		return float32(v), true
+	case int:
+		return float32(v) / 255, true
+	case uint:
+		return float32(v) / 255, true
+	case uint8:
+		return float32(v) / 255, true
+	case string:
+		if len(v) == 0 {
+			return 0, false
+		}
+		if v[0] == '#' {
+			str := v[1:]
+			if len(str) > 2 {
+				return 0, false
+			}
+			conv, err := strconv.ParseUint(v[1:], 16, 8)
+			if err != nil {
+				return 0, false
+			}
+			return float32(conv) / 255, true
+		} else if strings.ContainsRune(v, '.') {
+			conv, err := strconv.ParseFloat(v, 32)
+			if err != nil {
+				return 0, false
+			}
+			if conv < 0 {
+				conv = 0
+			} else if conv > 1 {
+				conv = 1
+			}
+			return float32(conv), true
+		} else {
+			conv, err := strconv.ParseUint(v, 10, 8)
+			if err != nil {
+				return 0, false
+			}
+			return float32(conv) / 255, true
+		}
+	}
+	return 0, false
+}
+
+func parseColor(value ...interface{}) (r, g, b, a float32, ok bool) {
+	a = 1
+	if len(value) == 1 {
+		switch v := value[0].(type) {
+		case color.Color:
+			r, g, b, a = colorToGL(v)
+			ok = true
+			return
+		case [3]float32:
+			return v[0], v[1], v[2], 1, true
+		case [4]float32:
+			return v[0], v[1], v[2], v[3], true
+		case [3]float64:
+			return float32(v[0]), float32(v[1]), float32(v[2]), 1, true
+		case [4]float64:
+			return float32(v[0]), float32(v[1]), float32(v[2]), float32(v[3]), true
+		case [3]int:
+			return float32(v[0]) / 255, float32(v[1]) / 255, float32(v[2]) / 255, 1, true
+		case [4]int:
+			return float32(v[0]) / 255, float32(v[1]) / 255, float32(v[2]) / 255, float32(v[3]) / 255, true
+		case [3]uint:
+			return float32(v[0]) / 255, float32(v[1]) / 255, float32(v[2]) / 255, 1, true
+		case [4]uint:
+			return float32(v[0]) / 255, float32(v[1]) / 255, float32(v[2]) / 255, float32(v[3]) / 255, true
+		case [3]uint8:
+			return float32(v[0]) / 255, float32(v[1]) / 255, float32(v[2]) / 255, 1, true
+		case [4]uint8:
+			return float32(v[0]) / 255, float32(v[1]) / 255, float32(v[2]) / 255, float32(v[3]) / 255, true
+		case string:
+			if len(v) == 0 {
+				return
+			}
+			if v[0] == '#' {
+				str := v[1:]
+				if len(str) == 3 || len(str) == 4 {
+					var ir, ig, ib int
+					ia := 255
+					ir, ok = parseHexRune(rune(str[0]))
+					if !ok {
+						return
+					}
+					ir = ir*16 + ir
+					ig, ok = parseHexRune(rune(str[1]))
+					if !ok {
+						return
+					}
+					ig = ig*16 + ig
+					ib, ok = parseHexRune(rune(str[2]))
+					if !ok {
+						return
+					}
+					ib = ib*16 + ib
+					if len(str) == 4 {
+						ia, ok = parseHexRune(rune(str[3]))
+						if !ok {
+							return
+						}
+						ia = ia*16 + ia
+					}
+					return float32(ir) / 255, float32(ig) / 255, float32(ib) / 255, float32(ia) / 255, true
+				} else if len(str) == 6 || len(str) == 8 {
+					var ir, ig, ib int
+					ia := 255
+					ir, ok = parseHexRunePair(rune(str[0]), rune(str[1]))
+					if !ok {
+						return
+					}
+					ig, ok = parseHexRunePair(rune(str[2]), rune(str[3]))
+					if !ok {
+						return
+					}
+					ib, ok = parseHexRunePair(rune(str[4]), rune(str[5]))
+					if !ok {
+						return
+					}
+					if len(str) == 4 {
+						ia, ok = parseHexRunePair(rune(str[6]), rune(str[7]))
+						if !ok {
+							return
+						}
+					}
+					return float32(ir) / 255, float32(ig) / 255, float32(ib) / 255, float32(ia) / 255, true
+				} else {
+					return
+				}
+			} else {
+				v = strings.Replace(v, " ", "", -1)
+				var ir, ig, ib, ia int
+				n, err := fmt.Sscanf(v, "rgb(%d,%d,%d)", &ir, &ig, &ib)
+				if err == nil && n == 3 {
+					return float32(ir) / 255, float32(ig) / 255, float32(ib) / 255, 1, true
+				}
+				n, err = fmt.Sscanf(v, "rgba(%d,%d,%d,%d)", &ir, &ig, &ib, &ia)
+				if err == nil && n == 4 {
+					return float32(ir) / 255, float32(ig) / 255, float32(ib) / 255, float32(ia) / 255, true
+				}
+			}
+		}
+	} else if len(value) == 3 || len(value) == 4 {
+		var pr, pg, pb, pa float32
+		pr, ok = parseColorComponent(value[0])
+		if !ok {
+			return
+		}
+		pg, ok = parseColorComponent(value[1])
+		if !ok {
+			return
+		}
+		pb, ok = parseColorComponent(value[2])
+		if !ok {
+			return
+		}
+		if len(value) == 4 {
+			pa, ok = parseColorComponent(value[3])
+			if !ok {
+				return
+			}
+		} else {
+			pa = 1
+		}
+		return pr, pg, pb, pa, true
+	}
+
+	return 0, 0, 0, 1, false
+}
