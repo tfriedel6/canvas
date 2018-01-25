@@ -41,11 +41,6 @@ func LoadFont(src interface{}) (*Font, error) {
 	return nil, errors.New("Unsupported source type")
 }
 
-func (cv *Canvas) SetFont(font *Font, size float32) {
-	cv.text.font = font
-	cv.text.size = size
-}
-
 func (cv *Canvas) FillText(str string, x, y float32) {
 	cv.activate()
 

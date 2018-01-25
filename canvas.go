@@ -1,6 +1,7 @@
 package canvas
 
 import (
+	"fmt"
 	"image"
 	"unsafe"
 
@@ -68,6 +69,90 @@ func (cv *Canvas) activate() {
 	}
 }
 
+var (
+	gli GL
+	buf uint32
+	sr  *solidShader
+	tr  *textureShader
+)
+
+func LoadGL(glimpl GL) (err error) {
+	gli = glimpl
+
+	gli.GetError() // clear error state
+
+	sr, err = loadSolidShader()
+	if err != nil {
+		return
+	}
+	err = glError()
+	if err != nil {
+		return
+	}
+
+	tr, err = loadTextureShader()
+	if err != nil {
+		return
+	}
+	err = glError()
+	if err != nil {
+		return
+	}
+
+	gli.GenBuffers(1, &buf)
+	err = glError()
+	if err != nil {
+		return
+	}
+
+	gli.Enable(gl_BLEND)
+	gli.BlendFunc(gl_SRC_ALPHA, gl_ONE_MINUS_SRC_ALPHA)
+
+	return
+}
+
+//go:generate go run make_shaders.go
+//go:generate go fmt
+
+var solidVS = `
+attribute vec2 vertex;
+void main() {
+    gl_Position = vec4(vertex, 0.0, 1.0);
+}`
+var solidFS = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+uniform vec4 color;
+void main() {
+    gl_FragColor = color;
+}`
+
+var textureVS = `
+attribute vec2 vertex, texCoord;
+varying vec2 v_texCoord;
+void main() {
+	v_texCoord = texCoord;
+    gl_Position = vec4(vertex, 0.0, 1.0);
+}`
+var textureFS = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+varying vec2 v_texCoord;
+uniform sampler2D image;
+void main() {
+    gl_FragColor = texture2D(image, v_texCoord);
+}`
+
+func glError() error {
+	glErr := gli.GetError()
+	if glErr != gl_NO_ERROR {
+		return fmt.Errorf("GL Error: %x", glErr)
+	}
+	return nil
+}
+
 // SetFillColor sets the color for any fill calls
 func (cv *Canvas) SetFillColor(value ...interface{}) {
 	r, g, b, a, ok := parseColor(value...)
@@ -89,6 +174,12 @@ func (cv *Canvas) SetLineWidth(width float32) {
 	cv.stroke.lineWidth = width
 }
 
+// SetFont sets the font and font size
+func (cv *Canvas) SetFont(font *Font, size float32) {
+	cv.text.font = font
+	cv.text.size = size
+}
+
 // FillRect fills a rectangle with the active color
 func (cv *Canvas) FillRect(x, y, w, h float32) {
 	cv.activate()
@@ -107,162 +198,4 @@ func (cv *Canvas) FillRect(x, y, w, h float32) {
 	gli.EnableVertexAttribArray(sr.vertex)
 	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
 	gli.DisableVertexAttribArray(sr.vertex)
-}
-
-func (cv *Canvas) BeginPath() {
-	if cv.path == nil {
-		cv.path = make([]pathPoint, 0, 100)
-	}
-	cv.path = cv.path[:0]
-}
-
-func (cv *Canvas) MoveTo(x, y float32) {
-	cv.path = append(cv.path, pathPoint{pos: lm.Vec2{x, y}, move: true})
-}
-
-func (cv *Canvas) LineTo(x, y float32) {
-	cv.path = append(cv.path, pathPoint{pos: lm.Vec2{x, y}, move: false})
-}
-
-func (cv *Canvas) ClosePath() {
-	if len(cv.path) == 0 {
-		return
-	}
-	cv.path = append(cv.path, pathPoint{pos: cv.path[0].pos, move: false})
-}
-
-func (cv *Canvas) Stroke() {
-	if len(cv.path) == 0 {
-		return
-	}
-
-	cv.activate()
-
-	gli.Enable(gl_STENCIL_TEST)
-	gli.ColorMask(false, false, false, false)
-	gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
-	gli.StencilOp(gl_KEEP, gl_KEEP, gl_REPLACE)
-	gli.StencilMask(0xFF)
-	gli.Clear(gl_STENCIL_BUFFER_BIT)
-
-	gli.UseProgram(sr.id)
-	gli.Uniform4f(sr.color, cv.stroke.r, cv.stroke.g, cv.stroke.b, cv.stroke.a)
-	gli.EnableVertexAttribArray(sr.vertex)
-
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-
-	var buf [1000]float32
-	tris := buf[:0]
-	tris = append(tris, -1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1)
-	p0 := cv.path[0].pos
-	for _, p := range cv.path {
-		if p.move {
-			p0 = p.pos
-			continue
-		}
-		p1 := p.pos
-
-		v1 := p1.Sub(p0).Norm()
-		v2 := lm.Vec2{v1[1], -v1[0]}.MulF(cv.stroke.lineWidth * 0.5)
-		v1 = v1.MulF(cv.stroke.lineWidth * 0.5)
-
-		x0f, y0f := cv.vecToGL(p0.Sub(v1).Add(v2))
-		x1f, y1f := cv.vecToGL(p1.Add(v1).Add(v2))
-		x2f, y2f := cv.vecToGL(p1.Add(v1).Sub(v2))
-		x3f, y3f := cv.vecToGL(p0.Sub(v1).Sub(v2))
-
-		tris = append(tris, x0f, y0f, x1f, y1f, x2f, y2f, x0f, y0f, x2f, y2f, x3f, y3f)
-
-		p0 = p1
-	}
-
-	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
-	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
-	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
-
-	gli.ColorMask(true, true, true, true)
-	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
-	gli.StencilMask(0)
-
-	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 6)
-
-	gli.DisableVertexAttribArray(sr.vertex)
-
-	gli.Disable(gl_STENCIL_TEST)
-}
-
-func (cv *Canvas) Fill() {
-	if len(cv.path) < 3 {
-		return
-	}
-
-	cv.activate()
-
-	gli.UseProgram(sr.id)
-	gli.Uniform4f(sr.color, cv.fill.r, cv.fill.g, cv.fill.b, cv.fill.a)
-	gli.EnableVertexAttribArray(sr.vertex)
-
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-
-	var buf [1000]float32
-	tris := buf[:0]
-	tris = append(tris, -1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1)
-
-	tris = triangulatePath(cv.path, tris)
-	total := len(tris)
-	for i := 12; i < total; i += 2 {
-		x, y := tris[i], tris[i+1]
-		tris[i], tris[i+1] = cv.ptToGL(x, y)
-	}
-
-	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
-	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
-	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
-
-	gli.DisableVertexAttribArray(sr.vertex)
-}
-
-func (cv *Canvas) DrawImage(img *Image, coords ...float32) {
-	var sx, sy, sw, sh, dx, dy, dw, dh float32
-	sw, sh = float32(img.w), float32(img.h)
-	dw, dh = float32(img.w), float32(img.h)
-	if len(coords) == 2 {
-		dx, dy = coords[0], coords[1]
-	} else if len(coords) == 4 {
-		dx, dy = coords[0], coords[1]
-		dw, dh = coords[2], coords[3]
-	} else if len(coords) == 8 {
-		sx, sy = coords[0], coords[1]
-		sw, sh = coords[2], coords[3]
-		dx, dy = coords[4], coords[5]
-		dw, dh = coords[6], coords[7]
-	}
-
-	dx0, dy0 := cv.ptToGL(dx, dy)
-	dx1, dy1 := cv.ptToGL(dx+dw, dy+dh)
-	sx /= float32(img.w)
-	sy /= float32(img.h)
-	sw /= float32(img.w)
-	sh /= float32(img.h)
-
-	cv.activate()
-
-	gli.UseProgram(tr.id)
-
-	gli.ActiveTexture(gl_TEXTURE0)
-	gli.BindTexture(gl_TEXTURE_2D, img.tex)
-	gli.Uniform1i(tr.image, 0)
-
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	data := [16]float32{dx0, dy0, dx0, dy1, dx1, dy1, dx1, dy0,
-		sx, sy, sx, sy + sh, sx + sw, sy + sh, sx + sw, sy}
-	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
-
-	gli.VertexAttribPointer(tr.vertex, 2, gl_FLOAT, false, 0, nil)
-	gli.VertexAttribPointer(tr.texCoord, 2, gl_FLOAT, false, 0, gli.PtrOffset(8*4))
-	gli.EnableVertexAttribArray(tr.vertex)
-	gli.EnableVertexAttribArray(tr.texCoord)
-	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
-	gli.DisableVertexAttribArray(tr.vertex)
-	gli.DisableVertexAttribArray(tr.texCoord)
 }
