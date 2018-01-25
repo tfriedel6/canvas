@@ -1,8 +1,10 @@
 package canvas
 
 import (
+	"math"
 	"unsafe"
 
+	"github.com/barnex/fmath"
 	"github.com/tfriedel6/lm"
 )
 
@@ -19,6 +21,30 @@ func (cv *Canvas) MoveTo(x, y float32) {
 
 func (cv *Canvas) LineTo(x, y float32) {
 	cv.path = append(cv.path, pathPoint{pos: lm.Vec2{x, y}, move: false})
+}
+
+func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float32, anticlockwise bool) {
+	step := 6 / radius
+	startAngle = fmath.Mod(startAngle, math.Pi*2)
+	if startAngle < 0 {
+		startAngle += math.Pi * 2
+	}
+	endAngle = fmath.Mod(endAngle, math.Pi*2)
+	if endAngle < 0 {
+		endAngle += math.Pi * 2
+	}
+	if !anticlockwise && endAngle <= startAngle {
+		endAngle += math.Pi * 2
+	} else if anticlockwise && startAngle <= endAngle {
+		startAngle += math.Pi * 2
+		startAngle, endAngle = endAngle, startAngle
+	}
+	for a := startAngle; a < endAngle; a += step {
+		s, c := fmath.Sincos(a)
+		cv.LineTo(x+radius*c, y+radius*s)
+	}
+	s, c := fmath.Sincos(endAngle)
+	cv.LineTo(x+radius*c, y+radius*s)
 }
 
 func (cv *Canvas) ClosePath() {
