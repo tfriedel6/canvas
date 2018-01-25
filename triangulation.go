@@ -1,7 +1,7 @@
 package canvas
 
 import (
-	"github.com/void6/lm"
+	"github.com/tfriedel6/lm"
 )
 
 func pointIsRightOfLine(a, b, p lm.Vec2) bool {

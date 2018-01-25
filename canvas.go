@@ -3,7 +3,7 @@ package canvas
 import (
 	"unsafe"
 
-	"github.com/void6/lm"
+	"github.com/tfriedel6/lm"
 )
 
 // Canvas represents an area on the viewport on which to draw
