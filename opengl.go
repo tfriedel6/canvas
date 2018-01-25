@@ -20,6 +20,7 @@ func glError() error {
 var (
 	buf uint32
 	sr  *solidShader
+	tr  *textureShader
 )
 
 func LoadGL(glimpl GL) (err error) {
@@ -28,6 +29,15 @@ func LoadGL(glimpl GL) (err error) {
 	gli.GetError() // clear error state
 
 	sr, err = loadSolidShader()
+	if err != nil {
+		return
+	}
+	err = glError()
+	if err != nil {
+		return
+	}
+
+	tr, err = loadTextureShader()
 	if err != nil {
 		return
 	}
@@ -60,4 +70,21 @@ precision mediump float;
 uniform vec4 color;
 void main() {
     gl_FragColor = color;
+}`
+
+var textureVS = `
+attribute vec2 vertex, texCoord;
+varying vec2 v_texCoord;
+void main() {
+	v_texCoord = texCoord;
+    gl_Position = vec4(vertex, 0.0, 1.0);
+}`
+var textureFS = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+varying vec2 v_texCoord;
+uniform sampler2D image;
+void main() {
+    gl_FragColor = texture2D(image, v_texCoord);
 }`

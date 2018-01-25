@@ -214,3 +214,48 @@ func (cv *Canvas) Fill() {
 
 	gli.DisableVertexAttribArray(sr.vertex)
 }
+
+func (cv *Canvas) DrawImage(img *Image, coords ...float32) {
+	var sx, sy, sw, sh, dx, dy, dw, dh float32
+	sw, sh = float32(img.w), float32(img.h)
+	dw, dh = float32(img.w), float32(img.h)
+	if len(coords) == 2 {
+		dx, dy = coords[0], coords[1]
+	} else if len(coords) == 4 {
+		dx, dy = coords[0], coords[1]
+		dw, dh = coords[2], coords[3]
+	} else if len(coords) == 8 {
+		sx, sy = coords[0], coords[1]
+		sw, sh = coords[2], coords[3]
+		dx, dy = coords[4], coords[5]
+		dw, dh = coords[6], coords[7]
+	}
+
+	dx0, dy0 := cv.ptToGL(dx, dy)
+	dx1, dy1 := cv.ptToGL(dx+dw, dy+dh)
+	sx /= float32(img.w)
+	sy /= float32(img.h)
+	sw /= float32(img.w)
+	sh /= float32(img.h)
+
+	cv.activate()
+
+	gli.UseProgram(tr.id)
+
+	gli.ActiveTexture(gl_TEXTURE0)
+	gli.BindTexture(gl_TEXTURE_2D, img.tex)
+	gli.Uniform1i(tr.image, 0)
+
+	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
+	data := [16]float32{dx0, dy0, dx0, dy1, dx1, dy1, dx1, dy0,
+		sx, sy, sx, sy + sh, sx + sw, sy + sh, sx + sw, sy}
+	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
+
+	gli.VertexAttribPointer(tr.vertex, 2, gl_FLOAT, false, 0, nil)
+	gli.VertexAttribPointer(tr.texCoord, 2, gl_FLOAT, false, 0, gli.PtrOffset(8*4))
+	gli.EnableVertexAttribArray(tr.vertex)
+	gli.EnableVertexAttribArray(tr.texCoord)
+	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
+	gli.DisableVertexAttribArray(tr.vertex)
+	gli.DisableVertexAttribArray(tr.texCoord)
+}
