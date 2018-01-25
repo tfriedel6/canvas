@@ -1,6 +1,7 @@
 package canvas
 
 import (
+	"image"
 	"unsafe"
 
 	"github.com/tfriedel6/lm"
@@ -20,6 +21,12 @@ type Canvas struct {
 		lineWidth  float32
 	}
 	path []pathPoint
+	text struct {
+		font   *Font
+		size   float32
+		target *image.RGBA
+		tex    uint32
+	}
 }
 
 type pathPoint struct {

@@ -7,13 +7,42 @@ import (
 	"strings"
 )
 
-func colorToGL(color color.Color) (r, g, b, a float32) {
+func colorGoToGL(color color.Color) (r, g, b, a float32) {
 	ir, ig, ib, ia := color.RGBA()
 	r = float32(ir) / 65535
 	g = float32(ig) / 65535
 	b = float32(ib) / 65535
 	a = float32(ia) / 65535
 	return
+}
+
+func colorGLToGo(r, g, b, a float32) color.Color {
+	if r < 0 {
+		r = 0
+	} else if r > 1 {
+		r = 1
+	}
+	if g < 0 {
+		g = 0
+	} else if g > 1 {
+		g = 1
+	}
+	if b < 0 {
+		b = 0
+	} else if b > 1 {
+		b = 1
+	}
+	if a < 0 {
+		a = 0
+	} else if a > 1 {
+		a = 1
+	}
+	return color.RGBA{
+		R: uint8(r * 255),
+		G: uint8(g * 255),
+		B: uint8(b * 255),
+		A: uint8(a * 255),
+	}
 }
 
 func parseHexRune(rn rune) (int, bool) {
@@ -93,7 +122,7 @@ func parseColor(value ...interface{}) (r, g, b, a float32, ok bool) {
 	if len(value) == 1 {
 		switch v := value[0].(type) {
 		case color.Color:
-			r, g, b, a = colorToGL(v)
+			r, g, b, a = colorGoToGL(v)
 			ok = true
 			return
 		case [3]float32:

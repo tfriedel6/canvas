@@ -43,6 +43,7 @@ func LoadImage(src interface{}) (*Image, error) {
 func loadImageRGBA(src *image.RGBA) (*Image, error) {
 	img := &Image{w: src.Bounds().Dx(), h: src.Bounds().Dy()}
 	gli.GenTextures(1, &img.tex)
+	gli.ActiveTexture(gl_TEXTURE0)
 	gli.BindTexture(gl_TEXTURE_2D, img.tex)
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MIN_FILTER, gl_LINEAR_MIPMAP_LINEAR)
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MAG_FILTER, gl_LINEAR)
@@ -75,6 +76,7 @@ func loadImageRGBA(src *image.RGBA) (*Image, error) {
 func loadImageGray(src *image.Gray) (*Image, error) {
 	img := &Image{w: src.Bounds().Dx(), h: src.Bounds().Dy()}
 	gli.GenTextures(1, &img.tex)
+	gli.ActiveTexture(gl_TEXTURE0)
 	gli.BindTexture(gl_TEXTURE_2D, img.tex)
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MIN_FILTER, gl_LINEAR_MIPMAP_LINEAR)
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MAG_FILTER, gl_LINEAR)
@@ -107,6 +109,7 @@ func loadImageGray(src *image.Gray) (*Image, error) {
 func loadImageConverted(src image.Image) (*Image, error) {
 	img := &Image{w: src.Bounds().Dx(), h: src.Bounds().Dy()}
 	gli.GenTextures(1, &img.tex)
+	gli.ActiveTexture(gl_TEXTURE0)
 	gli.BindTexture(gl_TEXTURE_2D, img.tex)
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MIN_FILTER, gl_LINEAR_MIPMAP_LINEAR)
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MAG_FILTER, gl_LINEAR)
