@@ -19,6 +19,7 @@ import (
 type Window struct {
 	Window    *sdl.Window
 	GLContext sdl.GLContext
+	fps       float32
 }
 
 func CreateCanvasWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
@@ -58,7 +59,7 @@ func CreateCanvasWindow(w, h int, title string) (*Window, *canvas.Canvas, error)
 		return nil, nil, fmt.Errorf("Error initializing GL: %v", err)
 	}
 
-	sdl.GL_SetSwapInterval(0)
+	sdl.GL_SetSwapInterval(1)
 	gl.Enable(gl.MULTISAMPLE)
 
 	err = canvas.LoadGL(goglimpl.GLImpl{})
@@ -80,7 +81,15 @@ func (wnd *Window) Destroy() {
 	wnd.Window.Destroy()
 }
 
+func (wnd *Window) FPS() float32 {
+	return wnd.fps
+}
+
 func (wnd *Window) MainLoop(drawFunc func()) {
+	var frameTimes [10]time.Time
+	frameIndex := 0
+	frameCount := 0
+
 	// main loop
 	for running := true; running; {
 		for {
@@ -108,6 +117,17 @@ func (wnd *Window) MainLoop(drawFunc func()) {
 		}
 
 		drawFunc()
+
+		now := time.Now()
+		frameTimes[frameIndex] = now
+		frameIndex++
+		frameIndex %= len(frameTimes)
+		if frameCount < len(frameTimes) {
+			frameCount++
+		} else {
+			diff := now.Sub(frameTimes[frameIndex]).Seconds()
+			wnd.fps = float32(frameCount-1) / float32(diff)
+		}
 
 		sdl.GL_SwapWindow(wnd.Window)
 	}
