@@ -87,12 +87,14 @@ func (cv *Canvas) FillText(str string, x, y float32) {
 	gli.Uniform1i(tr.image, 0)
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	x0 := float32(bounds.Min.X) / cv.fw
-	y0 := float32(bounds.Min.Y) / cv.fh
-	x1 := float32(bounds.Max.X) / cv.fw
-	y1 := float32(bounds.Max.Y) / cv.fh
-	data := [16]float32{x0*2 - 1, -y0*2 + 1, x0*2 - 1, -y1*2 + 1, x1*2 - 1, -y1*2 + 1, x1*2 - 1, -y0*2 + 1,
-		0, 1, 0, 1 - (y1 - y0), x1 - x0, 1 - (y1 - y0), x1 - x0, 1}
+	dx0, dy0 := cv.ptToGL(float32(bounds.Min.X), float32(bounds.Min.Y))
+	dx1, dy1 := cv.ptToGL(float32(bounds.Min.X), float32(bounds.Max.Y))
+	dx2, dy2 := cv.ptToGL(float32(bounds.Max.X), float32(bounds.Max.Y))
+	dx3, dy3 := cv.ptToGL(float32(bounds.Max.X), float32(bounds.Min.Y))
+	tw := float32(bounds.Max.X-bounds.Min.X) / cv.fw
+	th := float32(bounds.Max.Y-bounds.Min.Y) / cv.fh
+	data := [16]float32{dx0, dy0, dx1, dy1, dx2, dy2, dx3, dy3,
+		0, 1, 0, 1 - th, tw, 1 - th, tw, 1}
 	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
 	gli.VertexAttribPointer(tr.vertex, 2, gl_FLOAT, false, 0, nil)

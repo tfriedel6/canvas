@@ -159,7 +159,9 @@ func (cv *Canvas) DrawImage(img *Image, coords ...float32) {
 	}
 
 	dx0, dy0 := cv.ptToGL(dx, dy)
-	dx1, dy1 := cv.ptToGL(dx+dw, dy+dh)
+	dx1, dy1 := cv.ptToGL(dx, dy+dh)
+	dx2, dy2 := cv.ptToGL(dx+dw, dy+dh)
+	dx3, dy3 := cv.ptToGL(dx+dw, dy)
 	sx /= float32(img.w)
 	sy /= float32(img.h)
 	sw /= float32(img.w)
@@ -174,7 +176,7 @@ func (cv *Canvas) DrawImage(img *Image, coords ...float32) {
 	gli.Uniform1i(tr.image, 0)
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	data := [16]float32{dx0, dy0, dx0, dy1, dx1, dy1, dx1, dy0,
+	data := [16]float32{dx0, dy0, dx1, dy1, dx2, dy2, dx3, dy3,
 		sx, sy, sx, sy + sh, sx + sw, sy + sh, sx + sw, sy}
 	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 

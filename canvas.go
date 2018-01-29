@@ -63,13 +63,18 @@ func New(x, y, w, h int) *Canvas {
 		stateStack: make([]drawState, 0, 20),
 	}
 	cv.state.stroke.lineWidth = 1
+	cv.state.transform = lm.Mat3x3Identity()
 	return cv
 }
 
-func (cv *Canvas) xToGL(x float32) float32              { return x*2/cv.fw - 1 }
-func (cv *Canvas) yToGL(y float32) float32              { return -y*2/cv.fh + 1 }
-func (cv *Canvas) ptToGL(x, y float32) (fx, fy float32) { return x*2/cv.fw - 1, -y*2/cv.fh + 1 }
-func (cv *Canvas) vecToGL(v lm.Vec2) (fx, fy float32)   { return v[0]*2/cv.fw - 1, -v[1]*2/cv.fh + 1 }
+func (cv *Canvas) ptToGL(x, y float32) (fx, fy float32) {
+	return cv.vecToGL(lm.Vec2{x, y})
+}
+
+func (cv *Canvas) vecToGL(v lm.Vec2) (fx, fy float32) {
+	v, _ = v.MulMat3x3(cv.state.transform)
+	return v[0]*2/cv.fw - 1, -v[1]*2/cv.fh + 1
+}
 
 // Activate makes the canvas active and sets the viewport. Only needs
 // to be called if any other GL code changes the viewport
@@ -214,6 +219,18 @@ func (cv *Canvas) Restore() {
 	cv.stateStack = cv.stateStack[:l-1]
 }
 
+func (cv *Canvas) Scale(x, y float32) {
+	cv.state.transform = cv.state.transform.Mul(lm.Mat3x3Scale(lm.Vec2{x, y}))
+}
+
+func (cv *Canvas) Translate(x, y float32) {
+	cv.state.transform = cv.state.transform.Mul(lm.Mat3x3Translate(lm.Vec2{x, y}))
+}
+
+func (cv *Canvas) Rotate(angle float32) {
+	cv.state.transform = cv.state.transform.Mul(lm.Mat3x3Rotate(angle))
+}
+
 // FillRect fills a rectangle with the active color
 func (cv *Canvas) FillRect(x, y, w, h float32) {
 	cv.activate()
@@ -221,10 +238,12 @@ func (cv *Canvas) FillRect(x, y, w, h float32) {
 	gli.UseProgram(sr.id)
 
 	x0f, y0f := cv.ptToGL(x, y)
-	x1f, y1f := cv.ptToGL(x+w, y+h)
+	x1f, y1f := cv.ptToGL(x, y+h)
+	x2f, y2f := cv.ptToGL(x+w, y+h)
+	x3f, y3f := cv.ptToGL(x+w, y)
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	data := [8]float32{x0f, y0f, x0f, y1f, x1f, y1f, x1f, y0f}
+	data := [8]float32{x0f, y0f, x1f, y1f, x2f, y2f, x3f, y3f}
 	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
 	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
