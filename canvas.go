@@ -14,25 +14,41 @@ type Canvas struct {
 	x, y, w, h     int
 	fx, fy, fw, fh float32
 
-	fill struct {
+	path []pathPoint
+	text struct {
+		target *image.RGBA
+		tex    uint32
+	}
+
+	state      drawState
+	stateStack []drawState
+}
+
+type pathPoint struct {
+	pos  lm.Vec2
+	move bool
+}
+
+type drawState struct {
+	transform lm.Mat3x3
+	fill      struct {
 		r, g, b, a float32
 	}
 	stroke struct {
 		r, g, b, a float32
 		lineWidth  float32
 	}
-	path []pathPoint
-	text struct {
-		font   *Font
-		size   float32
-		target *image.RGBA
-		tex    uint32
-	}
-}
-
-type pathPoint struct {
-	pos  lm.Vec2
-	move bool
+	font     *Font
+	fontSize float32
+	/*
+		The current transformation matrix.
+		The current clipping region.
+		The current dash list.
+		The current values of the following attributes: strokeStyle, fillStyle, globalAlpha,
+			lineWidth, lineCap, lineJoin, miterLimit, lineDashOffset, shadowOffsetX,
+			shadowOffsetY, shadowBlur, shadowColor, globalCompositeOperation, font,
+			textAlign, textBaseline, direction, imageSmoothingEnabled
+	*/
 }
 
 // New creates a new canvas with the given viewport coordinates.
@@ -44,8 +60,9 @@ func New(x, y, w, h int) *Canvas {
 		x: x, y: y, w: w, h: h,
 		fx: float32(x), fy: float32(y),
 		fw: float32(w), fh: float32(h),
+		stateStack: make([]drawState, 0, 20),
 	}
-	cv.stroke.lineWidth = 1
+	cv.state.stroke.lineWidth = 1
 	return cv
 }
 
@@ -157,7 +174,8 @@ func glError() error {
 func (cv *Canvas) SetFillColor(value ...interface{}) {
 	r, g, b, a, ok := parseColor(value...)
 	if ok {
-		cv.fill.r, cv.fill.g, cv.fill.b, cv.fill.a = r, g, b, a
+		f := &cv.state.fill
+		f.r, f.g, f.b, f.a = r, g, b, a
 	}
 }
 
@@ -165,19 +183,35 @@ func (cv *Canvas) SetFillColor(value ...interface{}) {
 func (cv *Canvas) SetStrokeColor(value ...interface{}) {
 	r, g, b, a, ok := parseColor(value...)
 	if ok {
-		cv.stroke.r, cv.stroke.g, cv.stroke.b, cv.stroke.a = r, g, b, a
+		s := &cv.state.stroke
+		s.r, s.g, s.b, s.a = r, g, b, a
 	}
 }
 
 // SetLineWidth sets the line width for any line drawing calls
 func (cv *Canvas) SetLineWidth(width float32) {
-	cv.stroke.lineWidth = width
+	cv.state.stroke.lineWidth = width
 }
 
 // SetFont sets the font and font size
 func (cv *Canvas) SetFont(font *Font, size float32) {
-	cv.text.font = font
-	cv.text.size = size
+	cv.state.font = font
+	cv.state.fontSize = size
+}
+
+// Save saves the current draw state to a stack
+func (cv *Canvas) Save() {
+	cv.stateStack = append(cv.stateStack, cv.state)
+}
+
+// Restore restores the last draw state from the stack if available
+func (cv *Canvas) Restore() {
+	l := len(cv.stateStack)
+	if l <= 0 {
+		return
+	}
+	cv.state = cv.stateStack[l-1]
+	cv.stateStack = cv.stateStack[:l-1]
 }
 
 // FillRect fills a rectangle with the active color
@@ -194,7 +228,8 @@ func (cv *Canvas) FillRect(x, y, w, h float32) {
 	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
 	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
-	gli.Uniform4f(sr.color, cv.fill.r, cv.fill.g, cv.fill.b, cv.fill.a)
+	f := cv.state.fill
+	gli.Uniform4f(sr.color, f.r, f.g, f.b, f.a)
 	gli.EnableVertexAttribArray(sr.vertex)
 	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
 	gli.DisableVertexAttribArray(sr.vertex)

@@ -59,9 +59,10 @@ func (cv *Canvas) FillText(str string, x, y float32) {
 		gli.TexImage2D(gl_TEXTURE_2D, 0, gl_RGBA, int32(cv.w), int32(cv.h), 0, gl_RGBA, gl_UNSIGNED_BYTE, nil)
 	}
 
-	fontRenderingContext.setFont(cv.text.font.font)
-	fontRenderingContext.setFontSize(float64(cv.text.size))
-	fontRenderingContext.setSrc(image.NewUniform(colorGLToGo(cv.fill.r, cv.fill.g, cv.fill.b, cv.fill.a)))
+	fontRenderingContext.setFont(cv.state.font.font)
+	fontRenderingContext.setFontSize(float64(cv.state.fontSize))
+	f := cv.state.fill
+	fontRenderingContext.setSrc(image.NewUniform(colorGLToGo(f.r, f.g, f.b, f.a)))
 	fontRenderingContext.setDst(cv.text.target)
 	fontRenderingContext.setClip(cv.text.target.Bounds())
 	_, bounds, _ := fontRenderingContext.drawString(str, fixed.Point26_6{X: fixed.Int26_6(x*64 + 0.5), Y: fixed.Int26_6(y*64 + 0.5)})

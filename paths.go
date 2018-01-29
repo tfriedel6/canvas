@@ -69,7 +69,8 @@ func (cv *Canvas) Stroke() {
 	gli.Clear(gl_STENCIL_BUFFER_BIT)
 
 	gli.UseProgram(sr.id)
-	gli.Uniform4f(sr.color, cv.stroke.r, cv.stroke.g, cv.stroke.b, cv.stroke.a)
+	s := cv.state.stroke
+	gli.Uniform4f(sr.color, s.r, s.g, s.b, s.a)
 	gli.EnableVertexAttribArray(sr.vertex)
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
@@ -86,8 +87,8 @@ func (cv *Canvas) Stroke() {
 		p1 := p.pos
 
 		v1 := p1.Sub(p0).Norm()
-		v2 := lm.Vec2{v1[1], -v1[0]}.MulF(cv.stroke.lineWidth * 0.5)
-		v1 = v1.MulF(cv.stroke.lineWidth * 0.5)
+		v2 := lm.Vec2{v1[1], -v1[0]}.MulF(cv.state.stroke.lineWidth * 0.5)
+		v1 = v1.MulF(cv.state.stroke.lineWidth * 0.5)
 
 		x0f, y0f := cv.vecToGL(p0.Sub(v1).Add(v2))
 		x1f, y1f := cv.vecToGL(p1.Add(v1).Add(v2))
@@ -122,7 +123,8 @@ func (cv *Canvas) Fill() {
 	cv.activate()
 
 	gli.UseProgram(sr.id)
-	gli.Uniform4f(sr.color, cv.fill.r, cv.fill.g, cv.fill.b, cv.fill.a)
+	f := cv.state.fill
+	gli.Uniform4f(sr.color, f.r, f.g, f.b, f.a)
 	gli.EnableVertexAttribArray(sr.vertex)
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
