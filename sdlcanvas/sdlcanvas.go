@@ -10,10 +10,9 @@ import (
 	"time"
 
 	"github.com/go-gl/gl/v3.2-core/gl"
+	"github.com/tfriedel6/canvas"
+	"github.com/tfriedel6/canvas/goglimpl"
 	"github.com/veandco/go-sdl2/sdl"
-
-	"tests/canvas"
-	"tests/canvas/goglimpl"
 )
 
 type Window struct {
