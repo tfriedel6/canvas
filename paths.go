@@ -61,11 +61,10 @@ func (cv *Canvas) Stroke() {
 
 	cv.activate()
 
-	gli.Enable(gl_STENCIL_TEST)
 	gli.ColorMask(false, false, false, false)
 	gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_REPLACE)
-	gli.StencilMask(0xFF)
+	gli.StencilMask(0x01)
 	gli.Clear(gl_STENCIL_BUFFER_BIT)
 
 	gli.UseProgram(sr.id)
@@ -106,13 +105,16 @@ func (cv *Canvas) Stroke() {
 
 	gli.ColorMask(true, true, true, true)
 	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
-	gli.StencilMask(0)
+	gli.StencilMask(0xFF)
 
 	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 6)
 
 	gli.DisableVertexAttribArray(sr.vertex)
 
-	gli.Disable(gl_STENCIL_TEST)
+	gli.ColorMask(true, true, true, true)
+	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
+	gli.StencilMask(0xFF)
+	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
 }
 
 func (cv *Canvas) Fill() {
@@ -121,6 +123,44 @@ func (cv *Canvas) Fill() {
 	}
 
 	cv.activate()
+
+	gli.UseProgram(sr.id)
+	f := cv.state.fill
+	gli.Uniform4f(sr.color, f.r, f.g, f.b, f.a)
+	gli.EnableVertexAttribArray(sr.vertex)
+
+	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
+
+	var buf [1000]float32
+	tris := buf[:0]
+	tris = append(tris)
+
+	tris = triangulatePath(cv.path, tris)
+	total := len(tris)
+	for i := 0; i < total; i += 2 {
+		x, y := tris[i], tris[i+1]
+		tris[i], tris[i+1] = cv.ptToGL(x, y)
+	}
+
+	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
+	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
+	gli.DrawArrays(gl_TRIANGLES, 0, int32(len(tris)/2))
+
+	gli.DisableVertexAttribArray(sr.vertex)
+}
+
+func (cv *Canvas) Clip() {
+	if len(cv.path) < 3 {
+		return
+	}
+
+	cv.activate()
+
+	gli.ColorMask(false, false, false, false)
+	gli.StencilFunc(gl_ALWAYS, 2, 0xFF)
+	gli.StencilOp(gl_KEEP, gl_KEEP, gl_REPLACE)
+	gli.StencilMask(0x02)
+	gli.Clear(gl_STENCIL_BUFFER_BIT)
 
 	gli.UseProgram(sr.id)
 	f := cv.state.fill
@@ -142,7 +182,15 @@ func (cv *Canvas) Fill() {
 
 	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
 	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
+
+	gli.DrawArrays(gl_TRIANGLES, 0, 6)
+	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
 	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
 
 	gli.DisableVertexAttribArray(sr.vertex)
+
+	gli.ColorMask(true, true, true, true)
+	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
+	gli.StencilMask(0xFF)
+	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
 }
