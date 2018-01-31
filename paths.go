@@ -118,7 +118,16 @@ func (cv *Canvas) Stroke() {
 }
 
 func (cv *Canvas) Fill() {
-	if len(cv.path) < 3 {
+	lastMove := 0
+	for i, p := range cv.path {
+		if p.move {
+			lastMove = i
+		}
+	}
+
+	path := cv.path[lastMove:]
+
+	if len(path) < 3 {
 		return
 	}
 
@@ -135,7 +144,7 @@ func (cv *Canvas) Fill() {
 	tris := buf[:0]
 	tris = append(tris)
 
-	tris = triangulatePath(cv.path, tris)
+	tris = triangulatePath(path, tris)
 	total := len(tris)
 	for i := 0; i < total; i += 2 {
 		x, y := tris[i], tris[i+1]
