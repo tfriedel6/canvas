@@ -85,22 +85,48 @@ func (cv *Canvas) Stroke() {
 	tris := buf[:0]
 	tris = append(tris, -1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1)
 
+	start := true
 	var p0 lm.Vec2
 	for _, p := range cv.path {
 		if p.move {
 			p0 = p.pos
+			start = true
 			continue
 		}
 		p1 := p.pos
 
 		v0 := p1.Sub(p0).Norm()
 		v1 := lm.Vec2{v0[1], -v0[0]}.MulF(cv.state.stroke.lineWidth * 0.5)
-		//v0 = v0.MulF(cv.state.stroke.lineWidth * 0.5)
+		v0 = v0.MulF(cv.state.stroke.lineWidth * 0.5)
 
 		l0p0 := p0.Add(v1)
 		l0p1 := p1.Add(v1)
 		l0p2 := p0.Sub(v1)
 		l0p3 := p1.Sub(v1)
+
+		if start {
+			switch cv.state.lineEnd {
+			case Butt:
+				// no need to do anything
+			case Square:
+				l0p0 = l0p0.Sub(v0)
+				l0p2 = l0p2.Sub(v0)
+			case Round:
+				tris = cv.addCircleTris(p0, cv.state.stroke.lineWidth*0.5, tris)
+			}
+		}
+
+		if !p.attach {
+			switch cv.state.lineEnd {
+			case Butt:
+				// no need to do anything
+			case Square:
+				l0p1 = l0p1.Add(v0)
+				l0p3 = l0p3.Add(v0)
+			case Round:
+				tris = cv.addCircleTris(p1, cv.state.stroke.lineWidth*0.5, tris)
+			}
+		}
 
 		l0x0f, l0y0f := cv.vecToGL(l0p0)
 		l0x1f, l0y1f := cv.vecToGL(l0p1)
@@ -116,6 +142,7 @@ func (cv *Canvas) Stroke() {
 		}
 
 		p0 = p1
+		start = false
 	}
 
 	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
@@ -178,19 +205,21 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 lm.V
 			cxf, cyf, l0x1f, l0y1f, l1x1f, l1y1f,
 			cxf, cyf, l1x3f, l1y3f, l0x3f, l0y3f)
 	case Round:
-		cxf, cyf := cv.vecToGL(p1)
-
-		radius := cv.state.stroke.lineWidth * 0.5
-		step := 6 / radius
-		p0x, p0y := cv.vecToGL(lm.Vec2{p1[0], p1[1] + radius})
-		for angle := step; angle <= math.Pi*2+step; angle += 0.1 {
-			s, c := fmath.Sincos(angle)
-			p1x, p1y := cv.vecToGL(lm.Vec2{p1[0] + s*radius, p1[1] + c*radius})
-			tris = append(tris, cxf, cyf, p0x, p0y, p1x, p1y)
-			p0x, p0y = p1x, p1y
-		}
+		tris = cv.addCircleTris(p1, cv.state.stroke.lineWidth*0.5, tris)
 	}
 
+	return tris
+}
+
+func (cv *Canvas) addCircleTris(p lm.Vec2, radius float32, tris []float32) []float32 {
+	cxf, cyf := cv.vecToGL(p)
+	p0x, p0y := cv.vecToGL(lm.Vec2{p[0], p[1] + radius})
+	for angle := float32(0.1); angle <= math.Pi*2+0.1; angle += 0.1 {
+		s, c := fmath.Sincos(angle)
+		p1x, p1y := cv.vecToGL(lm.Vec2{p[0] + s*radius, p[1] + c*radius})
+		tris = append(tris, cxf, cyf, p0x, p0y, p1x, p1y)
+		p0x, p0y = p1x, p1y
+	}
 	return tris
 }
 

@@ -226,6 +226,11 @@ func (cv *Canvas) SetLineJoin(join lineJoin) {
 	cv.state.lineJoin = join
 }
 
+// SetLineEnd sets the style of line endings for rendering a path with Stroke
+func (cv *Canvas) SetLineEnd(end lineEnd) {
+	cv.state.lineEnd = end
+}
+
 // Save saves the current draw state to a stack
 func (cv *Canvas) Save() {
 	cv.stateStack = append(cv.stateStack, cv.state)
