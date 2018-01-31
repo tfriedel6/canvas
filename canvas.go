@@ -42,6 +42,8 @@ type drawState struct {
 	}
 	font     *Font
 	fontSize float32
+	lineJoin lineJoin
+	lineEnd  lineEnd
 	/*
 		The current transformation matrix.
 		The current clipping region.
@@ -52,6 +54,17 @@ type drawState struct {
 			textAlign, textBaseline, direction, imageSmoothingEnabled
 	*/
 }
+
+type lineJoin uint8
+type lineEnd uint8
+
+const (
+	Miter = iota
+	Bevel
+	Round
+	Square
+	Butt
+)
 
 // New creates a new canvas with the given viewport coordinates.
 // While all functions on the canvas use the top left point as
@@ -206,6 +219,11 @@ func (cv *Canvas) SetLineWidth(width float32) {
 func (cv *Canvas) SetFont(font *Font, size float32) {
 	cv.state.font = font
 	cv.state.fontSize = size
+}
+
+// SetLineJoin sets the style of line joints for rendering a path with Stroke
+func (cv *Canvas) SetLineJoin(join lineJoin) {
+	cv.state.lineJoin = join
 }
 
 // Save saves the current draw state to a stack

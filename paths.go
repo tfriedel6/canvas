@@ -30,7 +30,6 @@ func (cv *Canvas) LineTo(x, y float32) {
 }
 
 func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float32, anticlockwise bool) {
-	step := 6 / radius
 	startAngle = fmath.Mod(startAngle, math.Pi*2)
 	if startAngle < 0 {
 		startAngle += math.Pi * 2
@@ -45,7 +44,7 @@ func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float32, anticlockwise 
 		startAngle += math.Pi * 2
 		startAngle, endAngle = endAngle, startAngle
 	}
-	for a := startAngle; a < endAngle; a += step {
+	for a := startAngle; a < endAngle; a += 0.1 {
 		s, c := fmath.Sincos(a)
 		cv.LineTo(x+radius*c, y+radius*s)
 	}
@@ -112,40 +111,8 @@ func (cv *Canvas) Stroke() {
 			l0x0f, l0y0f, l0x1f, l0y1f, l0x3f, l0y3f,
 			l0x0f, l0y0f, l0x3f, l0y3f, l0x2f, l0y2f)
 
-		// miter joints
 		if p.attach {
-			p2 := p.next
-
-			v2 := p1.Sub(p2).Norm()
-			v3 := lm.Vec2{v2[1], -v2[0]}.MulF(cv.state.stroke.lineWidth * 0.5)
-			//v2 = v2.MulF(cv.state.stroke.lineWidth * 0.5)
-
-			l1p0 := p2.Sub(v3)
-			l1p1 := p1.Sub(v3)
-			l1p2 := p2.Add(v3)
-			l1p3 := p1.Add(v3)
-
-			l1x1f, l1y1f := cv.vecToGL(l1p1)
-			l1x3f, l1y3f := cv.vecToGL(l1p3)
-
-			ip0 := lineIntersection(l0p0, l0p1, l1p1, l1p0)
-			ip1 := lineIntersection(l0p2, l0p3, l1p3, l1p2)
-
-			ix0f, iy0f := cv.vecToGL(ip0)
-			ix1f, iy1f := cv.vecToGL(ip1)
-
-			tris = append(tris,
-				l0x1f, l0y1f, ix0f, iy0f, l1x1f, l1y1f,
-				l0x1f, l0y1f, l1x1f, l1y1f, l1x3f, l1y3f,
-				l0x1f, l0y1f, l1x3f, l1y3f, ix1f, iy1f,
-				l0x1f, l0y1f, ix1f, iy1f, l0x3f, l0y3f)
-
-			// todo this is an ugly hack...
-			tris = append(tris,
-				l0x1f, l0y1f, ix0f, iy0f, l1x1f, l1y1f,
-				l0x1f, l0y1f, l1x1f, l1y1f, l0x3f, l0y3f,
-				l0x1f, l0y1f, l0x3f, l0y3f, ix1f, iy1f,
-				l0x1f, l0y1f, ix1f, iy1f, l1x3f, l1y3f)
+			tris = cv.lineJoint(p, p0, p1, p.next, l0p0, l0p1, l0p2, l0p3, tris)
 		}
 
 		p0 = p1
@@ -167,6 +134,64 @@ func (cv *Canvas) Stroke() {
 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
 	gli.StencilMask(0xFF)
 	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
+}
+
+func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 lm.Vec2, tris []float32) []float32 {
+	v2 := p1.Sub(p2).Norm()
+	v3 := lm.Vec2{v2[1], -v2[0]}.MulF(cv.state.stroke.lineWidth * 0.5)
+
+	l0x1f, l0y1f := cv.vecToGL(l0p1)
+	l0x3f, l0y3f := cv.vecToGL(l0p3)
+
+	switch cv.state.lineJoin {
+	case Miter:
+		l1p0 := p2.Sub(v3)
+		l1p1 := p1.Sub(v3)
+		l1p2 := p2.Add(v3)
+		l1p3 := p1.Add(v3)
+
+		l1x1f, l1y1f := cv.vecToGL(l1p1)
+		l1x3f, l1y3f := cv.vecToGL(l1p3)
+
+		ip0 := lineIntersection(l0p0, l0p1, l1p1, l1p0)
+		ip1 := lineIntersection(l0p2, l0p3, l1p3, l1p2)
+
+		cxf, cyf := cv.vecToGL(p1)
+		ix0f, iy0f := cv.vecToGL(ip0)
+		ix1f, iy1f := cv.vecToGL(ip1)
+
+		tris = append(tris,
+			cxf, cyf, l0x1f, l0y1f, ix0f, iy0f,
+			cxf, cyf, ix0f, iy0f, l1x1f, l1y1f,
+			cxf, cyf, l1x3f, l1y3f, ix1f, iy1f,
+			cxf, cyf, ix1f, iy1f, l0x3f, l0y3f)
+	case Bevel:
+		l1p1 := p1.Sub(v3)
+		l1p3 := p1.Add(v3)
+
+		l1x1f, l1y1f := cv.vecToGL(l1p1)
+		l1x3f, l1y3f := cv.vecToGL(l1p3)
+
+		cxf, cyf := cv.vecToGL(p1)
+
+		tris = append(tris,
+			cxf, cyf, l0x1f, l0y1f, l1x1f, l1y1f,
+			cxf, cyf, l1x3f, l1y3f, l0x3f, l0y3f)
+	case Round:
+		cxf, cyf := cv.vecToGL(p1)
+
+		radius := cv.state.stroke.lineWidth * 0.5
+		step := 6 / radius
+		p0x, p0y := cv.vecToGL(lm.Vec2{p1[0], p1[1] + radius})
+		for angle := step; angle <= math.Pi*2+step; angle += 0.1 {
+			s, c := fmath.Sincos(angle)
+			p1x, p1y := cv.vecToGL(lm.Vec2{p1[0] + s*radius, p1[1] + c*radius})
+			tris = append(tris, cxf, cyf, p0x, p0y, p1x, p1y)
+			p0x, p0y = p1x, p1y
+		}
+	}
+
+	return tris
 }
 
 func lineIntersection(a0, a1, b0, b1 lm.Vec2) lm.Vec2 {
