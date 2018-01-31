@@ -25,8 +25,10 @@ type Canvas struct {
 }
 
 type pathPoint struct {
-	pos  lm.Vec2
-	move bool
+	pos    lm.Vec2
+	move   bool
+	next   lm.Vec2
+	attach bool
 }
 
 type drawState struct {
