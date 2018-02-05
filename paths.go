@@ -122,7 +122,6 @@ func (cv *Canvas) Stroke() {
 	gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_REPLACE)
 	gli.StencilMask(0x01)
-	gli.Clear(gl_STENCIL_BUFFER_BIT)
 
 	gli.UseProgram(sr.id)
 	s := cv.state.stroke
@@ -209,8 +208,11 @@ func (cv *Canvas) Stroke() {
 
 	gli.ColorMask(true, true, true, true)
 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
-	gli.StencilMask(0xFF)
 	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
+
+	gli.StencilMask(0x01)
+	gli.Clear(gl_STENCIL_BUFFER_BIT)
+	gli.StencilMask(0xFF)
 }
 
 func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 lm.Vec2, tris []float32) []float32 {
