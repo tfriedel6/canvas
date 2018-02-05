@@ -334,6 +334,10 @@ func (cv *Canvas) Clip() {
 		return
 	}
 
+	cv.clip(cv.polyPath)
+}
+
+func (cv *Canvas) clip(path []pathPoint) {
 	cv.activate()
 
 	gli.ColorMask(false, false, false, false)
@@ -353,7 +357,7 @@ func (cv *Canvas) Clip() {
 	tris := buf[:0]
 	tris = append(tris, -1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1)
 
-	tris = triangulatePath(cv.polyPath, tris)
+	tris = triangulatePath(path, tris)
 	total := len(tris)
 	for i := 12; i < total; i += 2 {
 		x, y := tris[i], tris[i+1]
@@ -373,4 +377,7 @@ func (cv *Canvas) Clip() {
 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
 	gli.StencilMask(0xFF)
 	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
+
+	cv.state.clip = make([]pathPoint, len(cv.polyPath))
+	copy(cv.state.clip, cv.polyPath)
 }

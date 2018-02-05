@@ -49,6 +49,8 @@ type drawState struct {
 	lineDash       []float32
 	lineDashPoint  int
 	lineDashOffset float32
+
+	clip []pathPoint
 	/*
 		The current transformation matrix.
 		The current clipping region.
@@ -264,8 +266,16 @@ func (cv *Canvas) Restore() {
 	if l <= 0 {
 		return
 	}
+	hadClip := len(cv.state.clip) > 0
 	cv.state = cv.stateStack[l-1]
 	cv.stateStack = cv.stateStack[:l-1]
+	if len(cv.state.clip) > 0 {
+		cv.clip(cv.state.clip)
+	} else if hadClip {
+		gli.StencilMask(0x02)
+		gli.Clear(gl_STENCIL_BUFFER_BIT)
+		gli.StencilMask(0xFF)
+	}
 }
 
 func (cv *Canvas) Scale(x, y float32) {
