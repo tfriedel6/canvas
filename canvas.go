@@ -14,8 +14,9 @@ type Canvas struct {
 	x, y, w, h     int
 	fx, fy, fw, fh float32
 
-	path []pathPoint
-	text struct {
+	polyPath []pathPoint
+	linePath []pathPoint
+	text     struct {
 		target *image.RGBA
 		tex    uint32
 	}
@@ -44,6 +45,10 @@ type drawState struct {
 	fontSize float32
 	lineJoin lineJoin
 	lineEnd  lineEnd
+
+	lineDash       []float32
+	lineDashPoint  int
+	lineDashOffset float32
 	/*
 		The current transformation matrix.
 		The current clipping region.
@@ -229,6 +234,23 @@ func (cv *Canvas) SetLineJoin(join lineJoin) {
 // SetLineEnd sets the style of line endings for rendering a path with Stroke
 func (cv *Canvas) SetLineEnd(end lineEnd) {
 	cv.state.lineEnd = end
+}
+
+// SetLineDash sets the line dash style
+func (cv *Canvas) SetLineDash(dash []float32) {
+	l := len(dash)
+	if l%2 == 0 {
+		d2 := make([]float32, l)
+		copy(d2, dash)
+		cv.state.lineDash = d2
+	} else {
+		d2 := make([]float32, l*2)
+		copy(d2[:l], dash)
+		copy(d2[l:], dash)
+		cv.state.lineDash = d2
+	}
+	cv.state.lineDashPoint = 0
+	cv.state.lineDashOffset = 0
 }
 
 // Save saves the current draw state to a stack

@@ -9,24 +9,67 @@ import (
 )
 
 func (cv *Canvas) BeginPath() {
-	if cv.path == nil {
-		cv.path = make([]pathPoint, 0, 100)
+	if cv.linePath == nil {
+		cv.linePath = make([]pathPoint, 0, 100)
 	}
-	cv.path = cv.path[:0]
+	if cv.polyPath == nil {
+		cv.polyPath = make([]pathPoint, 0, 100)
+	}
+	cv.linePath = cv.linePath[:0]
+	cv.polyPath = cv.polyPath[:0]
 }
 
 func (cv *Canvas) MoveTo(x, y float32) {
-	cv.path = append(cv.path, pathPoint{pos: lm.Vec2{x, y}, move: true})
+	cv.linePath = append(cv.linePath, pathPoint{pos: lm.Vec2{x, y}, move: true})
+	cv.polyPath = append(cv.polyPath, pathPoint{pos: lm.Vec2{x, y}, move: true})
 }
 
 func (cv *Canvas) LineTo(x, y float32) {
-	if len(cv.path) == 0 {
+	if len(cv.linePath) == 0 {
 		cv.MoveTo(x, y)
 		return
 	}
-	cv.path[len(cv.path)-1].next = lm.Vec2{x, y}
-	cv.path[len(cv.path)-1].attach = true
-	cv.path = append(cv.path, pathPoint{pos: lm.Vec2{x, y}, move: false})
+	if len(cv.state.lineDash) > 0 {
+		lp := cv.linePath[len(cv.linePath)-1].pos
+		tp := lm.Vec2{x, y}
+		v := tp.Sub(lp)
+		vl := v.Len()
+		prev := cv.state.lineDashOffset
+		for vl > 0 {
+			draw := cv.state.lineDashPoint%2 == 0
+			p := tp
+			cv.state.lineDashOffset += vl
+			if cv.state.lineDashOffset > cv.state.lineDash[cv.state.lineDashPoint] {
+				cv.state.lineDashOffset = 0
+				dl := cv.state.lineDash[cv.state.lineDashPoint] - prev
+				p = lp.Add(v.MulF(dl / vl))
+				vl -= dl
+				cv.state.lineDashPoint++
+				cv.state.lineDashPoint %= len(cv.state.lineDash)
+				prev = 0
+			} else {
+				vl = 0
+			}
+
+			if draw {
+				cv.linePath[len(cv.linePath)-1].next = p
+				cv.linePath[len(cv.linePath)-1].attach = true
+				cv.linePath = append(cv.linePath, pathPoint{pos: p, move: false})
+			} else {
+				cv.linePath = append(cv.linePath, pathPoint{pos: p, move: true})
+			}
+
+			lp = p
+			v = tp.Sub(lp)
+		}
+	} else {
+		cv.linePath[len(cv.linePath)-1].next = lm.Vec2{x, y}
+		cv.linePath[len(cv.linePath)-1].attach = true
+		cv.linePath = append(cv.linePath, pathPoint{pos: lm.Vec2{x, y}, move: false})
+	}
+	cv.polyPath[len(cv.polyPath)-1].next = lm.Vec2{x, y}
+	cv.polyPath[len(cv.polyPath)-1].attach = true
+	cv.polyPath = append(cv.polyPath, pathPoint{pos: lm.Vec2{x, y}, move: false})
 }
 
 func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float32, anticlockwise bool) {
@@ -53,16 +96,23 @@ func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float32, anticlockwise 
 }
 
 func (cv *Canvas) ClosePath() {
-	if len(cv.path) < 2 {
+	if len(cv.linePath) < 2 {
 		return
 	}
-	cv.path[len(cv.path)-1].next = cv.path[0].pos
-	cv.path[len(cv.path)-1].attach = true
-	cv.path = append(cv.path, pathPoint{pos: cv.path[0].pos, move: false, next: cv.path[1].pos, attach: true})
+	if len(cv.state.lineDash) > 0 {
+		cv.LineTo(cv.linePath[0].pos[0], cv.linePath[0].pos[1])
+		return
+	}
+	cv.linePath[len(cv.linePath)-1].next = cv.linePath[0].pos
+	cv.linePath[len(cv.linePath)-1].attach = true
+	cv.linePath = append(cv.linePath, pathPoint{pos: cv.linePath[0].pos, move: false, next: cv.linePath[1].pos, attach: true})
+	cv.polyPath[len(cv.polyPath)-1].next = cv.polyPath[0].pos
+	cv.polyPath[len(cv.polyPath)-1].attach = true
+	cv.polyPath = append(cv.polyPath, pathPoint{pos: cv.polyPath[0].pos, move: false, next: cv.polyPath[1].pos, attach: true})
 }
 
 func (cv *Canvas) Stroke() {
-	if len(cv.path) == 0 {
+	if len(cv.linePath) == 0 {
 		return
 	}
 
@@ -87,7 +137,7 @@ func (cv *Canvas) Stroke() {
 
 	start := true
 	var p0 lm.Vec2
-	for _, p := range cv.path {
+	for _, p := range cv.linePath {
 		if p.move {
 			p0 = p.pos
 			start = true
@@ -238,13 +288,13 @@ func lineIntersection(a0, a1, b0, b1 lm.Vec2) lm.Vec2 {
 
 func (cv *Canvas) Fill() {
 	lastMove := 0
-	for i, p := range cv.path {
+	for i, p := range cv.polyPath {
 		if p.move {
 			lastMove = i
 		}
 	}
 
-	path := cv.path[lastMove:]
+	path := cv.polyPath[lastMove:]
 
 	if len(path) < 3 {
 		return
@@ -278,7 +328,7 @@ func (cv *Canvas) Fill() {
 }
 
 func (cv *Canvas) Clip() {
-	if len(cv.path) < 3 {
+	if len(cv.polyPath) < 3 {
 		return
 	}
 
@@ -301,7 +351,7 @@ func (cv *Canvas) Clip() {
 	tris := buf[:0]
 	tris = append(tris, -1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1)
 
-	tris = triangulatePath(cv.path, tris)
+	tris = triangulatePath(cv.polyPath, tris)
 	total := len(tris)
 	for i := 12; i < total; i += 2 {
 		x, y := tris[i], tris[i+1]
