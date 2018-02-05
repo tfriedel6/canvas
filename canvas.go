@@ -280,6 +280,14 @@ func (cv *Canvas) Rotate(angle float32) {
 	cv.state.transform = cv.state.transform.Mul(lm.Mat3x3Rotate(angle))
 }
 
+func (cv *Canvas) Transform(a, b, c, d, e, f float32) {
+	cv.state.transform = cv.state.transform.Mul(lm.Mat3x3{a, b, 0, c, d, 0, e, f, 1})
+}
+
+func (cv *Canvas) SetTransform(a, b, c, d, e, f float32) {
+	cv.state.transform = lm.Mat3x3{a, b, 0, c, d, 0, e, f, 1}
+}
+
 // FillRect fills a rectangle with the active color
 func (cv *Canvas) FillRect(x, y, w, h float32) {
 	cv.activate()
