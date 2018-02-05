@@ -20,8 +20,9 @@ func (cv *Canvas) BeginPath() {
 }
 
 func (cv *Canvas) MoveTo(x, y float32) {
-	cv.linePath = append(cv.linePath, pathPoint{pos: lm.Vec2{x, y}, move: true})
-	cv.polyPath = append(cv.polyPath, pathPoint{pos: lm.Vec2{x, y}, move: true})
+	tf := cv.tf(lm.Vec2{x, y})
+	cv.linePath = append(cv.linePath, pathPoint{pos: lm.Vec2{x, y}, tf: tf, move: true})
+	cv.polyPath = append(cv.polyPath, pathPoint{pos: lm.Vec2{x, y}, tf: tf, move: true})
 }
 
 func (cv *Canvas) LineTo(x, y float32) {
@@ -52,24 +53,26 @@ func (cv *Canvas) LineTo(x, y float32) {
 			}
 
 			if draw {
-				cv.linePath[len(cv.linePath)-1].next = p
+				cv.linePath[len(cv.linePath)-1].next = cv.tf(p)
 				cv.linePath[len(cv.linePath)-1].attach = true
-				cv.linePath = append(cv.linePath, pathPoint{pos: p, move: false})
+				cv.linePath = append(cv.linePath, pathPoint{pos: p, tf: cv.tf(p), move: false})
 			} else {
-				cv.linePath = append(cv.linePath, pathPoint{pos: p, move: true})
+				cv.linePath = append(cv.linePath, pathPoint{pos: p, tf: cv.tf(p), move: true})
 			}
 
 			lp = p
 			v = tp.Sub(lp)
 		}
 	} else {
-		cv.linePath[len(cv.linePath)-1].next = lm.Vec2{x, y}
+		tf := cv.tf(lm.Vec2{x, y})
+		cv.linePath[len(cv.linePath)-1].next = tf
 		cv.linePath[len(cv.linePath)-1].attach = true
-		cv.linePath = append(cv.linePath, pathPoint{pos: lm.Vec2{x, y}, move: false})
+		cv.linePath = append(cv.linePath, pathPoint{pos: lm.Vec2{x, y}, tf: tf, move: false})
 	}
-	cv.polyPath[len(cv.polyPath)-1].next = lm.Vec2{x, y}
+	tf := cv.tf(lm.Vec2{x, y})
+	cv.polyPath[len(cv.polyPath)-1].next = tf
 	cv.polyPath[len(cv.polyPath)-1].attach = true
-	cv.polyPath = append(cv.polyPath, pathPoint{pos: lm.Vec2{x, y}, move: false})
+	cv.polyPath = append(cv.polyPath, pathPoint{pos: lm.Vec2{x, y}, tf: tf, move: false})
 }
 
 func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float32, anticlockwise bool) {
@@ -105,10 +108,10 @@ func (cv *Canvas) ClosePath() {
 	}
 	cv.linePath[len(cv.linePath)-1].next = cv.linePath[0].pos
 	cv.linePath[len(cv.linePath)-1].attach = true
-	cv.linePath = append(cv.linePath, pathPoint{pos: cv.linePath[0].pos, move: false, next: cv.linePath[1].pos, attach: true})
+	cv.linePath = append(cv.linePath, pathPoint{pos: cv.linePath[0].pos, move: false, tf: cv.linePath[0].tf, next: cv.linePath[1].pos, attach: true})
 	cv.polyPath[len(cv.polyPath)-1].next = cv.polyPath[0].pos
 	cv.polyPath[len(cv.polyPath)-1].attach = true
-	cv.polyPath = append(cv.polyPath, pathPoint{pos: cv.polyPath[0].pos, move: false, next: cv.polyPath[1].pos, attach: true})
+	cv.polyPath = append(cv.polyPath, pathPoint{pos: cv.polyPath[0].pos, move: false, tf: cv.linePath[0].tf, next: cv.polyPath[1].pos, attach: true})
 }
 
 func (cv *Canvas) Stroke() {
@@ -138,11 +141,11 @@ func (cv *Canvas) Stroke() {
 	var p0 lm.Vec2
 	for _, p := range cv.linePath {
 		if p.move {
-			p0 = p.pos
+			p0 = p.tf
 			start = true
 			continue
 		}
-		p1 := p.pos
+		p1 := p.tf
 
 		v0 := p1.Sub(p0).Norm()
 		v1 := lm.Vec2{v0[1], -v0[0]}.MulF(cv.state.stroke.lineWidth * 0.5)

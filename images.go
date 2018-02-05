@@ -158,10 +158,10 @@ func (cv *Canvas) DrawImage(img *Image, coords ...float32) {
 		dw, dh = coords[6], coords[7]
 	}
 
-	dx0, dy0 := cv.ptToGL(dx, dy)
-	dx1, dy1 := cv.ptToGL(dx, dy+dh)
-	dx2, dy2 := cv.ptToGL(dx+dw, dy+dh)
-	dx3, dy3 := cv.ptToGL(dx+dw, dy)
+	dx0, dy0 := cv.tfToGL(dx, dy)
+	dx1, dy1 := cv.tfToGL(dx, dy+dh)
+	dx2, dy2 := cv.tfToGL(dx+dw, dy+dh)
+	dx3, dy3 := cv.tfToGL(dx+dw, dy)
 	sx /= float32(img.w)
 	sy /= float32(img.h)
 	sw /= float32(img.w)

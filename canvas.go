@@ -27,6 +27,7 @@ type Canvas struct {
 
 type pathPoint struct {
 	pos    lm.Vec2
+	tf     lm.Vec2
 	move   bool
 	next   lm.Vec2
 	attach bool
@@ -94,7 +95,16 @@ func (cv *Canvas) ptToGL(x, y float32) (fx, fy float32) {
 }
 
 func (cv *Canvas) vecToGL(v lm.Vec2) (fx, fy float32) {
+	return v[0]*2/cv.fw - 1, -v[1]*2/cv.fh + 1
+}
+
+func (cv *Canvas) tf(v lm.Vec2) lm.Vec2 {
 	v, _ = v.MulMat3x3(cv.state.transform)
+	return v
+}
+
+func (cv *Canvas) tfToGL(x, y float32) (fx, fy float32) {
+	v := cv.tf(lm.Vec2{x, y})
 	return v[0]*2/cv.fw - 1, -v[1]*2/cv.fh + 1
 }
 
@@ -304,10 +314,10 @@ func (cv *Canvas) FillRect(x, y, w, h float32) {
 
 	gli.UseProgram(sr.id)
 
-	x0f, y0f := cv.ptToGL(x, y)
-	x1f, y1f := cv.ptToGL(x, y+h)
-	x2f, y2f := cv.ptToGL(x+w, y+h)
-	x3f, y3f := cv.ptToGL(x+w, y)
+	x0f, y0f := cv.tfToGL(x, y)
+	x1f, y1f := cv.tfToGL(x, y+h)
+	x2f, y2f := cv.tfToGL(x+w, y+h)
+	x3f, y3f := cv.tfToGL(x+w, y)
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 	data := [8]float32{x0f, y0f, x1f, y1f, x2f, y2f, x3f, y3f}

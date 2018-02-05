@@ -65,7 +65,7 @@ func triangulatePath(path []pathPoint, target []float32) []float32 {
 	var buf [500]lm.Vec2
 	polygon := buf[:0]
 	for _, p := range path {
-		polygon = append(polygon, p.pos)
+		polygon = append(polygon, p.tf)
 	}
 
 	for len(polygon) > 2 {
