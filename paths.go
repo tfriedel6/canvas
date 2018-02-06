@@ -90,7 +90,12 @@ func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float32, anticlockwise 
 		startAngle += math.Pi * 2
 		startAngle, endAngle = endAngle, startAngle
 	}
-	for a := startAngle; a < endAngle; a += 0.1 {
+	tr := cv.tf(lm.Vec2{radius, radius})
+	step := 6 / fmath.Max(tr[0], tr[1])
+	if step > 0.8 {
+		step = 0.8
+	}
+	for a := startAngle; a < endAngle; a += step {
 		s, c := fmath.Sincos(a)
 		cv.LineTo(x+radius*c, y+radius*s)
 	}
@@ -269,7 +274,11 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 lm.V
 func (cv *Canvas) addCircleTris(p lm.Vec2, radius float32, tris []float32) []float32 {
 	cxf, cyf := cv.vecToGL(p)
 	p0x, p0y := cv.vecToGL(lm.Vec2{p[0], p[1] + radius})
-	for angle := float32(0.1); angle <= math.Pi*2+0.1; angle += 0.1 {
+	step := 6 / radius
+	if step > 0. {
+		step = 0.8
+	}
+	for angle := step; angle <= math.Pi*2+step; angle += step {
 		s, c := fmath.Sincos(angle)
 		p1x, p1y := cv.vecToGL(lm.Vec2{p[0] + s*radius, p[1] + c*radius})
 		tris = append(tris, cxf, cyf, p0x, p0y, p1x, p1y)
