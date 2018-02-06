@@ -95,9 +95,16 @@ func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float32, anticlockwise 
 	if step > 0.8 {
 		step = 0.8
 	}
-	for a := startAngle; a < endAngle; a += step {
-		s, c := fmath.Sincos(a)
-		cv.LineTo(x+radius*c, y+radius*s)
+	if anticlockwise {
+		for a := startAngle; a > endAngle; a -= step {
+			s, c := fmath.Sincos(a)
+			cv.LineTo(x+radius*c, y+radius*s)
+		}
+	} else {
+		for a := startAngle; a < endAngle; a += step {
+			s, c := fmath.Sincos(a)
+			cv.LineTo(x+radius*c, y+radius*s)
+		}
 	}
 	s, c := fmath.Sincos(endAngle)
 	cv.LineTo(x+radius*c, y+radius*s)
