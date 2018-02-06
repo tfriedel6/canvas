@@ -110,6 +110,31 @@ func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float32, anticlockwise 
 	cv.LineTo(x+radius*c, y+radius*s)
 }
 
+func (cv *Canvas) ArcTo(x1, y1, x2, y2, radius float32) {
+	if len(cv.linePath) == 0 {
+		return
+	}
+	p0, p1, p2 := cv.linePath[len(cv.linePath)-1].pos, lm.Vec2{x1, y1}, lm.Vec2{x2, y2}
+	v0, v1 := p0.Sub(p1).Norm(), p2.Sub(p1).Norm()
+	angle := fmath.Acos(v0.Dot(v1))
+	// should be in the range [0-pi]. if parallel, use a straight line
+	if angle <= 0 || angle >= math.Pi {
+		cv.LineTo(x2, y2)
+		return
+	}
+	// cv are the vectors orthogonal to the lines that point to the center of the circle
+	cv0 := lm.Vec2{-v0[1], v0[0]}
+	cv1 := lm.Vec2{v1[1], -v1[0]}
+	x := cv1.Sub(cv0).Div(v0.Sub(v1))[0] * radius
+	if x < 0 {
+		cv0 = cv0.MulF(-1)
+		cv1 = cv1.MulF(-1)
+	}
+	center := p1.Add(v0.MulF(fmath.Abs(x))).Add(cv0.MulF(radius))
+	a0, a1 := cv0.MulF(-1).Atan2(), cv1.MulF(-1).Atan2()
+	cv.Arc(center[0], center[1], radius, a0, a1, x > 0)
+}
+
 func (cv *Canvas) ClosePath() {
 	if len(cv.linePath) < 2 {
 		return
