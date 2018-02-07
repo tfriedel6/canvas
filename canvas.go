@@ -36,7 +36,8 @@ type pathPoint struct {
 type drawState struct {
 	transform lm.Mat3x3
 	fill      struct {
-		color glColor
+		color          glColor
+		linearGradient *LinearGradient
 	}
 	stroke struct {
 		color     glColor
@@ -137,6 +138,7 @@ var (
 	buf    uint32
 	sr     *solidShader
 	tr     *textureShader
+	lgr    *linearGradientShader
 	glChan = make(chan func())
 )
 
@@ -155,6 +157,15 @@ func LoadGL(glimpl GL) (err error) {
 	}
 
 	tr, err = loadTextureShader()
+	if err != nil {
+		return
+	}
+	err = glError()
+	if err != nil {
+		return
+	}
+
+	lgr, err = loadLinearGradientShader()
 	if err != nil {
 		return
 	}
@@ -211,6 +222,30 @@ void main() {
     gl_FragColor = texture2D(image, v_texCoord);
 }`
 
+var linearGradientVS = `
+attribute vec2 vertex;
+uniform vec2 canvasSize;
+varying vec2 v_cp;
+void main() {
+	v_cp = vertex;
+	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
+    gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
+}`
+var linearGradientFS = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+varying vec2 v_cp;
+uniform sampler1D gradient;
+uniform vec2 from, dir;
+uniform float length;
+void main() {
+	vec2 v = v_cp - from;
+	float r = dot(v, dir) / length;
+	r = clamp(r, 0.0, 1.0);
+    gl_FragColor = texture1D(gradient, r);
+}`
+
 func glError() error {
 	glErr := gli.GetError()
 	if glErr != gl_NO_ERROR {
@@ -219,8 +254,17 @@ func glError() error {
 	return nil
 }
 
-// SetFillColor sets the color for any fill calls
-func (cv *Canvas) SetFillColor(value ...interface{}) {
+// SetFillStyle sets the color or gradient for any fill calls
+func (cv *Canvas) SetFillStyle(value ...interface{}) {
+	cv.state.fill.color = glColor{}
+	cv.state.fill.linearGradient = nil
+	if len(value) == 1 {
+		switch v := value[0].(type) {
+		case *LinearGradient:
+			cv.state.fill.linearGradient = v
+			return
+		}
+	}
 	c, ok := parseColor(value...)
 	if ok {
 		cv.state.fill.color = c
@@ -316,25 +360,56 @@ func (cv *Canvas) SetTransform(a, b, c, d, e, f float32) {
 	cv.state.transform = lm.Mat3x3{a, b, 0, c, d, 0, e, f, 1}
 }
 
-// FillRect fills a rectangle with the active color
+// FillRect fills a rectangle with the active fill style
 func (cv *Canvas) FillRect(x, y, w, h float32) {
 	cv.activate()
 
-	gli.UseProgram(sr.id)
+	if lg := cv.state.fill.linearGradient; lg != nil {
+		p0 := cv.tf(lm.Vec2{x, y})
+		p1 := cv.tf(lm.Vec2{x, y + h})
+		p2 := cv.tf(lm.Vec2{x + w, y + h})
+		p3 := cv.tf(lm.Vec2{x + w, y})
 
-	x0f, y0f := cv.tfToGL(x, y)
-	x1f, y1f := cv.tfToGL(x, y+h)
-	x2f, y2f := cv.tfToGL(x+w, y+h)
-	x3f, y3f := cv.tfToGL(x+w, y)
+		gli.BindBuffer(gl_ARRAY_BUFFER, buf)
+		data := [8]float32{p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]}
+		gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	data := [8]float32{x0f, y0f, x1f, y1f, x2f, y2f, x3f, y3f}
-	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
+		lg.load()
+		gli.UseProgram(lgr.id)
+		gli.VertexAttribPointer(lgr.vertex, 2, gl_FLOAT, false, 0, nil)
+		gli.ActiveTexture(gl_TEXTURE0)
+		gli.BindTexture(gl_TEXTURE_1D, lg.tex)
 
-	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
-	c := cv.state.fill.color
-	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
-	gli.EnableVertexAttribArray(sr.vertex)
-	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
-	gli.DisableVertexAttribArray(sr.vertex)
+		gli.Uniform2f(lgr.canvasSize, cv.fw, cv.fh)
+		from := cv.tf(lg.from)
+		to := cv.tf(lg.to)
+		dir := to.Sub(from)
+		length := dir.Len()
+		dir = dir.DivF(length)
+		gli.Uniform2f(lgr.from, from[0], from[1])
+		gli.Uniform2f(lgr.dir, dir[0], dir[1])
+		gli.Uniform1f(lgr.length, length)
+
+		gli.Uniform1i(lgr.gradient, 0)
+		gli.EnableVertexAttribArray(lgr.vertex)
+		gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
+		gli.DisableVertexAttribArray(lgr.vertex)
+	} else {
+		x0f, y0f := cv.tfToGL(x, y)
+		x1f, y1f := cv.tfToGL(x, y+h)
+		x2f, y2f := cv.tfToGL(x+w, y+h)
+		x3f, y3f := cv.tfToGL(x+w, y)
+
+		gli.BindBuffer(gl_ARRAY_BUFFER, buf)
+		data := [8]float32{x0f, y0f, x1f, y1f, x2f, y2f, x3f, y3f}
+		gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
+
+		gli.UseProgram(sr.id)
+		gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
+		c := cv.state.fill.color
+		gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
+		gli.EnableVertexAttribArray(lgr.vertex)
+		gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
+		gli.DisableVertexAttribArray(lgr.vertex)
+	}
 }
