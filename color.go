@@ -196,7 +196,7 @@ func parseColor(value ...interface{}) (c glColor, ok bool) {
 					if !ok {
 						return
 					}
-					if len(str) == 4 {
+					if len(str) == 8 {
 						ia, ok = parseHexRunePair(rune(str[6]), rune(str[7]))
 						if !ok {
 							return
