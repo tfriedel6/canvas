@@ -7,41 +7,46 @@ import (
 	"strings"
 )
 
-func colorGoToGL(color color.Color) (r, g, b, a float32) {
-	ir, ig, ib, ia := color.RGBA()
-	r = float32(ir) / 65535
-	g = float32(ig) / 65535
-	b = float32(ib) / 65535
-	a = float32(ia) / 65535
-	return
+type glColor struct {
+	r, g, b, a float32
 }
 
-func colorGLToGo(r, g, b, a float32) color.Color {
-	if r < 0 {
-		r = 0
-	} else if r > 1 {
-		r = 1
+func colorGoToGL(color color.Color) glColor {
+	ir, ig, ib, ia := color.RGBA()
+	var c glColor
+	c.r = float32(ir) / 65535
+	c.g = float32(ig) / 65535
+	c.b = float32(ib) / 65535
+	c.a = float32(ia) / 65535
+	return c
+}
+
+func colorGLToGo(c glColor) color.Color {
+	if c.r < 0 {
+		c.r = 0
+	} else if c.r > 1 {
+		c.r = 1
 	}
-	if g < 0 {
-		g = 0
-	} else if g > 1 {
-		g = 1
+	if c.g < 0 {
+		c.g = 0
+	} else if c.g > 1 {
+		c.g = 1
 	}
-	if b < 0 {
-		b = 0
-	} else if b > 1 {
-		b = 1
+	if c.b < 0 {
+		c.b = 0
+	} else if c.b > 1 {
+		c.b = 1
 	}
-	if a < 0 {
-		a = 0
-	} else if a > 1 {
-		a = 1
+	if c.a < 0 {
+		c.a = 0
+	} else if c.a > 1 {
+		c.a = 1
 	}
 	return color.RGBA{
-		R: uint8(r * 255),
-		G: uint8(g * 255),
-		B: uint8(b * 255),
-		A: uint8(a * 255),
+		R: uint8(c.r * 255),
+		G: uint8(c.g * 255),
+		B: uint8(c.b * 255),
+		A: uint8(c.a * 255),
 	}
 }
 
@@ -117,34 +122,33 @@ func parseColorComponent(value interface{}) (float32, bool) {
 	return 0, false
 }
 
-func parseColor(value ...interface{}) (r, g, b, a float32, ok bool) {
-	a = 1
+func parseColor(value ...interface{}) (c glColor, ok bool) {
 	if len(value) == 1 {
 		switch v := value[0].(type) {
 		case color.Color:
-			r, g, b, a = colorGoToGL(v)
+			c = colorGoToGL(v)
 			ok = true
 			return
 		case [3]float32:
-			return v[0], v[1], v[2], 1, true
+			return glColor{r: v[0], g: v[1], b: v[2], a: 1}, true
 		case [4]float32:
-			return v[0], v[1], v[2], v[3], true
+			return glColor{r: v[0], g: v[1], b: v[2], a: v[3]}, true
 		case [3]float64:
-			return float32(v[0]), float32(v[1]), float32(v[2]), 1, true
+			return glColor{r: float32(v[0]), g: float32(v[1]), b: float32(v[2]), a: 1}, true
 		case [4]float64:
-			return float32(v[0]), float32(v[1]), float32(v[2]), float32(v[3]), true
+			return glColor{r: float32(v[0]), g: float32(v[1]), b: float32(v[2]), a: float32(v[3])}, true
 		case [3]int:
-			return float32(v[0]) / 255, float32(v[1]) / 255, float32(v[2]) / 255, 1, true
+			return glColor{r: float32(v[0]) / 255, g: float32(v[1]) / 255, b: float32(v[2]) / 255, a: 1}, true
 		case [4]int:
-			return float32(v[0]) / 255, float32(v[1]) / 255, float32(v[2]) / 255, float32(v[3]) / 255, true
+			return glColor{r: float32(v[0]) / 255, g: float32(v[1]) / 255, b: float32(v[2]) / 255, a: float32(v[3]) / 255}, true
 		case [3]uint:
-			return float32(v[0]) / 255, float32(v[1]) / 255, float32(v[2]) / 255, 1, true
+			return glColor{r: float32(v[0]) / 255, g: float32(v[1]) / 255, b: float32(v[2]) / 255, a: 1}, true
 		case [4]uint:
-			return float32(v[0]) / 255, float32(v[1]) / 255, float32(v[2]) / 255, float32(v[3]) / 255, true
+			return glColor{r: float32(v[0]) / 255, g: float32(v[1]) / 255, b: float32(v[2]) / 255, a: float32(v[3]) / 255}, true
 		case [3]uint8:
-			return float32(v[0]) / 255, float32(v[1]) / 255, float32(v[2]) / 255, 1, true
+			return glColor{r: float32(v[0]) / 255, g: float32(v[1]) / 255, b: float32(v[2]) / 255, a: 1}, true
 		case [4]uint8:
-			return float32(v[0]) / 255, float32(v[1]) / 255, float32(v[2]) / 255, float32(v[3]) / 255, true
+			return glColor{r: float32(v[0]) / 255, g: float32(v[1]) / 255, b: float32(v[2]) / 255, a: float32(v[3]) / 255}, true
 		case string:
 			if len(v) == 0 {
 				return
@@ -176,7 +180,7 @@ func parseColor(value ...interface{}) (r, g, b, a float32, ok bool) {
 						}
 						ia = ia*16 + ia
 					}
-					return float32(ir) / 255, float32(ig) / 255, float32(ib) / 255, float32(ia) / 255, true
+					return glColor{r: float32(ir) / 255, g: float32(ig) / 255, b: float32(ib) / 255, a: float32(ia) / 255}, true
 				} else if len(str) == 6 || len(str) == 8 {
 					var ir, ig, ib int
 					ia := 255
@@ -198,7 +202,7 @@ func parseColor(value ...interface{}) (r, g, b, a float32, ok bool) {
 							return
 						}
 					}
-					return float32(ir) / 255, float32(ig) / 255, float32(ib) / 255, float32(ia) / 255, true
+					return glColor{r: float32(ir) / 255, g: float32(ig) / 255, b: float32(ib) / 255, a: float32(ia) / 255}, true
 				} else {
 					return
 				}
@@ -207,11 +211,11 @@ func parseColor(value ...interface{}) (r, g, b, a float32, ok bool) {
 				var ir, ig, ib, ia int
 				n, err := fmt.Sscanf(v, "rgb(%d,%d,%d)", &ir, &ig, &ib)
 				if err == nil && n == 3 {
-					return float32(ir) / 255, float32(ig) / 255, float32(ib) / 255, 1, true
+					return glColor{r: float32(ir) / 255, g: float32(ig) / 255, b: float32(ib) / 255, a: 1}, true
 				}
 				n, err = fmt.Sscanf(v, "rgba(%d,%d,%d,%d)", &ir, &ig, &ib, &ia)
 				if err == nil && n == 4 {
-					return float32(ir) / 255, float32(ig) / 255, float32(ib) / 255, float32(ia) / 255, true
+					return glColor{r: float32(ir) / 255, g: float32(ig) / 255, b: float32(ib) / 255, a: float32(ia) / 255}, true
 				}
 			}
 		}
@@ -237,8 +241,8 @@ func parseColor(value ...interface{}) (r, g, b, a float32, ok bool) {
 		} else {
 			pa = 1
 		}
-		return pr, pg, pb, pa, true
+		return glColor{r: pr, g: pg, b: pb, a: pa}, true
 	}
 
-	return 0, 0, 0, 1, false
+	return glColor{r: 0, g: 0, b: 0, a: 1}, false
 }

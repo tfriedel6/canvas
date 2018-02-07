@@ -61,8 +61,7 @@ func (cv *Canvas) FillText(str string, x, y float32) {
 
 	fontRenderingContext.setFont(cv.state.font.font)
 	fontRenderingContext.setFontSize(float64(cv.state.fontSize))
-	f := cv.state.fill
-	fontRenderingContext.setSrc(image.NewUniform(colorGLToGo(f.r, f.g, f.b, f.a)))
+	fontRenderingContext.setSrc(image.NewUniform(colorGLToGo(cv.state.fill.color)))
 	fontRenderingContext.setDst(cv.text.target)
 	fontRenderingContext.setClip(cv.text.target.Bounds())
 	_, bounds, _ := fontRenderingContext.drawString(str, fixed.Point26_6{X: fixed.Int26_6(x*64 + 0.5), Y: fixed.Int26_6(y*64 + 0.5)})

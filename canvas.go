@@ -36,11 +36,11 @@ type pathPoint struct {
 type drawState struct {
 	transform lm.Mat3x3
 	fill      struct {
-		r, g, b, a float32
+		color glColor
 	}
 	stroke struct {
-		r, g, b, a float32
-		lineWidth  float32
+		color     glColor
+		lineWidth float32
 	}
 	font     *Font
 	fontSize float32
@@ -221,19 +221,17 @@ func glError() error {
 
 // SetFillColor sets the color for any fill calls
 func (cv *Canvas) SetFillColor(value ...interface{}) {
-	r, g, b, a, ok := parseColor(value...)
+	c, ok := parseColor(value...)
 	if ok {
-		f := &cv.state.fill
-		f.r, f.g, f.b, f.a = r, g, b, a
+		cv.state.fill.color = c
 	}
 }
 
 // SetStrokeColor sets the color for any line drawing calls
 func (cv *Canvas) SetStrokeColor(value ...interface{}) {
-	r, g, b, a, ok := parseColor(value...)
+	c, ok := parseColor(value...)
 	if ok {
-		s := &cv.state.stroke
-		s.r, s.g, s.b, s.a = r, g, b, a
+		cv.state.stroke.color = c
 	}
 }
 
@@ -334,8 +332,8 @@ func (cv *Canvas) FillRect(x, y, w, h float32) {
 	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
 	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
-	f := cv.state.fill
-	gli.Uniform4f(sr.color, f.r, f.g, f.b, f.a)
+	c := cv.state.fill.color
+	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
 	gli.EnableVertexAttribArray(sr.vertex)
 	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
 	gli.DisableVertexAttribArray(sr.vertex)

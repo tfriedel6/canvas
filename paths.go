@@ -166,8 +166,8 @@ func (cv *Canvas) Stroke() {
 	gli.StencilMask(0x01)
 
 	gli.UseProgram(sr.id)
-	s := cv.state.stroke
-	gli.Uniform4f(sr.color, s.r, s.g, s.b, s.a)
+	c := cv.state.stroke.color
+	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
 	gli.EnableVertexAttribArray(sr.vertex)
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
@@ -353,8 +353,8 @@ func (cv *Canvas) Fill() {
 	cv.activate()
 
 	gli.UseProgram(sr.id)
-	f := cv.state.fill
-	gli.Uniform4f(sr.color, f.r, f.g, f.b, f.a)
+	c := cv.state.fill.color
+	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
 	gli.EnableVertexAttribArray(sr.vertex)
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
@@ -395,8 +395,8 @@ func (cv *Canvas) clip(path []pathPoint) {
 	gli.Clear(gl_STENCIL_BUFFER_BIT)
 
 	gli.UseProgram(sr.id)
-	f := cv.state.fill
-	gli.Uniform4f(sr.color, f.r, f.g, f.b, f.a)
+	c := cv.state.fill.color
+	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
 	gli.EnableVertexAttribArray(sr.vertex)
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
