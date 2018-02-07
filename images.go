@@ -5,40 +5,60 @@ import (
 	"errors"
 	"image"
 	"io/ioutil"
+	"runtime"
 	"unsafe"
 )
 
 type Image struct {
-	w, h int
-	tex  uint32
+	w, h    int
+	tex     uint32
+	deleted bool
 }
 
 func LoadImage(src interface{}) (*Image, error) {
+	var img *Image
+	var err error
 	switch v := src.(type) {
 	case *image.RGBA:
-		return loadImageRGBA(v)
+		img, err = loadImageRGBA(v)
+		if err != nil {
+			return nil, err
+		}
 	case *image.Gray:
-		return loadImageGray(v)
+		img, err = loadImageGray(v)
+		if err != nil {
+			return nil, err
+		}
 	case image.Image:
-		return loadImageConverted(v)
+		img, err = loadImageConverted(v)
+		if err != nil {
+			return nil, err
+		}
 	case string:
 		data, err := ioutil.ReadFile(v)
 		if err != nil {
 			return nil, err
 		}
-		img, _, err := image.Decode(bytes.NewReader(data))
+		srcImg, _, err := image.Decode(bytes.NewReader(data))
 		if err != nil {
 			return nil, err
 		}
-		return LoadImage(img)
+		return LoadImage(srcImg)
 	case []byte:
-		img, _, err := image.Decode(bytes.NewReader(v))
+		srcImg, _, err := image.Decode(bytes.NewReader(v))
 		if err != nil {
 			return nil, err
 		}
-		return LoadImage(img)
+		return LoadImage(srcImg)
+	default:
+		return nil, errors.New("Unsupported source type")
 	}
-	return nil, errors.New("Unsupported source type")
+	runtime.SetFinalizer(img, func(img *Image) {
+		glChan <- func() {
+			gli.DeleteTextures(1, &img.tex)
+		}
+	})
+	return img, nil
 }
 
 func loadImageRGBA(src *image.RGBA) (*Image, error) {
@@ -142,7 +162,16 @@ func (img *Image) W() int           { return img.w }
 func (img *Image) H() int           { return img.h }
 func (img *Image) Size() (int, int) { return img.w, img.h }
 
+func (img *Image) Delete() {
+	gli.DeleteTextures(1, &img.tex)
+	img.deleted = true
+}
+
 func (cv *Canvas) DrawImage(img *Image, coords ...float32) {
+	if img.deleted {
+		return
+	}
+
 	var sx, sy, sw, sh, dx, dy, dw, dh float32
 	sw, sh = float32(img.w), float32(img.h)
 	dw, dh = float32(img.w), float32(img.h)

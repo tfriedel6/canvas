@@ -121,13 +121,23 @@ func (cv *Canvas) activate() {
 		activeCanvas = cv
 		cv.Activate()
 	}
+loop:
+	for {
+		select {
+		case f := <-glChan:
+			f()
+		default:
+			break loop
+		}
+	}
 }
 
 var (
-	gli GL
-	buf uint32
-	sr  *solidShader
-	tr  *textureShader
+	gli    GL
+	buf    uint32
+	sr     *solidShader
+	tr     *textureShader
+	glChan = make(chan func())
 )
 
 func LoadGL(glimpl GL) (err error) {
