@@ -37,6 +37,7 @@ type drawState struct {
 	transform lm.Mat3x3
 	fill      struct {
 		color          glColor
+		radialGradient *RadialGradient
 		linearGradient *LinearGradient
 	}
 	stroke struct {
@@ -126,6 +127,7 @@ var (
 	sr     *solidShader
 	tr     *textureShader
 	lgr    *linearGradientShader
+	rgr    *radialGradientShader
 	glChan = make(chan func())
 )
 
@@ -153,6 +155,15 @@ func LoadGL(glimpl GL) (err error) {
 	}
 
 	lgr, err = loadLinearGradientShader()
+	if err != nil {
+		return
+	}
+	err = glError()
+	if err != nil {
+		return
+	}
+
+	rgr, err = loadRadialGradientShader()
 	if err != nil {
 		return
 	}
@@ -212,7 +223,6 @@ uniform sampler2D image;
 void main() {
     gl_FragColor = texture2D(image, v_texCoord);
 }`
-
 var linearGradientVS = `
 attribute vec2 vertex;
 uniform vec2 canvasSize;
@@ -229,10 +239,34 @@ precision mediump float;
 varying vec2 v_cp;
 uniform sampler1D gradient;
 uniform vec2 from, dir;
-uniform float length;
+uniform float len;
 void main() {
 	vec2 v = v_cp - from;
-	float r = dot(v, dir) / length;
+	float r = dot(v, dir) / len;
+	r = clamp(r, 0.0, 1.0);
+    gl_FragColor = texture1D(gradient, r);
+}`
+var radialGradientVS = `
+attribute vec2 vertex;
+uniform vec2 canvasSize;
+varying vec2 v_cp;
+void main() {
+	v_cp = vertex;
+	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
+    gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
+}`
+var radialGradientFS = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+varying vec2 v_cp;
+uniform sampler1D gradient;
+uniform vec2 from, dir;
+uniform float len;
+void main() {
+	vec2 v0 = v_cp - from;
+	//vec2 v1 = v_cp - (from + dir);
+	float r = length(v0) / len;
 	r = clamp(r, 0.0, 1.0);
     gl_FragColor = texture1D(gradient, r);
 }`
@@ -249,10 +283,14 @@ func glError() error {
 func (cv *Canvas) SetFillStyle(value ...interface{}) {
 	cv.state.fill.color = glColor{}
 	cv.state.fill.linearGradient = nil
+	cv.state.fill.radialGradient = nil
 	if len(value) == 1 {
 		switch v := value[0].(type) {
 		case *LinearGradient:
 			cv.state.fill.linearGradient = v
+			return
+		case *RadialGradient:
+			cv.state.fill.radialGradient = v
 			return
 		}
 	}
@@ -378,11 +416,30 @@ func (cv *Canvas) FillRect(x, y, w, h float32) {
 		dir = dir.DivF(length)
 		gli.Uniform2f(lgr.from, from[0], from[1])
 		gli.Uniform2f(lgr.dir, dir[0], dir[1])
-		gli.Uniform1f(lgr.length, length)
+		gli.Uniform1f(lgr.len, length)
 		gli.Uniform1i(lgr.gradient, 0)
 		gli.EnableVertexAttribArray(lgr.vertex)
 		gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
 		gli.DisableVertexAttribArray(lgr.vertex)
+	} else if rg := cv.state.fill.radialGradient; rg != nil {
+		rg.load()
+		gli.UseProgram(rgr.id)
+		gli.VertexAttribPointer(rgr.vertex, 2, gl_FLOAT, false, 0, nil)
+		gli.ActiveTexture(gl_TEXTURE0)
+		gli.BindTexture(gl_TEXTURE_1D, rg.tex)
+		gli.Uniform2f(rgr.canvasSize, cv.fw, cv.fh)
+		from := cv.tf(rg.from)
+		to := cv.tf(rg.to)
+		dir := to.Sub(from)
+		length := dir.Len()
+		dir = dir.DivF(length)
+		gli.Uniform2f(rgr.from, from[0], from[1])
+		gli.Uniform2f(rgr.dir, dir[0], dir[1])
+		gli.Uniform1f(rgr.len, length)
+		gli.Uniform1i(rgr.gradient, 0)
+		gli.EnableVertexAttribArray(rgr.vertex)
+		gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
+		gli.DisableVertexAttribArray(rgr.vertex)
 	} else {
 		gli.UseProgram(sr.id)
 		gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
