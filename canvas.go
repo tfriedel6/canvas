@@ -261,14 +261,29 @@ precision mediump float;
 #endif
 varying vec2 v_cp;
 uniform sampler1D gradient;
-uniform vec2 from, dir;
+uniform vec2 from, to, dir;
+uniform float radFrom, radTo;
 uniform float len;
+bool isNaN(float v) {
+  return v < 0.0 || 0.0 < v || v == 0.0 ? false : true;
+}
 void main() {
-	vec2 v0 = v_cp - from;
-	//vec2 v1 = v_cp - (from + dir);
-	float r = length(v0) / len;
-	r = clamp(r, 0.0, 1.0);
-    gl_FragColor = texture1D(gradient, r);
+	float o_a = 0.5 * sqrt(
+		pow(-2.0*from.x*from.x+2.0*from.x*to.x+2.0*from.x*v_cp.x-2.0*to.x*v_cp.x-2.0*from.y*from.y+2.0*from.y*to.y+2.0*from.y*v_cp.y-2.0*to.y*v_cp.y+2.0*radFrom*radFrom-2.0*radFrom*radTo, 2.0)
+		-4.0*(from.x*from.x-2.0*from.x*v_cp.x+v_cp.x*v_cp.x+from.y*from.y-2.0*from.y*v_cp.y+v_cp.y*v_cp.y-radFrom*radFrom)
+		*(from.x*from.x-2.0*from.x*to.x+to.x*to.x+from.y*from.y-2.0*from.y*to.y+to.y*to.y-radFrom*radFrom+2.0*radFrom*radTo-radTo*radTo)
+	);
+	float o_b = (from.x*from.x-from.x*to.x-from.x*v_cp.x+to.x*v_cp.x+from.y*from.y-from.y*to.y-from.y*v_cp.y+to.y*v_cp.y-radFrom*radFrom+radFrom*radTo);
+	float o_c = (from.x*from.x-2.0*from.x*to.x+to.x*to.x+from.y*from.y-2.0*from.y*to.y+to.y*to.y-radFrom*radFrom+2.0*radFrom*radTo-radTo*radTo);
+	float o1 = (-o_a + o_b) / o_c;
+	float o2 = (o_a + o_b) / o_c;
+	if (isNaN(o1) && isNaN(o2)) {
+		gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+		return;
+	}
+	float o = max(o1, o2);
+	float r = radFrom + o * (radTo - radFrom);
+	gl_FragColor = texture1D(gradient, o);
 }`
 
 func glError() error {
@@ -434,7 +449,10 @@ func (cv *Canvas) FillRect(x, y, w, h float32) {
 		length := dir.Len()
 		dir = dir.DivF(length)
 		gli.Uniform2f(rgr.from, from[0], from[1])
+		gli.Uniform2f(rgr.to, to[0], to[1])
 		gli.Uniform2f(rgr.dir, dir[0], dir[1])
+		gli.Uniform1f(rgr.radFrom, rg.radFrom)
+		gli.Uniform1f(rgr.radTo, rg.radTo)
 		gli.Uniform1f(rgr.len, length)
 		gli.Uniform1i(rgr.gradient, 0)
 		gli.EnableVertexAttribArray(rgr.vertex)
