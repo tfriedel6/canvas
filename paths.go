@@ -86,9 +86,8 @@ func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float32, anticlockwise 
 	}
 	if !anticlockwise && endAngle <= startAngle {
 		endAngle += math.Pi * 2
-	} else if anticlockwise && startAngle <= endAngle {
-		startAngle += math.Pi * 2
-		startAngle, endAngle = endAngle, startAngle
+	} else if anticlockwise && endAngle >= startAngle {
+		endAngle -= math.Pi * 2
 	}
 	tr := cv.tf(lm.Vec2{radius, radius})
 	step := 6 / fmath.Max(tr[0], tr[1])
@@ -165,16 +164,11 @@ func (cv *Canvas) Stroke() {
 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_REPLACE)
 	gli.StencilMask(0x01)
 
-	gli.UseProgram(sr.id)
-	c := cv.state.stroke.color
-	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
-	gli.EnableVertexAttribArray(sr.vertex)
-
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 
 	var buf [1000]float32
 	tris := buf[:0]
-	tris = append(tris, -1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1)
+	tris = append(tris, 0, 0, cv.fw, 0, cv.fw, cv.fh, 0, 0, cv.fw, cv.fh, 0, cv.fh)
 
 	start := true
 	var p0 lm.Vec2
@@ -190,18 +184,18 @@ func (cv *Canvas) Stroke() {
 		v1 := lm.Vec2{v0[1], -v0[0]}.MulF(cv.state.stroke.lineWidth * 0.5)
 		v0 = v0.MulF(cv.state.stroke.lineWidth * 0.5)
 
-		l0p0 := p0.Add(v1)
-		l0p1 := p1.Add(v1)
-		l0p2 := p0.Sub(v1)
-		l0p3 := p1.Sub(v1)
+		lp0 := p0.Add(v1)
+		lp1 := p1.Add(v1)
+		lp2 := p0.Sub(v1)
+		lp3 := p1.Sub(v1)
 
 		if start {
 			switch cv.state.lineEnd {
 			case Butt:
 				// no need to do anything
 			case Square:
-				l0p0 = l0p0.Sub(v0)
-				l0p2 = l0p2.Sub(v0)
+				lp0 = lp0.Sub(v0)
+				lp2 = lp2.Sub(v0)
 			case Round:
 				tris = cv.addCircleTris(p0, cv.state.stroke.lineWidth*0.5, tris)
 			}
@@ -212,24 +206,19 @@ func (cv *Canvas) Stroke() {
 			case Butt:
 				// no need to do anything
 			case Square:
-				l0p1 = l0p1.Add(v0)
-				l0p3 = l0p3.Add(v0)
+				lp1 = lp1.Add(v0)
+				lp3 = lp3.Add(v0)
 			case Round:
 				tris = cv.addCircleTris(p1, cv.state.stroke.lineWidth*0.5, tris)
 			}
 		}
 
-		l0x0f, l0y0f := cv.vecToGL(l0p0)
-		l0x1f, l0y1f := cv.vecToGL(l0p1)
-		l0x2f, l0y2f := cv.vecToGL(l0p2)
-		l0x3f, l0y3f := cv.vecToGL(l0p3)
-
 		tris = append(tris,
-			l0x0f, l0y0f, l0x1f, l0y1f, l0x3f, l0y3f,
-			l0x0f, l0y0f, l0x3f, l0y3f, l0x2f, l0y2f)
+			lp0[0], lp0[1], lp1[0], lp1[1], lp3[0], lp3[1],
+			lp0[0], lp0[1], lp3[0], lp3[1], lp2[0], lp2[1])
 
 		if p.attach {
-			tris = cv.lineJoint(p, p0, p1, p.next, l0p0, l0p1, l0p2, l0p3, tris)
+			tris = cv.lineJoint(p, p0, p1, p.next, lp0, lp1, lp2, lp3, tris)
 		}
 
 		p0 = p1
@@ -237,10 +226,20 @@ func (cv *Canvas) Stroke() {
 	}
 
 	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
+
+	gli.UseProgram(sr.id)
+	c := cv.state.stroke.color
+	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
+	gli.Uniform2f(sr.canvasSize, cv.fw, cv.fh)
+
+	gli.ColorMask(false, false, false, false)
+
+	gli.EnableVertexAttribArray(sr.vertex)
 	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
 	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
 
 	gli.ColorMask(true, true, true, true)
+
 	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
 	gli.StencilMask(0xFF)
 
@@ -248,7 +247,6 @@ func (cv *Canvas) Stroke() {
 
 	gli.DisableVertexAttribArray(sr.vertex)
 
-	gli.ColorMask(true, true, true, true)
 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
 	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
 
@@ -261,9 +259,6 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 lm.V
 	v2 := p1.Sub(p2).Norm()
 	v3 := lm.Vec2{v2[1], -v2[0]}.MulF(cv.state.stroke.lineWidth * 0.5)
 
-	l0x1f, l0y1f := cv.vecToGL(l0p1)
-	l0x3f, l0y3f := cv.vecToGL(l0p3)
-
 	switch cv.state.lineJoin {
 	case Miter:
 		l1p0 := p2.Sub(v3)
@@ -271,33 +266,21 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 lm.V
 		l1p2 := p2.Add(v3)
 		l1p3 := p1.Add(v3)
 
-		l1x1f, l1y1f := cv.vecToGL(l1p1)
-		l1x3f, l1y3f := cv.vecToGL(l1p3)
-
 		ip0 := lineIntersection(l0p0, l0p1, l1p1, l1p0)
 		ip1 := lineIntersection(l0p2, l0p3, l1p3, l1p2)
 
-		cxf, cyf := cv.vecToGL(p1)
-		ix0f, iy0f := cv.vecToGL(ip0)
-		ix1f, iy1f := cv.vecToGL(ip1)
-
 		tris = append(tris,
-			cxf, cyf, l0x1f, l0y1f, ix0f, iy0f,
-			cxf, cyf, ix0f, iy0f, l1x1f, l1y1f,
-			cxf, cyf, l1x3f, l1y3f, ix1f, iy1f,
-			cxf, cyf, ix1f, iy1f, l0x3f, l0y3f)
+			p1[0], p1[1], l0p1[0], l0p1[1], ip0[0], ip0[1],
+			p1[0], p1[1], ip0[0], ip0[1], l1p1[0], l1p1[1],
+			p1[0], p1[1], l1p3[0], l1p3[1], ip1[0], ip1[1],
+			p1[0], p1[1], ip1[0], ip1[1], l0p3[0], l0p3[1])
 	case Bevel:
 		l1p1 := p1.Sub(v3)
 		l1p3 := p1.Add(v3)
 
-		l1x1f, l1y1f := cv.vecToGL(l1p1)
-		l1x3f, l1y3f := cv.vecToGL(l1p3)
-
-		cxf, cyf := cv.vecToGL(p1)
-
 		tris = append(tris,
-			cxf, cyf, l0x1f, l0y1f, l1x1f, l1y1f,
-			cxf, cyf, l1x3f, l1y3f, l0x3f, l0y3f)
+			p1[0], p1[1], l0p1[0], l0p1[1], l1p1[0], l1p1[1],
+			p1[0], p1[1], l1p3[0], l1p3[1], l0p3[0], l0p3[1])
 	case Round:
 		tris = cv.addCircleTris(p1, cv.state.stroke.lineWidth*0.5, tris)
 	}
@@ -305,9 +288,8 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 lm.V
 	return tris
 }
 
-func (cv *Canvas) addCircleTris(p lm.Vec2, radius float32, tris []float32) []float32 {
-	cxf, cyf := cv.vecToGL(p)
-	p0x, p0y := cv.vecToGL(lm.Vec2{p[0], p[1] + radius})
+func (cv *Canvas) addCircleTris(center lm.Vec2, radius float32, tris []float32) []float32 {
+	p0 := lm.Vec2{center[0], center[1] + radius}
 	step := 6 / radius
 	if step > 0.8 {
 		step = 0.8
@@ -316,9 +298,9 @@ func (cv *Canvas) addCircleTris(p lm.Vec2, radius float32, tris []float32) []flo
 	}
 	for angle := step; angle <= math.Pi*2+step; angle += step {
 		s, c := fmath.Sincos(angle)
-		p1x, p1y := cv.vecToGL(lm.Vec2{p[0] + s*radius, p[1] + c*radius})
-		tris = append(tris, cxf, cyf, p0x, p0y, p1x, p1y)
-		p0x, p0y = p1x, p1y
+		p1 := lm.Vec2{center[0] + s*radius, center[1] + c*radius}
+		tris = append(tris, center[0], center[1], p0[0], p0[1], p1[0], p1[1])
+		p0 = p1
 	}
 	return tris
 }
@@ -352,28 +334,18 @@ func (cv *Canvas) Fill() {
 
 	cv.activate()
 
+	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
+	var buf [1000]float32
+	tris := triangulatePath(path, buf[:0])
+	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
+
 	gli.UseProgram(sr.id)
 	c := cv.state.fill.color
 	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
+	gli.Uniform2f(sr.canvasSize, cv.fw, cv.fh)
 	gli.EnableVertexAttribArray(sr.vertex)
-
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-
-	var buf [1000]float32
-	tris := buf[:0]
-	tris = append(tris)
-
-	tris = triangulatePath(path, tris)
-	total := len(tris)
-	for i := 0; i < total; i += 2 {
-		x, y := tris[i], tris[i+1]
-		tris[i], tris[i+1] = cv.ptToGL(x, y)
-	}
-
-	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
 	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
 	gli.DrawArrays(gl_TRIANGLES, 0, int32(len(tris)/2))
-
 	gli.DisableVertexAttribArray(sr.vertex)
 }
 
@@ -388,32 +360,25 @@ func (cv *Canvas) Clip() {
 func (cv *Canvas) clip(path []pathPoint) {
 	cv.activate()
 
+	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
+	var buf [1000]float32
+	tris := buf[:0]
+	tris = append(tris, 0, 0, cv.fw, 0, cv.fw, cv.fh, 0, 0, cv.fw, cv.fh, 0, cv.fh)
+	tris = triangulatePath(path, tris)
+	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
+	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
+
+	gli.UseProgram(sr.id)
+	c := cv.state.fill.color
+	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
+	gli.Uniform2f(sr.canvasSize, cv.fw, cv.fh)
+	gli.EnableVertexAttribArray(sr.vertex)
+
 	gli.ColorMask(false, false, false, false)
 	gli.StencilFunc(gl_ALWAYS, 2, 0xFF)
 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_REPLACE)
 	gli.StencilMask(0x02)
 	gli.Clear(gl_STENCIL_BUFFER_BIT)
-
-	gli.UseProgram(sr.id)
-	c := cv.state.fill.color
-	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
-	gli.EnableVertexAttribArray(sr.vertex)
-
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-
-	var buf [1000]float32
-	tris := buf[:0]
-	tris = append(tris, -1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1)
-
-	tris = triangulatePath(path, tris)
-	total := len(tris)
-	for i := 12; i < total; i += 2 {
-		x, y := tris[i], tris[i+1]
-		tris[i], tris[i+1] = cv.ptToGL(x, y)
-	}
-
-	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
-	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
 
 	gli.DrawArrays(gl_TRIANGLES, 0, 6)
 	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)

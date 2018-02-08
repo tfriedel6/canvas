@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"runtime"
 	"unsafe"
+
+	"github.com/tfriedel6/lm"
 )
 
 type Image struct {
@@ -172,6 +174,8 @@ func (cv *Canvas) DrawImage(img *Image, coords ...float32) {
 		return
 	}
 
+	cv.activate()
+
 	var sx, sy, sw, sh, dx, dy, dw, dh float32
 	sw, sh = float32(img.w), float32(img.h)
 	dw, dh = float32(img.w), float32(img.h)
@@ -187,28 +191,27 @@ func (cv *Canvas) DrawImage(img *Image, coords ...float32) {
 		dw, dh = coords[6], coords[7]
 	}
 
-	dx0, dy0 := cv.tfToGL(dx, dy)
-	dx1, dy1 := cv.tfToGL(dx, dy+dh)
-	dx2, dy2 := cv.tfToGL(dx+dw, dy+dh)
-	dx3, dy3 := cv.tfToGL(dx+dw, dy)
 	sx /= float32(img.w)
 	sy /= float32(img.h)
 	sw /= float32(img.w)
 	sh /= float32(img.h)
 
-	cv.activate()
-
-	gli.UseProgram(tr.id)
-
-	gli.ActiveTexture(gl_TEXTURE0)
-	gli.BindTexture(gl_TEXTURE_2D, img.tex)
-	gli.Uniform1i(tr.image, 0)
+	p0 := cv.tf(lm.Vec2{dx, dy})
+	p1 := cv.tf(lm.Vec2{dx, dy + dh})
+	p2 := cv.tf(lm.Vec2{dx + dw, dy + dh})
+	p3 := cv.tf(lm.Vec2{dx + dw, dy})
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	data := [16]float32{dx0, dy0, dx1, dy1, dx2, dy2, dx3, dy3,
+	data := [16]float32{p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1],
 		sx, sy, sx, sy + sh, sx + sw, sy + sh, sx + sw, sy}
 	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
+	gli.ActiveTexture(gl_TEXTURE0)
+	gli.BindTexture(gl_TEXTURE_2D, img.tex)
+
+	gli.UseProgram(tr.id)
+	gli.Uniform1i(tr.image, 0)
+	gli.Uniform2f(tr.canvasSize, cv.fw, cv.fh)
 	gli.VertexAttribPointer(tr.vertex, 2, gl_FLOAT, false, 0, nil)
 	gli.VertexAttribPointer(tr.texCoord, 2, gl_FLOAT, false, 0, gli.PtrOffset(8*4))
 	gli.EnableVertexAttribArray(tr.vertex)

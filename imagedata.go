@@ -45,15 +45,17 @@ func (cv *Canvas) GetImageData(x, y, w, h int) *image.RGBA {
 func (cv *Canvas) PutImageData(img *image.RGBA, x, y int) {
 	cv.activate()
 
+	gli.ActiveTexture(gl_TEXTURE0)
 	if imageBufTex == 0 {
 		gli.GenTextures(1, &imageBufTex)
+		gli.BindTexture(gl_TEXTURE_2D, imageBufTex)
+		gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MIN_FILTER, gl_LINEAR)
+		gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MAG_FILTER, gl_LINEAR)
+		gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_WRAP_S, gl_CLAMP_TO_EDGE)
+		gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_WRAP_T, gl_CLAMP_TO_EDGE)
+	} else {
+		gli.BindTexture(gl_TEXTURE_2D, imageBufTex)
 	}
-	gli.ActiveTexture(gl_TEXTURE0)
-	gli.BindTexture(gl_TEXTURE_2D, imageBufTex)
-	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MIN_FILTER, gl_LINEAR)
-	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MAG_FILTER, gl_LINEAR)
-	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_WRAP_S, gl_CLAMP_TO_EDGE)
-	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_WRAP_T, gl_CLAMP_TO_EDGE)
 
 	w, h := img.Bounds().Dx(), img.Bounds().Dy()
 
@@ -72,19 +74,14 @@ func (cv *Canvas) PutImageData(img *image.RGBA, x, y int) {
 	dx, dy := float32(x), float32(y)
 	dw, dh := float32(w), float32(h)
 
-	dx0, dy0 := dx*2/cv.fw-1, -dy*2/cv.fh+1
-	dx1, dy1 := dx0, -(dy+dh)*2/cv.fh+1
-	dx2, dy2 := (dx+dw)*2/cv.fw-1, dy1
-	dx3, dy3 := dx2, dy0
+	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
+	data := [16]float32{dx, dy, dx + dw, dy, dx + dw, dy + dh, dx, dy + dh,
+		0, 0, 1, 0, 1, 1, 0, 1}
+	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
 	gli.UseProgram(tr.id)
 	gli.Uniform1i(tr.image, 0)
-
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	data := [16]float32{dx0, dy0, dx1, dy1, dx2, dy2, dx3, dy3,
-		0, 0, 0, 1, 1, 1, 1, 0}
-	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
-
+	gli.Uniform2f(tr.canvasSize, cv.fw, cv.fh)
 	gli.VertexAttribPointer(tr.vertex, 2, gl_FLOAT, false, 0, nil)
 	gli.VertexAttribPointer(tr.texCoord, 2, gl_FLOAT, false, 0, gli.PtrOffset(8*4))
 	gli.EnableVertexAttribArray(tr.vertex)

@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
+	"github.com/tfriedel6/lm"
 	"golang.org/x/image/math/fixed"
 )
 
@@ -82,19 +83,19 @@ func (cv *Canvas) FillText(str string, x, y float32) {
 		}
 	}
 
-	gli.UseProgram(tr.id)
-	gli.Uniform1i(tr.image, 0)
-
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	dx0, dy0 := cv.ptToGL(float32(bounds.Min.X), float32(bounds.Min.Y))
-	dx1, dy1 := cv.ptToGL(float32(bounds.Min.X), float32(bounds.Max.Y))
-	dx2, dy2 := cv.ptToGL(float32(bounds.Max.X), float32(bounds.Max.Y))
-	dx3, dy3 := cv.ptToGL(float32(bounds.Max.X), float32(bounds.Min.Y))
+	p0 := cv.tf(lm.Vec2{float32(bounds.Min.X), float32(bounds.Min.Y)})
+	p1 := cv.tf(lm.Vec2{float32(bounds.Min.X), float32(bounds.Max.Y)})
+	p2 := cv.tf(lm.Vec2{float32(bounds.Max.X), float32(bounds.Max.Y)})
+	p3 := cv.tf(lm.Vec2{float32(bounds.Max.X), float32(bounds.Min.Y)})
 	tw := float32(bounds.Max.X-bounds.Min.X) / cv.fw
 	th := float32(bounds.Max.Y-bounds.Min.Y) / cv.fh
-	data := [16]float32{dx0, dy0, dx1, dy1, dx2, dy2, dx3, dy3,
+	data := [16]float32{p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1],
 		0, 1, 0, 1 - th, tw, 1 - th, tw, 1}
 	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
+
+	gli.UseProgram(tr.id)
+	gli.Uniform1i(tr.image, 0)
 
 	gli.VertexAttribPointer(tr.vertex, 2, gl_FLOAT, false, 0, nil)
 	gli.VertexAttribPointer(tr.texCoord, 2, gl_FLOAT, false, 0, gli.PtrOffset(8*4))

@@ -91,22 +91,9 @@ func New(x, y, w, h int) *Canvas {
 	return cv
 }
 
-func (cv *Canvas) ptToGL(x, y float32) (fx, fy float32) {
-	return cv.vecToGL(lm.Vec2{x, y})
-}
-
-func (cv *Canvas) vecToGL(v lm.Vec2) (fx, fy float32) {
-	return v[0]*2/cv.fw - 1, -v[1]*2/cv.fh + 1
-}
-
 func (cv *Canvas) tf(v lm.Vec2) lm.Vec2 {
 	v, _ = v.MulMat3x3(cv.state.transform)
 	return v
-}
-
-func (cv *Canvas) tfToGL(x, y float32) (fx, fy float32) {
-	v := cv.tf(lm.Vec2{x, y})
-	return v[0]*2/cv.fw - 1, -v[1]*2/cv.fh + 1
 }
 
 // Activate makes the canvas active and sets the viewport. Only needs
@@ -193,8 +180,10 @@ func LoadGL(glimpl GL) (err error) {
 
 var solidVS = `
 attribute vec2 vertex;
+uniform vec2 canvasSize;
 void main() {
-    gl_Position = vec4(vertex, 0.0, 1.0);
+	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
+    gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
 }`
 var solidFS = `
 #ifdef GL_ES
@@ -207,10 +196,12 @@ void main() {
 
 var textureVS = `
 attribute vec2 vertex, texCoord;
+uniform vec2 canvasSize;
 varying vec2 v_texCoord;
 void main() {
 	v_texCoord = texCoord;
-    gl_Position = vec4(vertex, 0.0, 1.0);
+	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
+    gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
 }`
 var textureFS = `
 #ifdef GL_ES
@@ -364,22 +355,21 @@ func (cv *Canvas) SetTransform(a, b, c, d, e, f float32) {
 func (cv *Canvas) FillRect(x, y, w, h float32) {
 	cv.activate()
 
+	p0 := cv.tf(lm.Vec2{x, y})
+	p1 := cv.tf(lm.Vec2{x, y + h})
+	p2 := cv.tf(lm.Vec2{x + w, y + h})
+	p3 := cv.tf(lm.Vec2{x + w, y})
+
+	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
+	data := [8]float32{p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]}
+	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
+
 	if lg := cv.state.fill.linearGradient; lg != nil {
-		p0 := cv.tf(lm.Vec2{x, y})
-		p1 := cv.tf(lm.Vec2{x, y + h})
-		p2 := cv.tf(lm.Vec2{x + w, y + h})
-		p3 := cv.tf(lm.Vec2{x + w, y})
-
-		gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-		data := [8]float32{p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]}
-		gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
-
 		lg.load()
 		gli.UseProgram(lgr.id)
 		gli.VertexAttribPointer(lgr.vertex, 2, gl_FLOAT, false, 0, nil)
 		gli.ActiveTexture(gl_TEXTURE0)
 		gli.BindTexture(gl_TEXTURE_1D, lg.tex)
-
 		gli.Uniform2f(lgr.canvasSize, cv.fw, cv.fh)
 		from := cv.tf(lg.from)
 		to := cv.tf(lg.to)
@@ -389,23 +379,14 @@ func (cv *Canvas) FillRect(x, y, w, h float32) {
 		gli.Uniform2f(lgr.from, from[0], from[1])
 		gli.Uniform2f(lgr.dir, dir[0], dir[1])
 		gli.Uniform1f(lgr.length, length)
-
 		gli.Uniform1i(lgr.gradient, 0)
 		gli.EnableVertexAttribArray(lgr.vertex)
 		gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
 		gli.DisableVertexAttribArray(lgr.vertex)
 	} else {
-		x0f, y0f := cv.tfToGL(x, y)
-		x1f, y1f := cv.tfToGL(x, y+h)
-		x2f, y2f := cv.tfToGL(x+w, y+h)
-		x3f, y3f := cv.tfToGL(x+w, y)
-
-		gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-		data := [8]float32{x0f, y0f, x1f, y1f, x2f, y2f, x3f, y3f}
-		gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
-
 		gli.UseProgram(sr.id)
 		gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
+		gli.Uniform2f(sr.canvasSize, cv.fw, cv.fh)
 		c := cv.state.fill.color
 		gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
 		gli.EnableVertexAttribArray(lgr.vertex)
