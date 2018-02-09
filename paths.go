@@ -228,8 +228,7 @@ func (cv *Canvas) Stroke() {
 	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
 
 	gli.UseProgram(sr.id)
-	c := cv.state.stroke.color
-	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
+	gli.Uniform4f(sr.color, 0, 0, 0, 0)
 	gli.Uniform2f(sr.canvasSize, cv.fw, cv.fh)
 
 	gli.ColorMask(false, false, false, false)
@@ -237,15 +236,18 @@ func (cv *Canvas) Stroke() {
 	gli.EnableVertexAttribArray(sr.vertex)
 	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
 	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
+	gli.DisableVertexAttribArray(sr.vertex)
 
 	gli.ColorMask(true, true, true, true)
 
 	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
 	gli.StencilMask(0xFF)
 
-	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 6)
-
-	gli.DisableVertexAttribArray(sr.vertex)
+	vertex := cv.useShader(&cv.state.stroke)
+	gli.EnableVertexAttribArray(vertex)
+	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, nil)
+	gli.DrawArrays(gl_TRIANGLES, 0, 6)
+	gli.DisableVertexAttribArray(vertex)
 
 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
 	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
@@ -339,14 +341,11 @@ func (cv *Canvas) Fill() {
 	tris := triangulatePath(path, buf[:0])
 	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
 
-	gli.UseProgram(sr.id)
-	c := cv.state.fill.color
-	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
-	gli.Uniform2f(sr.canvasSize, cv.fw, cv.fh)
-	gli.EnableVertexAttribArray(sr.vertex)
-	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
+	vertex := cv.useShader(&cv.state.fill)
+	gli.EnableVertexAttribArray(vertex)
+	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, nil)
 	gli.DrawArrays(gl_TRIANGLES, 0, int32(len(tris)/2))
-	gli.DisableVertexAttribArray(sr.vertex)
+	gli.DisableVertexAttribArray(vertex)
 }
 
 func (cv *Canvas) Clip() {
@@ -369,8 +368,7 @@ func (cv *Canvas) clip(path []pathPoint) {
 	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
 
 	gli.UseProgram(sr.id)
-	c := cv.state.fill.color
-	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
+	gli.Uniform4f(sr.color, 1, 1, 1, 1)
 	gli.Uniform2f(sr.canvasSize, cv.fw, cv.fh)
 	gli.EnableVertexAttribArray(sr.vertex)
 

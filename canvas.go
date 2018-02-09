@@ -407,7 +407,7 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 
 	gli.UseProgram(sr.id)
 	gli.Uniform2f(sr.canvasSize, cv.fw, cv.fh)
-	c := cv.state.fill.color
+	c := style.color
 	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
 	return sr.vertex
 }
