@@ -39,6 +39,7 @@ type drawState struct {
 		color          glColor
 		radialGradient *RadialGradient
 		linearGradient *LinearGradient
+		image          *Image
 	}
 	stroke struct {
 		color     glColor
@@ -128,6 +129,7 @@ var (
 	tr     *textureShader
 	lgr    *linearGradientShader
 	rgr    *radialGradientShader
+	ipr    *imagePatternShader
 	glChan = make(chan func())
 )
 
@@ -164,6 +166,15 @@ func LoadGL(glimpl GL) (err error) {
 	}
 
 	rgr, err = loadRadialGradientShader()
+	if err != nil {
+		return
+	}
+	err = glError()
+	if err != nil {
+		return
+	}
+
+	ipr, err = loadImagePatternShader()
 	if err != nil {
 		return
 	}
@@ -285,6 +296,26 @@ void main() {
 	float r = radFrom + o * (radTo - radFrom);
 	gl_FragColor = texture1D(gradient, o);
 }`
+var imagePatternVS = `
+attribute vec2 vertex;
+uniform vec2 canvasSize;
+varying vec2 v_cp;
+void main() {
+	v_cp = vertex;
+	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
+    gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
+}`
+var imagePatternFS = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+varying vec2 v_cp;
+uniform vec2 imageSize;
+uniform sampler2D image;
+void main() {
+    gl_FragColor = texture2D(image, mod(v_cp / imageSize, 1.0));
+    //gl_FragColor = vec4(v_cp * 0.1, 0.0, 1.0);
+}`
 
 func glError() error {
 	glErr := gli.GetError()
@@ -299,6 +330,7 @@ func (cv *Canvas) SetFillStyle(value ...interface{}) {
 	cv.state.fill.color = glColor{}
 	cv.state.fill.linearGradient = nil
 	cv.state.fill.radialGradient = nil
+	cv.state.fill.image = nil
 	if len(value) == 1 {
 		switch v := value[0].(type) {
 		case *LinearGradient:
@@ -306,6 +338,9 @@ func (cv *Canvas) SetFillStyle(value ...interface{}) {
 			return
 		case *RadialGradient:
 			cv.state.fill.radialGradient = v
+			return
+		case *Image:
+			cv.state.fill.image = v
 			return
 		}
 	}
@@ -458,6 +493,17 @@ func (cv *Canvas) FillRect(x, y, w, h float32) {
 		gli.EnableVertexAttribArray(rgr.vertex)
 		gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
 		gli.DisableVertexAttribArray(rgr.vertex)
+	} else if img := cv.state.fill.image; img != nil {
+		gli.UseProgram(ipr.id)
+		gli.VertexAttribPointer(ipr.vertex, 2, gl_FLOAT, false, 0, nil)
+		gli.ActiveTexture(gl_TEXTURE0)
+		gli.BindTexture(gl_TEXTURE_1D, img.tex)
+		gli.Uniform2f(ipr.canvasSize, cv.fw, cv.fh)
+		gli.Uniform2f(ipr.imageSize, float32(img.w), float32(img.h))
+		gli.Uniform1i(ipr.image, 0)
+		gli.EnableVertexAttribArray(ipr.vertex)
+		gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
+		gli.DisableVertexAttribArray(ipr.vertex)
 	} else {
 		gli.UseProgram(sr.id)
 		gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
