@@ -35,20 +35,13 @@ type pathPoint struct {
 
 type drawState struct {
 	transform lm.Mat3x3
-	fill      struct {
-		color          glColor
-		radialGradient *RadialGradient
-		linearGradient *LinearGradient
-		image          *Image
-	}
-	stroke struct {
-		color     glColor
-		lineWidth float32
-	}
-	font     *Font
-	fontSize float32
-	lineJoin lineJoin
-	lineEnd  lineEnd
+	fill      drawStyle
+	stroke    drawStyle
+	font      *Font
+	fontSize  float32
+	lineWidth float32
+	lineJoin  lineJoin
+	lineEnd   lineEnd
 
 	lineDash       []float32
 	lineDashPoint  int
@@ -64,6 +57,13 @@ type drawState struct {
 			shadowOffsetY, shadowBlur, shadowColor, globalCompositeOperation, font,
 			textAlign, textBaseline, direction, imageSmoothingEnabled
 	*/
+}
+
+type drawStyle struct {
+	color          glColor
+	radialGradient *RadialGradient
+	linearGradient *LinearGradient
+	image          *Image
 }
 
 type lineJoin uint8
@@ -88,7 +88,7 @@ func New(x, y, w, h int) *Canvas {
 		fw: float32(w), fh: float32(h),
 		stateStack: make([]drawState, 0, 20),
 	}
-	cv.state.stroke.lineWidth = 1
+	cv.state.lineWidth = 1
 	cv.state.transform = lm.Mat3x3Identity()
 	return cv
 }
@@ -325,33 +325,40 @@ func glError() error {
 	return nil
 }
 
-// SetFillStyle sets the color or gradient for any fill calls
+// SetFillStyle sets the color, gradient, or image for any fill calls
 func (cv *Canvas) SetFillStyle(value ...interface{}) {
-	cv.state.fill.color = glColor{}
-	cv.state.fill.linearGradient = nil
-	cv.state.fill.radialGradient = nil
-	cv.state.fill.image = nil
+	cv.state.fill = parseStyle(value...)
+}
+
+// SetStrokeStyle sets the color, gradient, or image for any line drawing calls
+func (cv *Canvas) SetStrokeStyle(value ...interface{}) {
+	cv.state.stroke = parseStyle(value...)
+}
+
+func parseStyle(value ...interface{}) drawStyle {
+	var style drawStyle
 	if len(value) == 1 {
 		switch v := value[0].(type) {
 		case *LinearGradient:
-			cv.state.fill.linearGradient = v
-			return
+			style.linearGradient = v
+			return style
 		case *RadialGradient:
-			cv.state.fill.radialGradient = v
-			return
+			style.radialGradient = v
+			return style
 		case *Image:
-			cv.state.fill.image = v
-			return
+			style.image = v
+			return style
 		}
 	}
 	c, ok := parseColor(value...)
 	if ok {
-		cv.state.fill.color = c
+		style.color = c
 	}
+	return style
 }
 
-func (cv *Canvas) useFillShader() (vertexLoc uint32) {
-	if lg := cv.state.fill.linearGradient; lg != nil {
+func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
+	if lg := style.linearGradient; lg != nil {
 		lg.load()
 		gli.ActiveTexture(gl_TEXTURE0)
 		gli.BindTexture(gl_TEXTURE_1D, lg.tex)
@@ -368,7 +375,7 @@ func (cv *Canvas) useFillShader() (vertexLoc uint32) {
 		gli.Uniform1i(lgr.gradient, 0)
 		return lgr.vertex
 	}
-	if rg := cv.state.fill.radialGradient; rg != nil {
+	if rg := style.radialGradient; rg != nil {
 		rg.load()
 		gli.ActiveTexture(gl_TEXTURE0)
 		gli.BindTexture(gl_TEXTURE_1D, rg.tex)
@@ -388,7 +395,7 @@ func (cv *Canvas) useFillShader() (vertexLoc uint32) {
 		gli.Uniform1i(rgr.gradient, 0)
 		return rgr.vertex
 	}
-	if img := cv.state.fill.image; img != nil {
+	if img := style.image; img != nil {
 		gli.UseProgram(ipr.id)
 		gli.ActiveTexture(gl_TEXTURE0)
 		gli.BindTexture(gl_TEXTURE_2D, img.tex)
@@ -405,17 +412,9 @@ func (cv *Canvas) useFillShader() (vertexLoc uint32) {
 	return sr.vertex
 }
 
-// SetStrokeColor sets the color for any line drawing calls
-func (cv *Canvas) SetStrokeColor(value ...interface{}) {
-	c, ok := parseColor(value...)
-	if ok {
-		cv.state.stroke.color = c
-	}
-}
-
 // SetLineWidth sets the line width for any line drawing calls
 func (cv *Canvas) SetLineWidth(width float32) {
-	cv.state.stroke.lineWidth = width
+	cv.state.lineWidth = width
 }
 
 // SetFont sets the font and font size
@@ -507,7 +506,7 @@ func (cv *Canvas) FillRect(x, y, w, h float32) {
 	data := [8]float32{p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]}
 	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
-	vertex := cv.useFillShader()
+	vertex := cv.useShader(&cv.state.fill)
 	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, nil)
 	gli.EnableVertexAttribArray(vertex)
 	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)

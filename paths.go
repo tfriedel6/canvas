@@ -181,8 +181,8 @@ func (cv *Canvas) Stroke() {
 		p1 := p.tf
 
 		v0 := p1.Sub(p0).Norm()
-		v1 := lm.Vec2{v0[1], -v0[0]}.MulF(cv.state.stroke.lineWidth * 0.5)
-		v0 = v0.MulF(cv.state.stroke.lineWidth * 0.5)
+		v1 := lm.Vec2{v0[1], -v0[0]}.MulF(cv.state.lineWidth * 0.5)
+		v0 = v0.MulF(cv.state.lineWidth * 0.5)
 
 		lp0 := p0.Add(v1)
 		lp1 := p1.Add(v1)
@@ -197,7 +197,7 @@ func (cv *Canvas) Stroke() {
 				lp0 = lp0.Sub(v0)
 				lp2 = lp2.Sub(v0)
 			case Round:
-				tris = cv.addCircleTris(p0, cv.state.stroke.lineWidth*0.5, tris)
+				tris = cv.addCircleTris(p0, cv.state.lineWidth*0.5, tris)
 			}
 		}
 
@@ -209,7 +209,7 @@ func (cv *Canvas) Stroke() {
 				lp1 = lp1.Add(v0)
 				lp3 = lp3.Add(v0)
 			case Round:
-				tris = cv.addCircleTris(p1, cv.state.stroke.lineWidth*0.5, tris)
+				tris = cv.addCircleTris(p1, cv.state.lineWidth*0.5, tris)
 			}
 		}
 
@@ -257,7 +257,7 @@ func (cv *Canvas) Stroke() {
 
 func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 lm.Vec2, tris []float32) []float32 {
 	v2 := p1.Sub(p2).Norm()
-	v3 := lm.Vec2{v2[1], -v2[0]}.MulF(cv.state.stroke.lineWidth * 0.5)
+	v3 := lm.Vec2{v2[1], -v2[0]}.MulF(cv.state.lineWidth * 0.5)
 
 	switch cv.state.lineJoin {
 	case Miter:
@@ -282,7 +282,7 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 lm.V
 			p1[0], p1[1], l0p1[0], l0p1[1], l1p1[0], l1p1[1],
 			p1[0], p1[1], l1p3[0], l1p3[1], l0p3[0], l0p3[1])
 	case Round:
-		tris = cv.addCircleTris(p1, cv.state.stroke.lineWidth*0.5, tris)
+		tris = cv.addCircleTris(p1, cv.state.lineWidth*0.5, tris)
 	}
 
 	return tris
