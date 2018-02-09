@@ -350,6 +350,61 @@ func (cv *Canvas) SetFillStyle(value ...interface{}) {
 	}
 }
 
+func (cv *Canvas) useFillShader() (vertexLoc uint32) {
+	if lg := cv.state.fill.linearGradient; lg != nil {
+		lg.load()
+		gli.ActiveTexture(gl_TEXTURE0)
+		gli.BindTexture(gl_TEXTURE_1D, lg.tex)
+		gli.UseProgram(lgr.id)
+		from := cv.tf(lg.from)
+		to := cv.tf(lg.to)
+		dir := to.Sub(from)
+		length := dir.Len()
+		dir = dir.DivF(length)
+		gli.Uniform2f(lgr.canvasSize, cv.fw, cv.fh)
+		gli.Uniform2f(lgr.from, from[0], from[1])
+		gli.Uniform2f(lgr.dir, dir[0], dir[1])
+		gli.Uniform1f(lgr.len, length)
+		gli.Uniform1i(lgr.gradient, 0)
+		return lgr.vertex
+	}
+	if rg := cv.state.fill.radialGradient; rg != nil {
+		rg.load()
+		gli.ActiveTexture(gl_TEXTURE0)
+		gli.BindTexture(gl_TEXTURE_1D, rg.tex)
+		gli.UseProgram(rgr.id)
+		from := cv.tf(rg.from)
+		to := cv.tf(rg.to)
+		dir := to.Sub(from)
+		length := dir.Len()
+		dir = dir.DivF(length)
+		gli.Uniform2f(rgr.canvasSize, cv.fw, cv.fh)
+		gli.Uniform2f(rgr.from, from[0], from[1])
+		gli.Uniform2f(rgr.to, to[0], to[1])
+		gli.Uniform2f(rgr.dir, dir[0], dir[1])
+		gli.Uniform1f(rgr.radFrom, rg.radFrom)
+		gli.Uniform1f(rgr.radTo, rg.radTo)
+		gli.Uniform1f(rgr.len, length)
+		gli.Uniform1i(rgr.gradient, 0)
+		return rgr.vertex
+	}
+	if img := cv.state.fill.image; img != nil {
+		gli.UseProgram(ipr.id)
+		gli.ActiveTexture(gl_TEXTURE0)
+		gli.BindTexture(gl_TEXTURE_2D, img.tex)
+		gli.Uniform2f(ipr.canvasSize, cv.fw, cv.fh)
+		gli.Uniform2f(ipr.imageSize, float32(img.w), float32(img.h))
+		gli.Uniform1i(ipr.image, 0)
+		return ipr.vertex
+	}
+
+	gli.UseProgram(sr.id)
+	gli.Uniform2f(sr.canvasSize, cv.fw, cv.fh)
+	c := cv.state.fill.color
+	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
+	return sr.vertex
+}
+
 // SetStrokeColor sets the color for any line drawing calls
 func (cv *Canvas) SetStrokeColor(value ...interface{}) {
 	c, ok := parseColor(value...)
@@ -452,66 +507,9 @@ func (cv *Canvas) FillRect(x, y, w, h float32) {
 	data := [8]float32{p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]}
 	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
-	if lg := cv.state.fill.linearGradient; lg != nil {
-		lg.load()
-		gli.UseProgram(lgr.id)
-		gli.VertexAttribPointer(lgr.vertex, 2, gl_FLOAT, false, 0, nil)
-		gli.ActiveTexture(gl_TEXTURE0)
-		gli.BindTexture(gl_TEXTURE_1D, lg.tex)
-		gli.Uniform2f(lgr.canvasSize, cv.fw, cv.fh)
-		from := cv.tf(lg.from)
-		to := cv.tf(lg.to)
-		dir := to.Sub(from)
-		length := dir.Len()
-		dir = dir.DivF(length)
-		gli.Uniform2f(lgr.from, from[0], from[1])
-		gli.Uniform2f(lgr.dir, dir[0], dir[1])
-		gli.Uniform1f(lgr.len, length)
-		gli.Uniform1i(lgr.gradient, 0)
-		gli.EnableVertexAttribArray(lgr.vertex)
-		gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
-		gli.DisableVertexAttribArray(lgr.vertex)
-	} else if rg := cv.state.fill.radialGradient; rg != nil {
-		rg.load()
-		gli.UseProgram(rgr.id)
-		gli.VertexAttribPointer(rgr.vertex, 2, gl_FLOAT, false, 0, nil)
-		gli.ActiveTexture(gl_TEXTURE0)
-		gli.BindTexture(gl_TEXTURE_1D, rg.tex)
-		gli.Uniform2f(rgr.canvasSize, cv.fw, cv.fh)
-		from := cv.tf(rg.from)
-		to := cv.tf(rg.to)
-		dir := to.Sub(from)
-		length := dir.Len()
-		dir = dir.DivF(length)
-		gli.Uniform2f(rgr.from, from[0], from[1])
-		gli.Uniform2f(rgr.to, to[0], to[1])
-		gli.Uniform2f(rgr.dir, dir[0], dir[1])
-		gli.Uniform1f(rgr.radFrom, rg.radFrom)
-		gli.Uniform1f(rgr.radTo, rg.radTo)
-		gli.Uniform1f(rgr.len, length)
-		gli.Uniform1i(rgr.gradient, 0)
-		gli.EnableVertexAttribArray(rgr.vertex)
-		gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
-		gli.DisableVertexAttribArray(rgr.vertex)
-	} else if img := cv.state.fill.image; img != nil {
-		gli.UseProgram(ipr.id)
-		gli.VertexAttribPointer(ipr.vertex, 2, gl_FLOAT, false, 0, nil)
-		gli.ActiveTexture(gl_TEXTURE0)
-		gli.BindTexture(gl_TEXTURE_1D, img.tex)
-		gli.Uniform2f(ipr.canvasSize, cv.fw, cv.fh)
-		gli.Uniform2f(ipr.imageSize, float32(img.w), float32(img.h))
-		gli.Uniform1i(ipr.image, 0)
-		gli.EnableVertexAttribArray(ipr.vertex)
-		gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
-		gli.DisableVertexAttribArray(ipr.vertex)
-	} else {
-		gli.UseProgram(sr.id)
-		gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
-		gli.Uniform2f(sr.canvasSize, cv.fw, cv.fh)
-		c := cv.state.fill.color
-		gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
-		gli.EnableVertexAttribArray(lgr.vertex)
-		gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
-		gli.DisableVertexAttribArray(lgr.vertex)
-	}
+	vertex := cv.useFillShader()
+	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, nil)
+	gli.EnableVertexAttribArray(vertex)
+	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
+	gli.DisableVertexAttribArray(vertex)
 }
