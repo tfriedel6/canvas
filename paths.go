@@ -19,15 +19,30 @@ func (cv *Canvas) BeginPath() {
 	cv.polyPath = cv.polyPath[:0]
 }
 
+func isSamePoint(a, b lm.Vec2, maxDist float32) bool {
+	return fmath.Abs(b[0]-a[0]) <= maxDist && fmath.Abs(b[1]-a[1]) <= maxDist
+}
+
 func (cv *Canvas) MoveTo(x, y float32) {
 	tf := cv.tf(lm.Vec2{x, y})
+	if len(cv.linePath) > 0 && isSamePoint(cv.linePath[len(cv.linePath)-1].tf, tf, 0.1) {
+		return
+	}
 	cv.linePath = append(cv.linePath, pathPoint{pos: lm.Vec2{x, y}, tf: tf, move: true})
 	cv.polyPath = append(cv.polyPath, pathPoint{pos: lm.Vec2{x, y}, tf: tf, move: true})
 }
 
 func (cv *Canvas) LineTo(x, y float32) {
+	cv.strokeLineTo(x, y)
+	cv.fillLineTo(x, y)
+}
+
+func (cv *Canvas) strokeLineTo(x, y float32) {
+	if len(cv.linePath) > 0 && isSamePoint(cv.linePath[len(cv.linePath)-1].tf, cv.tf(lm.Vec2{x, y}), 0.1) {
+		return
+	}
 	if len(cv.linePath) == 0 {
-		cv.MoveTo(x, y)
+		cv.linePath = append(cv.linePath, pathPoint{pos: lm.Vec2{x, y}, tf: cv.tf(lm.Vec2{x, y}), move: true})
 		return
 	}
 	if len(cv.state.lineDash) > 0 {
@@ -68,6 +83,16 @@ func (cv *Canvas) LineTo(x, y float32) {
 		cv.linePath[len(cv.linePath)-1].next = tf
 		cv.linePath[len(cv.linePath)-1].attach = true
 		cv.linePath = append(cv.linePath, pathPoint{pos: lm.Vec2{x, y}, tf: tf, move: false})
+	}
+}
+
+func (cv *Canvas) fillLineTo(x, y float32) {
+	if len(cv.polyPath) > 0 && isSamePoint(cv.polyPath[len(cv.polyPath)-1].tf, cv.tf(lm.Vec2{x, y}), 0.1) {
+		return
+	}
+	if len(cv.polyPath) == 0 {
+		cv.polyPath = append(cv.polyPath, pathPoint{pos: lm.Vec2{x, y}, tf: cv.tf(lm.Vec2{x, y}), move: true})
+		return
 	}
 	tf := cv.tf(lm.Vec2{x, y})
 	cv.polyPath[len(cv.polyPath)-1].next = tf
@@ -140,16 +165,12 @@ func (cv *Canvas) ClosePath() {
 	if len(cv.linePath) < 2 {
 		return
 	}
-	if len(cv.state.lineDash) > 0 {
-		cv.LineTo(cv.linePath[0].pos[0], cv.linePath[0].pos[1])
+	if isSamePoint(cv.linePath[len(cv.linePath)-1].tf, cv.linePath[0].tf, 0.1) {
 		return
 	}
-	cv.linePath[len(cv.linePath)-1].next = cv.linePath[0].pos
-	cv.linePath[len(cv.linePath)-1].attach = true
-	cv.linePath = append(cv.linePath, pathPoint{pos: cv.linePath[0].pos, move: false, tf: cv.linePath[0].tf, next: cv.linePath[1].pos, attach: true})
-	cv.polyPath[len(cv.polyPath)-1].next = cv.polyPath[0].pos
-	cv.polyPath[len(cv.polyPath)-1].attach = true
-	cv.polyPath = append(cv.polyPath, pathPoint{pos: cv.polyPath[0].pos, move: false, tf: cv.linePath[0].tf, next: cv.polyPath[1].pos, attach: true})
+	cv.LineTo(cv.linePath[0].pos[0], cv.linePath[0].pos[1])
+	cv.linePath[len(cv.linePath)-1].next = cv.linePath[0].tf
+	cv.polyPath[len(cv.polyPath)-1].next = cv.polyPath[0].tf
 }
 
 func (cv *Canvas) Stroke() {
@@ -268,8 +289,8 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 lm.V
 		l1p2 := p2.Add(v3)
 		l1p3 := p1.Add(v3)
 
-		ip0 := lineIntersection(l0p0, l0p1, l1p1, l1p0)
-		ip1 := lineIntersection(l0p2, l0p3, l1p3, l1p2)
+		ip0, _ := lineIntersection(l0p0, l0p1, l1p1, l1p0)
+		ip1, _ := lineIntersection(l0p2, l0p3, l1p3, l1p2)
 
 		tris = append(tris,
 			p1[0], p1[1], l0p1[0], l0p1[1], ip0[0], ip0[1],
@@ -307,17 +328,17 @@ func (cv *Canvas) addCircleTris(center lm.Vec2, radius float32, tris []float32) 
 	return tris
 }
 
-func lineIntersection(a0, a1, b0, b1 lm.Vec2) lm.Vec2 {
+func lineIntersection(a0, a1, b0, b1 lm.Vec2) (lm.Vec2, float32) {
 	va := a1.Sub(a0)
 	vb := b1.Sub(b0)
 
 	if vb[1] == 0 {
-		q := (a0[0] + (b0[1]-a0[1])*(va[0]/va[1]) - b0[0]) / (vb[0] - vb[1]*(va[0]/va[1]))
-		return b0.Add(vb.MulF(q))
+		r := (b0[1] + (a0[0]-b0[0])*(vb[1]/vb[0]) - a0[1]) / (va[1] - va[0]*(vb[1]/vb[0]))
+		return a0.Add(va.MulF(r)), r
 	}
 
-	p := (b0[0] + (a0[1]-b0[1])*(vb[0]/vb[1]) - a0[0]) / (va[0] - va[1]*(vb[0]/vb[1]))
-	return a0.Add(va.MulF(p))
+	r := (b0[0] + (a0[1]-b0[1])*(vb[0]/vb[1]) - a0[0]) / (va[0] - va[1]*(vb[0]/vb[1]))
+	return a0.Add(va.MulF(r)), r
 }
 
 func (cv *Canvas) Fill() {
