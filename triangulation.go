@@ -1,6 +1,8 @@
 package canvas
 
 import (
+	"sort"
+
 	"github.com/tfriedel6/lm"
 )
 
@@ -94,4 +96,61 @@ func triangulatePath(path []pathPoint, target []float32) []float32 {
 		polygon = append(polygon[:remove], polygon[remove+1:]...)
 	}
 	return target
+}
+
+func (cv *Canvas) cutIntersections(path []pathPoint) []pathPoint {
+	type cut struct {
+		from, to int
+		ratio    float32
+		point    lm.Vec2
+	}
+
+	var cutBuf [50]cut
+	cuts := cutBuf[:0]
+
+	for i := 0; i < len(cv.polyPath); i++ {
+		a0 := cv.polyPath[(i+len(cv.polyPath)-1)%len(cv.polyPath)].pos
+		a1 := cv.polyPath[i].pos
+		for j := i + 1; j < len(cv.polyPath); j++ {
+			b0 := cv.polyPath[(j+len(cv.polyPath)-1)%len(cv.polyPath)].pos
+			b1 := cv.polyPath[j].pos
+			p, r := lineIntersection(a0, a1, b0, b1)
+			if r <= 0 || r >= 1 {
+				continue
+			}
+			cuts = append(cuts, cut{
+				from:  (i + len(cv.polyPath) - 1) % len(cv.polyPath),
+				to:    i,
+				ratio: r,
+				point: p,
+			})
+			cuts = append(cuts, cut{
+				from:  (j + len(cv.polyPath) - 1) % len(cv.polyPath),
+				to:    j,
+				ratio: p.Sub(b0).Len() / b1.Sub(b0).Len(),
+				point: p,
+			})
+		}
+	}
+
+	if len(cuts) == 0 {
+		return path
+	}
+
+	sort.Slice(cuts, func(i, j int) bool {
+		a, b := cuts[i], cuts[j]
+		return a.to > b.to || (a.to == b.to && a.ratio > b.ratio)
+	})
+
+	newPath := make([]pathPoint, len(path)+len(cuts))
+	copy(newPath[:len(path)], path)
+
+	for _, cut := range cuts {
+		copy(newPath[cut.to+1:], newPath[cut.to:])
+		newPath[cut.to].next = newPath[cut.to+1].tf
+		newPath[cut.to].pos = cut.point
+		newPath[cut.to].tf = cv.tf(cut.point)
+	}
+
+	return newPath
 }

@@ -350,10 +350,10 @@ func (cv *Canvas) Fill() {
 	}
 
 	path := cv.polyPath[lastMove:]
-
 	if len(path) < 3 {
 		return
 	}
+	//path = cv.cutIntersections(path)
 
 	cv.activate()
 
