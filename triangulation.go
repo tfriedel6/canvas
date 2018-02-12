@@ -1,6 +1,7 @@
 package canvas
 
 import (
+	"math"
 	"sort"
 
 	"github.com/tfriedel6/lm"
@@ -77,6 +78,9 @@ func triangulatePath(path []pathPoint, target []float32) []float32 {
 			a := polygon[i]
 			b := polygon[(i+1)%len(polygon)]
 			c := polygon[(i+2)%len(polygon)]
+			if isSamePoint(a, c, math.SmallestNonzeroFloat32) {
+				break
+			}
 			for i2, p := range polygon {
 				if i2 >= i && i2 <= i+2 {
 					continue
