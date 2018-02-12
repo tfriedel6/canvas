@@ -88,6 +88,7 @@ func triangulatePath(path []pathPoint, target []float32) []float32 {
 				if !polygonContainsPoint(polygon, center) {
 					continue triangles
 				}
+				break
 			}
 			target = append(target, a[0], a[1], b[0], b[1], c[0], c[1])
 			break
@@ -101,6 +102,8 @@ func triangulatePath(path []pathPoint, target []float32) []float32 {
 func (cv *Canvas) cutIntersections(path []pathPoint) []pathPoint {
 	type cut struct {
 		from, to int
+		j        int
+		b        bool
 		ratio    float32
 		point    lm.Vec2
 	}
@@ -109,26 +112,34 @@ func (cv *Canvas) cutIntersections(path []pathPoint) []pathPoint {
 	cuts := cutBuf[:0]
 
 	for i := 0; i < len(cv.polyPath); i++ {
-		a0 := cv.polyPath[(i+len(cv.polyPath)-1)%len(cv.polyPath)].pos
+		ip := (i + len(cv.polyPath) - 1) % len(cv.polyPath)
+		a0 := cv.polyPath[ip].pos
 		a1 := cv.polyPath[i].pos
 		for j := i + 1; j < len(cv.polyPath); j++ {
-			b0 := cv.polyPath[(j+len(cv.polyPath)-1)%len(cv.polyPath)].pos
+			jp := (j + len(cv.polyPath) - 1) % len(cv.polyPath)
+			if ip == j || jp == i {
+				continue
+			}
+			b0 := cv.polyPath[jp].pos
 			b1 := cv.polyPath[j].pos
-			p, r := lineIntersection(a0, a1, b0, b1)
-			if r <= 0 || r >= 1 {
+			p, r1, r2 := lineIntersection(a0, a1, b0, b1)
+			if r1 <= 0 || r1 >= 1 || r2 <= 0 || r2 >= 1 {
 				continue
 			}
 			cuts = append(cuts, cut{
-				from:  (i + len(cv.polyPath) - 1) % len(cv.polyPath),
+				from:  ip,
 				to:    i,
-				ratio: r,
+				ratio: r1,
 				point: p,
+				j:     j,
 			})
 			cuts = append(cuts, cut{
-				from:  (j + len(cv.polyPath) - 1) % len(cv.polyPath),
+				from:  jp,
 				to:    j,
-				ratio: p.Sub(b0).Len() / b1.Sub(b0).Len(),
+				ratio: r2,
 				point: p,
+				j:     i,
+				b:     true,
 			})
 		}
 	}

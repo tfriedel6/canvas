@@ -289,8 +289,8 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 lm.V
 		l1p2 := p2.Add(v3)
 		l1p3 := p1.Add(v3)
 
-		ip0, _ := lineIntersection(l0p0, l0p1, l1p1, l1p0)
-		ip1, _ := lineIntersection(l0p2, l0p3, l1p3, l1p2)
+		ip0, _, _ := lineIntersection(l0p0, l0p1, l1p1, l1p0)
+		ip1, _, _ := lineIntersection(l0p2, l0p3, l1p3, l1p2)
 
 		tris = append(tris,
 			p1[0], p1[1], l0p1[0], l0p1[1], ip0[0], ip0[1],
@@ -328,17 +328,22 @@ func (cv *Canvas) addCircleTris(center lm.Vec2, radius float32, tris []float32) 
 	return tris
 }
 
-func lineIntersection(a0, a1, b0, b1 lm.Vec2) (lm.Vec2, float32) {
+func lineIntersection(a0, a1, b0, b1 lm.Vec2) (lm.Vec2, float32, float32) {
 	va := a1.Sub(a0)
 	vb := b1.Sub(b0)
 
-	if vb[1] == 0 {
-		r := (b0[1] + (a0[0]-b0[0])*(vb[1]/vb[0]) - a0[1]) / (va[1] - va[0]*(vb[1]/vb[0]))
-		return a0.Add(va.MulF(r)), r
+	if (va[0] == 0 && vb[0] == 0) || (va[1] == 0 && vb[1] == 0) || (va[0] == 0 && va[1] == 0) || (vb[0] == 0 && vb[1] == 0) {
+		return lm.Vec2{}, float32(math.Inf(1)), float32(math.Inf(1))
+	}
+	p := (vb[1]*(a0[0]-b0[0]) - a0[1]*vb[0] + b0[1]*vb[0]) / (va[1]*vb[0] - va[0]*vb[1])
+	var q float32
+	if vb[0] == 0 {
+		q = (a0[1] + p*va[1] - b0[1]) / vb[1]
+	} else {
+		q = (a0[0] + p*va[0] - b0[0]) / vb[0]
 	}
 
-	r := (b0[0] + (a0[1]-b0[1])*(vb[0]/vb[1]) - a0[0]) / (va[0] - va[1]*(vb[0]/vb[1]))
-	return a0.Add(va.MulF(r)), r
+	return a0.Add(va.MulF(p)), p, q
 }
 
 func (cv *Canvas) Fill() {
@@ -353,7 +358,7 @@ func (cv *Canvas) Fill() {
 	if len(path) < 3 {
 		return
 	}
-	//path = cv.cutIntersections(path)
+	path = cv.cutIntersections(path)
 
 	cv.activate()
 
