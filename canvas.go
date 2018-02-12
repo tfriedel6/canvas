@@ -93,6 +93,16 @@ func New(x, y, w, h int) *Canvas {
 	return cv
 }
 
+func (cv *Canvas) SetSize(w, h int) {
+	cv.w, cv.h = w, h
+	cv.fw, cv.fh = float32(w), float32(h)
+	activeCanvas = nil
+}
+
+func (cv *Canvas) W() int           { return cv.w }
+func (cv *Canvas) H() int           { return cv.h }
+func (cv *Canvas) Size() (int, int) { return cv.w, cv.h }
+
 func (cv *Canvas) tf(v lm.Vec2) lm.Vec2 {
 	v, _ = v.MulMat3x3(cv.state.transform)
 	return v
@@ -474,19 +484,19 @@ func (cv *Canvas) Restore() {
 }
 
 func (cv *Canvas) Scale(x, y float32) {
-	cv.state.transform = cv.state.transform.Mul(lm.Mat3x3Scale(lm.Vec2{x, y}))
+	cv.state.transform = lm.Mat3x3Scale(lm.Vec2{x, y}).Mul(cv.state.transform)
 }
 
 func (cv *Canvas) Translate(x, y float32) {
-	cv.state.transform = cv.state.transform.Mul(lm.Mat3x3Translate(lm.Vec2{x, y}))
+	cv.state.transform = lm.Mat3x3Translate(lm.Vec2{x, y}).Mul(cv.state.transform)
 }
 
 func (cv *Canvas) Rotate(angle float32) {
-	cv.state.transform = cv.state.transform.Mul(lm.Mat3x3Rotate(angle))
+	cv.state.transform = lm.Mat3x3Rotate(angle).Mul(cv.state.transform)
 }
 
 func (cv *Canvas) Transform(a, b, c, d, e, f float32) {
-	cv.state.transform = cv.state.transform.Mul(lm.Mat3x3{a, b, 0, c, d, 0, e, f, 1})
+	cv.state.transform = lm.Mat3x3{a, b, 0, c, d, 0, e, f, 1}.Mul(cv.state.transform)
 }
 
 func (cv *Canvas) SetTransform(a, b, c, d, e, f float32) {
