@@ -103,6 +103,7 @@ func (cv *Canvas) FillText(str string, x, y float32) {
 	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
 	gli.UseProgram(tr.id)
+	gli.Uniform2f(tr.canvasSize, cv.fw, cv.fh)
 	gli.Uniform1i(tr.image, 0)
 
 	gli.VertexAttribPointer(tr.vertex, 2, gl_FLOAT, false, 0, nil)
