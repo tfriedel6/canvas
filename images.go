@@ -17,7 +17,9 @@ type Image struct {
 	deleted bool
 }
 
-func LoadImage(src interface{}) (*Image, error) {
+var images = make(map[string]*Image)
+
+func LoadImage(src interface{}, name string) (*Image, error) {
 	var img *Image
 	var err error
 	switch v := src.(type) {
@@ -45,15 +47,18 @@ func LoadImage(src interface{}) (*Image, error) {
 		if err != nil {
 			return nil, err
 		}
-		return LoadImage(srcImg)
+		return LoadImage(srcImg, name)
 	case []byte:
 		srcImg, _, err := image.Decode(bytes.NewReader(v))
 		if err != nil {
 			return nil, err
 		}
-		return LoadImage(srcImg)
+		return LoadImage(srcImg, name)
 	default:
 		return nil, errors.New("Unsupported source type")
+	}
+	if name != "" {
+		images[name] = img
 	}
 	runtime.SetFinalizer(img, func(img *Image) {
 		glChan <- func() {
@@ -169,7 +174,26 @@ func (img *Image) Delete() {
 	img.deleted = true
 }
 
-func (cv *Canvas) DrawImage(img *Image, coords ...float32) {
+func (cv *Canvas) DrawImage(image interface{}, coords ...float32) {
+	var img *Image
+	switch v := image.(type) {
+	case *Image:
+		img = v
+	case string:
+		if i, ok := images[v]; ok {
+			img = i
+		} else {
+			i, err := LoadImage(v, v)
+			if err == nil {
+				img = i
+			}
+		}
+	}
+
+	if img == nil {
+		return
+	}
+
 	if img.deleted {
 		return
 	}

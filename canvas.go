@@ -5,6 +5,7 @@ import (
 	"image"
 	"unsafe"
 
+	"github.com/golang/freetype/truetype"
 	"github.com/tfriedel6/lm"
 )
 
@@ -358,6 +359,10 @@ func parseStyle(value ...interface{}) drawStyle {
 		case *Image:
 			style.image = v
 			return style
+		case string:
+			if img, ok := images[v]; ok {
+				style.image = img
+			}
 		}
 	}
 	c, ok := parseColor(value...)
@@ -428,8 +433,22 @@ func (cv *Canvas) SetLineWidth(width float32) {
 }
 
 // SetFont sets the font and font size
-func (cv *Canvas) SetFont(font *Font, size float32) {
-	cv.state.font = font
+func (cv *Canvas) SetFont(font interface{}, size float32) {
+	switch v := font.(type) {
+	case *Font:
+		cv.state.font = v
+	case *truetype.Font:
+		cv.state.font = &Font{font: v}
+	case string:
+		if f, ok := fonts[v]; ok {
+			cv.state.font = f
+		} else {
+			f, err := LoadFont(v, v)
+			if err == nil {
+				cv.state.font = f
+			}
+		}
+	}
 	cv.state.fontSize = size
 }
 

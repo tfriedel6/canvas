@@ -18,10 +18,13 @@ type Font struct {
 	font *truetype.Font
 }
 
-func LoadFont(src interface{}) (*Font, error) {
+var fonts = make(map[string]*Font)
+
+func LoadFont(src interface{}, name string) (*Font, error) {
+	var f *Font
 	switch v := src.(type) {
 	case *truetype.Font:
-		return &Font{font: v}, nil
+		f = &Font{font: v}
 	case string:
 		data, err := ioutil.ReadFile(v)
 		if err != nil {
@@ -31,15 +34,20 @@ func LoadFont(src interface{}) (*Font, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &Font{font: font}, nil
+		f = &Font{font: font}
 	case []byte:
 		font, err := freetype.ParseFont(v)
 		if err != nil {
 			return nil, err
 		}
-		return &Font{font: font}, nil
+		f = &Font{font: font}
+	default:
+		return nil, errors.New("Unsupported source type")
 	}
-	return nil, errors.New("Unsupported source type")
+	if name != "" {
+		fonts[name] = f
+	}
+	return f, nil
 }
 
 func (cv *Canvas) FillText(str string, x, y float32) {

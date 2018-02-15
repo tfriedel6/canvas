@@ -118,8 +118,8 @@ func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float32, anticlockwise 
 	step := 6 / fmath.Max(tr[0], tr[1])
 	if step > 0.8 {
 		step = 0.8
-	} else if step < 0.01 {
-		step = 0.01
+	} else if step < 0.05 {
+		step = 0.05
 	}
 	if anticlockwise {
 		for a := startAngle; a > endAngle; a -= step {
@@ -316,8 +316,8 @@ func (cv *Canvas) addCircleTris(center lm.Vec2, radius float32, tris []float32) 
 	step := 6 / radius
 	if step > 0.8 {
 		step = 0.8
-	} else if step < 0.01 {
-		step = 0.01
+	} else if step < 0.05 {
+		step = 0.05
 	}
 	for angle := step; angle <= math.Pi*2+step; angle += step {
 		s, c := fmath.Sincos(angle)
