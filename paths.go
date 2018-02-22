@@ -289,8 +289,17 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 lm.V
 		l1p2 := p2.Add(v3)
 		l1p3 := p1.Add(v3)
 
-		ip0, _, _ := lineIntersection(l0p0, l0p1, l1p1, l1p0)
-		ip1, _, _ := lineIntersection(l0p2, l0p3, l1p3, l1p2)
+		var ip0, ip1 lm.Vec2
+		if l0p1.Sub(l1p1).LenSqr() < 0.000000001 {
+			ip0 = l0p1.Sub(l1p1).MulF(0.5).Add(l1p1)
+		} else {
+			ip0, _, _ = lineIntersection(l0p0, l0p1, l1p1, l1p0)
+		}
+		if l0p3.Sub(l1p3).LenSqr() < 0.000000001 {
+			ip1 = l0p3.Sub(l1p3).MulF(0.5).Add(l1p3)
+		} else {
+			ip1, _, _ = lineIntersection(l0p2, l0p3, l1p3, l1p2)
+		}
 
 		tris = append(tris,
 			p1[0], p1[1], l0p1[0], l0p1[1], ip0[0], ip0[1],
