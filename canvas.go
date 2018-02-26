@@ -2,12 +2,14 @@ package canvas
 
 import (
 	"fmt"
-	"image"
 	"unsafe"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/tfriedel6/lm"
 )
+
+//go:generate go run make_shaders.go
+//go:generate go fmt
 
 // Canvas represents an area on the viewport on which to draw
 // using a set of functions very similar to the HTML5 canvas
@@ -17,10 +19,6 @@ type Canvas struct {
 
 	polyPath []pathPoint
 	linePath []pathPoint
-	text     struct {
-		target *image.RGBA
-		tex    uint32
-	}
 
 	state      drawState
 	stateStack []drawState
@@ -133,15 +131,22 @@ loop:
 	}
 }
 
+const bufferTextureSize = 2048
+
 var (
-	gli    GL
-	buf    uint32
-	sr     *solidShader
-	tr     *textureShader
-	lgr    *linearGradientShader
-	rgr    *radialGradientShader
-	ipr    *imagePatternShader
-	glChan = make(chan func())
+	gli      GL
+	buf      uint32
+	alphaTex uint32
+	sr       *solidShader
+	lgr      *linearGradientShader
+	rgr      *radialGradientShader
+	ipr      *imagePatternShader
+	sar      *solidAlphaShader
+	rgar     *radialGradientAlphaShader
+	lgar     *linearGradientAlphaShader
+	ipar     *imagePatternAlphaShader
+	ir       *imageShader
+	glChan   = make(chan func())
 )
 
 func LoadGL(glimpl GL) (err error) {
@@ -150,15 +155,6 @@ func LoadGL(glimpl GL) (err error) {
 	gli.GetError() // clear error state
 
 	sr, err = loadSolidShader()
-	if err != nil {
-		return
-	}
-	err = glError()
-	if err != nil {
-		return
-	}
-
-	tr, err = loadTextureShader()
 	if err != nil {
 		return
 	}
@@ -194,11 +190,65 @@ func LoadGL(glimpl GL) (err error) {
 		return
 	}
 
+	sar, err = loadSolidAlphaShader()
+	if err != nil {
+		return
+	}
+	err = glError()
+	if err != nil {
+		return
+	}
+
+	lgar, err = loadLinearGradientAlphaShader()
+	if err != nil {
+		return
+	}
+	err = glError()
+	if err != nil {
+		return
+	}
+
+	rgar, err = loadRadialGradientAlphaShader()
+	if err != nil {
+		return
+	}
+	err = glError()
+	if err != nil {
+		return
+	}
+
+	ipar, err = loadImagePatternAlphaShader()
+	if err != nil {
+		return
+	}
+	err = glError()
+	if err != nil {
+		return
+	}
+
+	ir, err = loadImageShader()
+	if err != nil {
+		return
+	}
+	err = glError()
+	if err != nil {
+		return
+	}
+
 	gli.GenBuffers(1, &buf)
 	err = glError()
 	if err != nil {
 		return
 	}
+
+	gli.ActiveTexture(gl_TEXTURE0)
+	gli.GenTextures(1, &alphaTex)
+	gli.BindTexture(gl_TEXTURE_2D, alphaTex)
+	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MIN_FILTER, gl_NEAREST)
+	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MAG_FILTER, gl_NEAREST)
+	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_WRAP_S, gl_CLAMP_TO_EDGE)
+	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_WRAP_T, gl_CLAMP_TO_EDGE)
+	gli.TexImage2D(gl_TEXTURE_2D, 0, gl_ALPHA, bufferTextureSize, bufferTextureSize, 0, gl_ALPHA, gl_UNSIGNED_BYTE, nil)
 
 	gli.Enable(gl_BLEND)
 	gli.BlendFunc(gl_SRC_ALPHA, gl_ONE_MINUS_SRC_ALPHA)
@@ -207,132 +257,6 @@ func LoadGL(glimpl GL) (err error) {
 
 	return
 }
-
-//go:generate go run make_shaders.go
-//go:generate go fmt
-
-var solidVS = `
-attribute vec2 vertex;
-uniform vec2 canvasSize;
-void main() {
-	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
-    gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
-}`
-var solidFS = `
-#ifdef GL_ES
-precision mediump float;
-#endif
-uniform vec4 color;
-void main() {
-    gl_FragColor = color;
-}`
-
-var textureVS = `
-attribute vec2 vertex, texCoord;
-uniform vec2 canvasSize;
-varying vec2 v_texCoord;
-void main() {
-	v_texCoord = texCoord;
-	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
-    gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
-}`
-var textureFS = `
-#ifdef GL_ES
-precision mediump float;
-#endif
-varying vec2 v_texCoord;
-uniform sampler2D image;
-void main() {
-    gl_FragColor = texture2D(image, v_texCoord);
-}`
-var linearGradientVS = `
-attribute vec2 vertex;
-uniform vec2 canvasSize;
-varying vec2 v_cp;
-void main() {
-	v_cp = vertex;
-	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
-    gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
-}`
-var linearGradientFS = `
-#ifdef GL_ES
-precision mediump float;
-#endif
-varying vec2 v_cp;
-uniform mat3 invmat;
-uniform sampler1D gradient;
-uniform vec2 from, dir;
-uniform float len;
-void main() {
-	vec3 untf = vec3(v_cp, 1.0) * invmat;
-	vec2 v = untf.xy - from;
-	float r = dot(v, dir) / len;
-	r = clamp(r, 0.0, 1.0);
-    gl_FragColor = texture1D(gradient, r);
-}`
-var radialGradientVS = `
-attribute vec2 vertex;
-uniform vec2 canvasSize;
-varying vec2 v_cp;
-void main() {
-	v_cp = vertex;
-	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
-    gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
-}`
-var radialGradientFS = `
-#ifdef GL_ES
-precision mediump float;
-#endif
-varying vec2 v_cp;
-uniform mat3 invmat;
-uniform sampler1D gradient;
-uniform vec2 from, to, dir;
-uniform float radFrom, radTo;
-uniform float len;
-bool isNaN(float v) {
-  return v < 0.0 || 0.0 < v || v == 0.0 ? false : true;
-}
-void main() {
-	vec3 untf = vec3(v_cp, 1.0) * invmat;
-	float o_a = 0.5 * sqrt(
-		pow(-2.0*from.x*from.x+2.0*from.x*to.x+2.0*from.x*untf.x-2.0*to.x*untf.x-2.0*from.y*from.y+2.0*from.y*to.y+2.0*from.y*untf.y-2.0*to.y*untf.y+2.0*radFrom*radFrom-2.0*radFrom*radTo, 2.0)
-		-4.0*(from.x*from.x-2.0*from.x*untf.x+untf.x*untf.x+from.y*from.y-2.0*from.y*untf.y+untf.y*untf.y-radFrom*radFrom)
-		*(from.x*from.x-2.0*from.x*to.x+to.x*to.x+from.y*from.y-2.0*from.y*to.y+to.y*to.y-radFrom*radFrom+2.0*radFrom*radTo-radTo*radTo)
-	);
-	float o_b = (from.x*from.x-from.x*to.x-from.x*untf.x+to.x*untf.x+from.y*from.y-from.y*to.y-from.y*untf.y+to.y*untf.y-radFrom*radFrom+radFrom*radTo);
-	float o_c = (from.x*from.x-2.0*from.x*to.x+to.x*to.x+from.y*from.y-2.0*from.y*to.y+to.y*to.y-radFrom*radFrom+2.0*radFrom*radTo-radTo*radTo);
-	float o1 = (-o_a + o_b) / o_c;
-	float o2 = (o_a + o_b) / o_c;
-	if (isNaN(o1) && isNaN(o2)) {
-		gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-		return;
-	}
-	float o = max(o1, o2);
-	float r = radFrom + o * (radTo - radFrom);
-	gl_FragColor = texture1D(gradient, o);
-}`
-var imagePatternVS = `
-attribute vec2 vertex;
-uniform vec2 canvasSize;
-varying vec2 v_cp;
-void main() {
-	v_cp = vertex;
-	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
-    gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
-}`
-var imagePatternFS = `
-#ifdef GL_ES
-precision mediump float;
-#endif
-varying vec2 v_cp;
-uniform vec2 imageSize;
-uniform mat3 invmat;
-uniform sampler2D image;
-void main() {
-	vec3 untf = vec3(v_cp, 1.0) * invmat;
-    gl_FragColor = texture2D(image, mod(untf.xy / imageSize, 1.0));
-    //gl_FragColor = vec4(v_cp * 0.1, 0.0, 1.0);
-}`
 
 func glError() error {
 	glErr := gli.GetError()
@@ -437,6 +361,71 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 	c := style.color
 	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
 	return sr.vertex
+}
+
+func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLoc, alphaTexCoordLoc uint32) {
+	if lg := style.linearGradient; lg != nil {
+		lg.load()
+		gli.ActiveTexture(gl_TEXTURE0)
+		gli.BindTexture(gl_TEXTURE_1D, lg.tex)
+		gli.UseProgram(lgar.id)
+		from := cv.tf(lg.from)
+		to := cv.tf(lg.to)
+		dir := to.Sub(from)
+		length := dir.Len()
+		dir = dir.DivF(length)
+		gli.Uniform2f(lgar.canvasSize, cv.fw, cv.fh)
+		inv := cv.state.transform.Invert()
+		gli.UniformMatrix3fv(lgar.invmat, 1, false, &inv[0])
+		gli.Uniform2f(lgar.from, from[0], from[1])
+		gli.Uniform2f(lgar.dir, dir[0], dir[1])
+		gli.Uniform1f(lgar.len, length)
+		gli.Uniform1i(lgar.gradient, 0)
+		gli.Uniform1i(lgar.alphaTex, alphaTexSlot)
+		return lgar.vertex, lgar.alphaTexCoord
+	}
+	if rg := style.radialGradient; rg != nil {
+		rg.load()
+		gli.ActiveTexture(gl_TEXTURE0)
+		gli.BindTexture(gl_TEXTURE_1D, rg.tex)
+		gli.UseProgram(rgar.id)
+		from := cv.tf(rg.from)
+		to := cv.tf(rg.to)
+		dir := to.Sub(from)
+		length := dir.Len()
+		dir = dir.DivF(length)
+		gli.Uniform2f(rgar.canvasSize, cv.fw, cv.fh)
+		inv := cv.state.transform.Invert()
+		gli.UniformMatrix3fv(rgar.invmat, 1, false, &inv[0])
+		gli.Uniform2f(rgar.from, from[0], from[1])
+		gli.Uniform2f(rgar.to, to[0], to[1])
+		gli.Uniform2f(rgar.dir, dir[0], dir[1])
+		gli.Uniform1f(rgar.radFrom, rg.radFrom)
+		gli.Uniform1f(rgar.radTo, rg.radTo)
+		gli.Uniform1f(rgar.len, length)
+		gli.Uniform1i(rgar.gradient, 0)
+		gli.Uniform1i(rgar.alphaTex, alphaTexSlot)
+		return rgar.vertex, rgar.alphaTexCoord
+	}
+	if img := style.image; img != nil {
+		gli.UseProgram(ipar.id)
+		gli.ActiveTexture(gl_TEXTURE0)
+		gli.BindTexture(gl_TEXTURE_2D, img.tex)
+		gli.Uniform2f(ipar.canvasSize, cv.fw, cv.fh)
+		inv := cv.state.transform.Invert()
+		gli.UniformMatrix3fv(ipar.invmat, 1, false, &inv[0])
+		gli.Uniform2f(ipar.imageSize, float32(img.w), float32(img.h))
+		gli.Uniform1i(ipar.image, 0)
+		gli.Uniform1i(ipar.alphaTex, alphaTexSlot)
+		return ipar.vertex, ipar.alphaTexCoord
+	}
+
+	gli.UseProgram(sar.id)
+	gli.Uniform2f(sar.canvasSize, cv.fw, cv.fh)
+	c := style.color
+	gli.Uniform4f(sar.color, c.r, c.g, c.b, c.a)
+	gli.Uniform1i(sar.alphaTex, alphaTexSlot)
+	return sar.vertex, sar.alphaTexCoord
 }
 
 // SetLineWidth sets the line width for any line drawing calls

@@ -79,14 +79,14 @@ func (cv *Canvas) PutImageData(img *image.RGBA, x, y int) {
 		0, 0, 1, 0, 1, 1, 0, 1}
 	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
-	gli.UseProgram(tr.id)
-	gli.Uniform1i(tr.image, 0)
-	gli.Uniform2f(tr.canvasSize, cv.fw, cv.fh)
-	gli.VertexAttribPointer(tr.vertex, 2, gl_FLOAT, false, 0, nil)
-	gli.VertexAttribPointer(tr.texCoord, 2, gl_FLOAT, false, 0, gli.PtrOffset(8*4))
-	gli.EnableVertexAttribArray(tr.vertex)
-	gli.EnableVertexAttribArray(tr.texCoord)
+	gli.UseProgram(ir.id)
+	gli.Uniform1i(ir.image, 0)
+	gli.Uniform2f(ir.canvasSize, cv.fw, cv.fh)
+	gli.VertexAttribPointer(ir.vertex, 2, gl_FLOAT, false, 0, nil)
+	gli.VertexAttribPointer(ir.texCoord, 2, gl_FLOAT, false, 0, gli.PtrOffset(8*4))
+	gli.EnableVertexAttribArray(ir.vertex)
+	gli.EnableVertexAttribArray(ir.texCoord)
 	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
-	gli.DisableVertexAttribArray(tr.vertex)
-	gli.DisableVertexAttribArray(tr.texCoord)
+	gli.DisableVertexAttribArray(ir.vertex)
+	gli.DisableVertexAttribArray(ir.texCoord)
 }

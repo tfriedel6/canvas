@@ -212,17 +212,17 @@ const compilePart = `
 		if logLength > 0 {
 			shLog := strings.Repeat("\x00", int(logLength+1))
 			gli.GetShaderInfoLog(SHADER_VAR, logLength, nil, gli.Str(shLog))
-			fmt.Printf("SHADER_TYPE compilation log:\n\n%s\n", shLog)
+			fmt.Printf("SHADER_TYPE compilation log for SHADER_SRC:\n\n%s\n", shLog)
 		}
 
 		var status int32
 		gli.GetShaderiv(SHADER_VAR, gl_COMPILE_STATUS, &status)
 		if status != gl_TRUE {
 			gli.DeleteShader(SHADER_VAR)
-			return nil, errors.New("Error compiling GL_SHADER_TYPE shader part")
+			return nil, errors.New("Error compiling GL_SHADER_TYPE shader part for SHADER_SRC")
 		}
 		if glErr := gli.GetError(); glErr != gl_NO_ERROR {
-			return nil, errors.New("error compiling shader part, glError: " + fmt.Sprint(glErr))
+			return nil, errors.New("error compiling shader part for SHADER_SRC, glError: " + fmt.Sprint(glErr))
 		}
 	}
 `
@@ -238,7 +238,7 @@ const linkPart = `
 		if logLength > 0 {
 			shLog := strings.Repeat("\x00", int(logLength+1))
 			gli.GetProgramInfoLog(program, logLength, nil, gli.Str(shLog))
-			fmt.Printf("Shader link log:\n\n%s\n", shLog)
+			fmt.Printf("Shader link log for SHADER_SRC:\n\n%s\n", shLog)
 		}
 
 		var status int32
@@ -246,10 +246,10 @@ const linkPart = `
 		if status != gl_TRUE {
 			gli.DeleteShader(vs)
 			gli.DeleteShader(fs)
-			return nil, errors.New("error linking shader")
+			return nil, errors.New("error linking shader for SHADER_SRC")
 		}
 		if glErr := gli.GetError(); glErr != gl_NO_ERROR {
-			return nil, errors.New("error linking shader, glError: " + fmt.Sprint(glErr))
+			return nil, errors.New("error linking shader for SHADER_SRC, glError: " + fmt.Sprint(glErr))
 		}
 	}
 `
@@ -297,7 +297,8 @@ func buildCode(buf *bytes.Buffer, baseName string, inputs []ShaderInput) {
 	part = strings.Replace(part, "SHADER_VAR", "fs", -1)
 	fmt.Fprint(buf, part)
 
-	fmt.Fprint(buf, linkPart)
+	part = strings.Replace(linkPart, "SHADER_SRC", fsName, -1)
+	fmt.Fprint(buf, part)
 
 	fmt.Fprint(buf, "\n")
 	fmt.Fprintf(buf, "\tresult := &%s{}\n", shaderName)
