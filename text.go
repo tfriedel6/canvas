@@ -19,6 +19,7 @@ type Font struct {
 }
 
 var fonts = make(map[string]*Font)
+var zeroes [alphaTexSize]byte
 
 func LoadFont(src interface{}, name string) (*Font, error) {
 	var f *Font
@@ -94,15 +95,15 @@ func (cv *Canvas) FillText(str string, x, y float32) {
 
 		for y, w, h := 0, bounds.Dx(), bounds.Dy(); y < h; y++ {
 			off := y * mask.Stride
-			gli.TexSubImage2D(gl_TEXTURE_2D, 0, 0, int32(bufferTextureSize-1-y), int32(w), 1, gl_ALPHA, gl_UNSIGNED_BYTE, gli.Ptr(&mask.Pix[off]))
+			gli.TexSubImage2D(gl_TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(w), 1, gl_ALPHA, gl_UNSIGNED_BYTE, gli.Ptr(&mask.Pix[off]))
 		}
 
 		p0 := cv.tf(lm.Vec2{float32(bounds.Min.X) + x, float32(bounds.Min.Y) + y})
 		p1 := cv.tf(lm.Vec2{float32(bounds.Min.X) + x, float32(bounds.Max.Y) + y})
 		p2 := cv.tf(lm.Vec2{float32(bounds.Max.X) + x, float32(bounds.Max.Y) + y})
 		p3 := cv.tf(lm.Vec2{float32(bounds.Max.X) + x, float32(bounds.Min.Y) + y})
-		tw := float32(bounds.Dx()) / bufferTextureSize
-		th := float32(bounds.Dy()) / bufferTextureSize
+		tw := float32(bounds.Dx()) / alphaTexSize
+		th := float32(bounds.Dy()) / alphaTexSize
 		data := [16]float32{p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1],
 			0, 1, 0, 1 - th, tw, 1 - th, tw, 1}
 		gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
@@ -110,6 +111,10 @@ func (cv *Canvas) FillText(str string, x, y float32) {
 		gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, nil)
 		gli.VertexAttribPointer(alphaTexCoord, 2, gl_FLOAT, false, 0, gli.PtrOffset(8*4))
 		gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
+
+		for y, w, h := 0, bounds.Dx(), bounds.Dy(); y < h; y++ {
+			gli.TexSubImage2D(gl_TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(w), 1, gl_ALPHA, gl_UNSIGNED_BYTE, gli.Ptr(&zeroes[0]))
+		}
 
 		x += float32(advance) / 64
 	}

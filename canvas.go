@@ -131,7 +131,7 @@ loop:
 	}
 }
 
-const bufferTextureSize = 2048
+const alphaTexSize = 2048
 
 var (
 	gli      GL
@@ -248,7 +248,7 @@ func LoadGL(glimpl GL) (err error) {
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MAG_FILTER, gl_NEAREST)
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_WRAP_S, gl_CLAMP_TO_EDGE)
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_WRAP_T, gl_CLAMP_TO_EDGE)
-	gli.TexImage2D(gl_TEXTURE_2D, 0, gl_ALPHA, bufferTextureSize, bufferTextureSize, 0, gl_ALPHA, gl_UNSIGNED_BYTE, nil)
+	gli.TexImage2D(gl_TEXTURE_2D, 0, gl_ALPHA, alphaTexSize, alphaTexSize, 0, gl_ALPHA, gl_UNSIGNED_BYTE, nil)
 
 	gli.Enable(gl_BLEND)
 	gli.BlendFunc(gl_SRC_ALPHA, gl_ONE_MINUS_SRC_ALPHA)
