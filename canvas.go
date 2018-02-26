@@ -259,11 +259,13 @@ var linearGradientFS = `
 precision mediump float;
 #endif
 varying vec2 v_cp;
+uniform mat3 invmat;
 uniform sampler1D gradient;
 uniform vec2 from, dir;
 uniform float len;
 void main() {
-	vec2 v = v_cp - from;
+	vec3 untf = vec3(v_cp, 1.0) * invmat;
+	vec2 v = untf.xy - from;
 	float r = dot(v, dir) / len;
 	r = clamp(r, 0.0, 1.0);
     gl_FragColor = texture1D(gradient, r);
@@ -282,6 +284,7 @@ var radialGradientFS = `
 precision mediump float;
 #endif
 varying vec2 v_cp;
+uniform mat3 invmat;
 uniform sampler1D gradient;
 uniform vec2 from, to, dir;
 uniform float radFrom, radTo;
@@ -290,12 +293,13 @@ bool isNaN(float v) {
   return v < 0.0 || 0.0 < v || v == 0.0 ? false : true;
 }
 void main() {
+	vec3 untf = vec3(v_cp, 1.0) * invmat;
 	float o_a = 0.5 * sqrt(
-		pow(-2.0*from.x*from.x+2.0*from.x*to.x+2.0*from.x*v_cp.x-2.0*to.x*v_cp.x-2.0*from.y*from.y+2.0*from.y*to.y+2.0*from.y*v_cp.y-2.0*to.y*v_cp.y+2.0*radFrom*radFrom-2.0*radFrom*radTo, 2.0)
-		-4.0*(from.x*from.x-2.0*from.x*v_cp.x+v_cp.x*v_cp.x+from.y*from.y-2.0*from.y*v_cp.y+v_cp.y*v_cp.y-radFrom*radFrom)
+		pow(-2.0*from.x*from.x+2.0*from.x*to.x+2.0*from.x*untf.x-2.0*to.x*untf.x-2.0*from.y*from.y+2.0*from.y*to.y+2.0*from.y*untf.y-2.0*to.y*untf.y+2.0*radFrom*radFrom-2.0*radFrom*radTo, 2.0)
+		-4.0*(from.x*from.x-2.0*from.x*untf.x+untf.x*untf.x+from.y*from.y-2.0*from.y*untf.y+untf.y*untf.y-radFrom*radFrom)
 		*(from.x*from.x-2.0*from.x*to.x+to.x*to.x+from.y*from.y-2.0*from.y*to.y+to.y*to.y-radFrom*radFrom+2.0*radFrom*radTo-radTo*radTo)
 	);
-	float o_b = (from.x*from.x-from.x*to.x-from.x*v_cp.x+to.x*v_cp.x+from.y*from.y-from.y*to.y-from.y*v_cp.y+to.y*v_cp.y-radFrom*radFrom+radFrom*radTo);
+	float o_b = (from.x*from.x-from.x*to.x-from.x*untf.x+to.x*untf.x+from.y*from.y-from.y*to.y-from.y*untf.y+to.y*untf.y-radFrom*radFrom+radFrom*radTo);
 	float o_c = (from.x*from.x-2.0*from.x*to.x+to.x*to.x+from.y*from.y-2.0*from.y*to.y+to.y*to.y-radFrom*radFrom+2.0*radFrom*radTo-radTo*radTo);
 	float o1 = (-o_a + o_b) / o_c;
 	float o2 = (o_a + o_b) / o_c;
@@ -322,9 +326,11 @@ precision mediump float;
 #endif
 varying vec2 v_cp;
 uniform vec2 imageSize;
+uniform mat3 invmat;
 uniform sampler2D image;
 void main() {
-    gl_FragColor = texture2D(image, mod(v_cp / imageSize, 1.0));
+	vec3 untf = vec3(v_cp, 1.0) * invmat;
+    gl_FragColor = texture2D(image, mod(untf.xy / imageSize, 1.0));
     //gl_FragColor = vec4(v_cp * 0.1, 0.0, 1.0);
 }`
 
@@ -384,6 +390,8 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 		length := dir.Len()
 		dir = dir.DivF(length)
 		gli.Uniform2f(lgr.canvasSize, cv.fw, cv.fh)
+		inv := cv.state.transform.Invert()
+		gli.UniformMatrix3fv(lgr.invmat, 1, false, &inv[0])
 		gli.Uniform2f(lgr.from, from[0], from[1])
 		gli.Uniform2f(lgr.dir, dir[0], dir[1])
 		gli.Uniform1f(lgr.len, length)
@@ -401,6 +409,8 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 		length := dir.Len()
 		dir = dir.DivF(length)
 		gli.Uniform2f(rgr.canvasSize, cv.fw, cv.fh)
+		inv := cv.state.transform.Invert()
+		gli.UniformMatrix3fv(rgr.invmat, 1, false, &inv[0])
 		gli.Uniform2f(rgr.from, from[0], from[1])
 		gli.Uniform2f(rgr.to, to[0], to[1])
 		gli.Uniform2f(rgr.dir, dir[0], dir[1])
@@ -415,6 +425,8 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 		gli.ActiveTexture(gl_TEXTURE0)
 		gli.BindTexture(gl_TEXTURE_2D, img.tex)
 		gli.Uniform2f(ipr.canvasSize, cv.fw, cv.fh)
+		inv := cv.state.transform.Invert()
+		gli.UniformMatrix3fv(ipr.invmat, 1, false, &inv[0])
 		gli.Uniform2f(ipr.imageSize, float32(img.w), float32(img.h))
 		gli.Uniform1i(ipr.image, 0)
 		return ipr.vertex
