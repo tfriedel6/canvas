@@ -161,6 +161,72 @@ func (cv *Canvas) ArcTo(x1, y1, x2, y2, radius float32) {
 	cv.Arc(center[0], center[1], radius, a0, a1, x > 0)
 }
 
+func (cv *Canvas) QuadraticCurveTo(x1, y1, x2, y2 float32) {
+	if len(cv.linePath) == 0 {
+		return
+	}
+	p0 := cv.linePath[len(cv.linePath)-1].pos
+	p1 := lm.Vec2{x1, y1}
+	p2 := lm.Vec2{x2, y2}
+	v0 := p1.Sub(p0)
+	v1 := p2.Sub(p1)
+
+	tp0, tp1, tp2 := cv.tf(p0), cv.tf(p1), cv.tf(p2)
+	tv0 := tp1.Sub(tp0)
+	tv1 := tp2.Sub(tp1)
+
+	step := 1 / fmath.Max(fmath.Max(tv0[0], tv0[1]), fmath.Max(tv1[0], tv1[1]))
+	if step > 0.1 {
+		step = 0.1
+	} else if step < 0.005 {
+		step = 0.005
+	}
+
+	for r := float32(0); r < 1; r += step {
+		i0 := v0.MulF(r).Add(p0)
+		i1 := v1.MulF(r).Add(p1)
+		p := i1.Sub(i0).MulF(r).Add(i0)
+		cv.LineTo(p[0], p[1])
+	}
+}
+
+func (cv *Canvas) BezierCurveTo(x1, y1, x2, y2, x3, y3 float32) {
+	if len(cv.linePath) == 0 {
+		return
+	}
+	p0 := cv.linePath[len(cv.linePath)-1].pos
+	p1 := lm.Vec2{x1, y1}
+	p2 := lm.Vec2{x2, y2}
+	p3 := lm.Vec2{x3, y3}
+	v0 := p1.Sub(p0)
+	v1 := p2.Sub(p1)
+	v2 := p3.Sub(p2)
+
+	tp0, tp1, tp2, tp3 := cv.tf(p0), cv.tf(p1), cv.tf(p2), cv.tf(p3)
+	tv0 := tp1.Sub(tp0)
+	tv1 := tp2.Sub(tp1)
+	tv2 := tp3.Sub(tp2)
+
+	step := 1 / fmath.Max(fmath.Max(fmath.Max(tv0[0], tv0[1]), fmath.Max(tv1[0], tv1[1])), fmath.Max(tv2[0], tv2[1]))
+	if step > 0.1 {
+		step = 0.1
+	} else if step < 0.005 {
+		step = 0.005
+	}
+
+	for r := float32(0); r < 1; r += step {
+		i0 := v0.MulF(r).Add(p0)
+		i1 := v1.MulF(r).Add(p1)
+		i2 := v2.MulF(r).Add(p2)
+		iv0 := i1.Sub(i0)
+		iv1 := i2.Sub(i1)
+		j0 := iv0.MulF(r).Add(i0)
+		j1 := iv1.MulF(r).Add(i1)
+		p := j1.Sub(j0).MulF(r).Add(j0)
+		cv.LineTo(p[0], p[1])
+	}
+}
+
 func (cv *Canvas) ClosePath() {
 	if len(cv.linePath) < 2 {
 		return
