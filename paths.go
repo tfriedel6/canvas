@@ -438,8 +438,11 @@ func (cv *Canvas) Fill() {
 	cv.activate()
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	var buf [1000]float32
-	tris := triangulatePath(path, buf[:0])
+	var triBuf [1000]float32
+	tris := triangulatePath(path, triBuf[:0])
+	if len(tris) == 0 {
+		return
+	}
 	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
 
 	vertex := cv.useShader(&cv.state.fill)
@@ -460,11 +463,21 @@ func (cv *Canvas) Clip() {
 func (cv *Canvas) clip(path []pathPoint) {
 	cv.activate()
 
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	var buf [1000]float32
-	tris := buf[:0]
+	gli.ColorMask(false, false, false, false)
+	gli.StencilFunc(gl_ALWAYS, 2, 0xFF)
+	gli.StencilOp(gl_KEEP, gl_KEEP, gl_REPLACE)
+	gli.StencilMask(0x02)
+	gli.Clear(gl_STENCIL_BUFFER_BIT)
+
+	var triBuf [1000]float32
+	tris := triBuf[:0]
 	tris = append(tris, 0, 0, cv.fw, 0, cv.fw, cv.fh, 0, 0, cv.fw, cv.fh, 0, cv.fh)
 	tris = triangulatePath(path, tris)
+	if len(tris) > 0 {
+		return
+	}
+
+	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
 	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
 
@@ -472,12 +485,6 @@ func (cv *Canvas) clip(path []pathPoint) {
 	gli.Uniform4f(sr.color, 1, 1, 1, 1)
 	gli.Uniform2f(sr.canvasSize, cv.fw, cv.fh)
 	gli.EnableVertexAttribArray(sr.vertex)
-
-	gli.ColorMask(false, false, false, false)
-	gli.StencilFunc(gl_ALWAYS, 2, 0xFF)
-	gli.StencilOp(gl_KEEP, gl_KEEP, gl_REPLACE)
-	gli.StencilMask(0x02)
-	gli.Clear(gl_STENCIL_BUFFER_BIT)
 
 	gli.DrawArrays(gl_TRIANGLES, 0, 6)
 	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
