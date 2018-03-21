@@ -7,8 +7,6 @@ import (
 	"io/ioutil"
 	"runtime"
 	"unsafe"
-
-	"github.com/tfriedel6/lm"
 )
 
 type Image struct {
@@ -174,7 +172,7 @@ func (img *Image) Delete() {
 	img.deleted = true
 }
 
-func (cv *Canvas) DrawImage(image interface{}, coords ...float32) {
+func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 	var img *Image
 	switch v := image.(type) {
 	case *Image:
@@ -200,9 +198,9 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float32) {
 
 	cv.activate()
 
-	var sx, sy, sw, sh, dx, dy, dw, dh float32
-	sw, sh = float32(img.w), float32(img.h)
-	dw, dh = float32(img.w), float32(img.h)
+	var sx, sy, sw, sh, dx, dy, dw, dh float64
+	sw, sh = float64(img.w), float64(img.h)
+	dw, dh = float64(img.w), float64(img.h)
 	if len(coords) == 2 {
 		dx, dy = coords[0], coords[1]
 	} else if len(coords) == 4 {
@@ -215,18 +213,18 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float32) {
 		dw, dh = coords[6], coords[7]
 	}
 
-	sx /= float32(img.w)
-	sy /= float32(img.h)
-	sw /= float32(img.w)
-	sh /= float32(img.h)
+	sx /= float64(img.w)
+	sy /= float64(img.h)
+	sw /= float64(img.w)
+	sh /= float64(img.h)
 
-	p0 := cv.tf(lm.Vec2{dx, dy})
-	p1 := cv.tf(lm.Vec2{dx, dy + dh})
-	p2 := cv.tf(lm.Vec2{dx + dw, dy + dh})
-	p3 := cv.tf(lm.Vec2{dx + dw, dy})
+	p0 := cv.tf(vec{dx, dy})
+	p1 := cv.tf(vec{dx, dy + dh})
+	p2 := cv.tf(vec{dx + dw, dy + dh})
+	p3 := cv.tf(vec{dx + dw, dy})
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	data := [16]float32{p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1],
+	data := [16]float64{p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1],
 		sx, sy, sx, sy + sh, sx + sw, sy + sh, sx + sw, sy}
 	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
@@ -235,7 +233,7 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float32) {
 
 	gli.UseProgram(ir.id)
 	gli.Uniform1i(ir.image, 0)
-	gli.Uniform2f(ir.canvasSize, cv.fw, cv.fh)
+	gli.Uniform2f(ir.canvasSize, float32(cv.fw), float32(cv.fh))
 	gli.VertexAttribPointer(ir.vertex, 2, gl_FLOAT, false, 0, nil)
 	gli.VertexAttribPointer(ir.texCoord, 2, gl_FLOAT, false, 0, gli.PtrOffset(8*4))
 	gli.EnableVertexAttribArray(ir.vertex)

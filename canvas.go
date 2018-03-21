@@ -5,7 +5,6 @@ import (
 	"unsafe"
 
 	"github.com/golang/freetype/truetype"
-	"github.com/tfriedel6/lm"
 )
 
 //go:generate go run make_shaders.go
@@ -15,7 +14,7 @@ import (
 // using a set of functions very similar to the HTML5 canvas
 type Canvas struct {
 	x, y, w, h     int
-	fx, fy, fw, fh float32
+	fx, fy, fw, fh float64
 
 	polyPath []pathPoint
 	linePath []pathPoint
@@ -25,26 +24,26 @@ type Canvas struct {
 }
 
 type pathPoint struct {
-	pos    lm.Vec2
-	tf     lm.Vec2
+	pos    vec
+	tf     vec
 	move   bool
-	next   lm.Vec2
+	next   vec
 	attach bool
 }
 
 type drawState struct {
-	transform lm.Mat3x3
+	transform mat
 	fill      drawStyle
 	stroke    drawStyle
 	font      *Font
-	fontSize  float32
-	lineWidth float32
+	fontSize  float64
+	lineWidth float64
 	lineJoin  lineJoin
 	lineEnd   lineEnd
 
-	lineDash       []float32
+	lineDash       []float64
 	lineDashPoint  int
-	lineDashOffset float32
+	lineDashOffset float64
 
 	clip []pathPoint
 	/*
@@ -83,18 +82,18 @@ const (
 func New(x, y, w, h int) *Canvas {
 	cv := &Canvas{
 		x: x, y: y, w: w, h: h,
-		fx: float32(x), fy: float32(y),
-		fw: float32(w), fh: float32(h),
+		fx: float64(x), fy: float64(y),
+		fw: float64(w), fh: float64(h),
 		stateStack: make([]drawState, 0, 20),
 	}
 	cv.state.lineWidth = 1
-	cv.state.transform = lm.Mat3x3Identity()
+	cv.state.transform = matIdentity()
 	return cv
 }
 
 func (cv *Canvas) SetSize(w, h int) {
 	cv.w, cv.h = w, h
-	cv.fw, cv.fh = float32(w), float32(h)
+	cv.fw, cv.fh = float64(w), float64(h)
 	activeCanvas = nil
 }
 
@@ -102,8 +101,8 @@ func (cv *Canvas) W() int           { return cv.w }
 func (cv *Canvas) H() int           { return cv.h }
 func (cv *Canvas) Size() (int, int) { return cv.w, cv.h }
 
-func (cv *Canvas) tf(v lm.Vec2) lm.Vec2 {
-	v, _ = v.MulMat3x3(cv.state.transform)
+func (cv *Canvas) tf(v vec) vec {
+	v, _ = v.mulMat(cv.state.transform)
 	return v
 }
 
@@ -310,15 +309,15 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 		gli.UseProgram(lgr.id)
 		from := cv.tf(lg.from)
 		to := cv.tf(lg.to)
-		dir := to.Sub(from)
-		length := dir.Len()
-		dir = dir.DivF(length)
-		gli.Uniform2f(lgr.canvasSize, cv.fw, cv.fh)
-		inv := cv.state.transform.Invert()
+		dir := to.sub(from)
+		length := dir.len()
+		dir = dir.divf(length)
+		gli.Uniform2f(lgr.canvasSize, float32(cv.fw), float32(cv.fh))
+		inv := cv.state.transform.invert().f32()
 		gli.UniformMatrix3fv(lgr.invmat, 1, false, &inv[0])
-		gli.Uniform2f(lgr.from, from[0], from[1])
-		gli.Uniform2f(lgr.dir, dir[0], dir[1])
-		gli.Uniform1f(lgr.len, length)
+		gli.Uniform2f(lgr.from, float32(from[0]), float32(from[1]))
+		gli.Uniform2f(lgr.dir, float32(dir[0]), float32(dir[1]))
+		gli.Uniform1f(lgr.len, float32(length))
 		gli.Uniform1i(lgr.gradient, 0)
 		return lgr.vertex
 	}
@@ -329,18 +328,18 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 		gli.UseProgram(rgr.id)
 		from := cv.tf(rg.from)
 		to := cv.tf(rg.to)
-		dir := to.Sub(from)
-		length := dir.Len()
-		dir = dir.DivF(length)
-		gli.Uniform2f(rgr.canvasSize, cv.fw, cv.fh)
-		inv := cv.state.transform.Invert()
+		dir := to.sub(from)
+		length := dir.len()
+		dir = dir.divf(length)
+		gli.Uniform2f(rgr.canvasSize, float32(cv.fw), float32(cv.fh))
+		inv := cv.state.transform.invert().f32()
 		gli.UniformMatrix3fv(rgr.invmat, 1, false, &inv[0])
-		gli.Uniform2f(rgr.from, from[0], from[1])
-		gli.Uniform2f(rgr.to, to[0], to[1])
-		gli.Uniform2f(rgr.dir, dir[0], dir[1])
-		gli.Uniform1f(rgr.radFrom, rg.radFrom)
-		gli.Uniform1f(rgr.radTo, rg.radTo)
-		gli.Uniform1f(rgr.len, length)
+		gli.Uniform2f(rgr.from, float32(from[0]), float32(from[1]))
+		gli.Uniform2f(rgr.to, float32(to[0]), float32(to[1]))
+		gli.Uniform2f(rgr.dir, float32(dir[0]), float32(dir[1]))
+		gli.Uniform1f(rgr.radFrom, float32(rg.radFrom))
+		gli.Uniform1f(rgr.radTo, float32(rg.radTo))
+		gli.Uniform1f(rgr.len, float32(length))
 		gli.Uniform1i(rgr.gradient, 0)
 		return rgr.vertex
 	}
@@ -348,8 +347,8 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 		gli.UseProgram(ipr.id)
 		gli.ActiveTexture(gl_TEXTURE0)
 		gli.BindTexture(gl_TEXTURE_2D, img.tex)
-		gli.Uniform2f(ipr.canvasSize, cv.fw, cv.fh)
-		inv := cv.state.transform.Invert()
+		gli.Uniform2f(ipr.canvasSize, float32(cv.fw), float32(cv.fh))
+		inv := cv.state.transform.invert().f32()
 		gli.UniformMatrix3fv(ipr.invmat, 1, false, &inv[0])
 		gli.Uniform2f(ipr.imageSize, float32(img.w), float32(img.h))
 		gli.Uniform1i(ipr.image, 0)
@@ -357,9 +356,9 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 	}
 
 	gli.UseProgram(sr.id)
-	gli.Uniform2f(sr.canvasSize, cv.fw, cv.fh)
+	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
 	c := style.color
-	gli.Uniform4f(sr.color, c.r, c.g, c.b, c.a)
+	gli.Uniform4f(sr.color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
 	return sr.vertex
 }
 
@@ -371,15 +370,15 @@ func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLo
 		gli.UseProgram(lgar.id)
 		from := cv.tf(lg.from)
 		to := cv.tf(lg.to)
-		dir := to.Sub(from)
-		length := dir.Len()
-		dir = dir.DivF(length)
-		gli.Uniform2f(lgar.canvasSize, cv.fw, cv.fh)
-		inv := cv.state.transform.Invert()
+		dir := to.sub(from)
+		length := dir.len()
+		dir = dir.divf(length)
+		gli.Uniform2f(lgar.canvasSize, float32(cv.fw), float32(cv.fh))
+		inv := cv.state.transform.invert().f32()
 		gli.UniformMatrix3fv(lgar.invmat, 1, false, &inv[0])
-		gli.Uniform2f(lgar.from, from[0], from[1])
-		gli.Uniform2f(lgar.dir, dir[0], dir[1])
-		gli.Uniform1f(lgar.len, length)
+		gli.Uniform2f(lgar.from, float32(from[0]), float32(from[1]))
+		gli.Uniform2f(lgar.dir, float32(dir[0]), float32(dir[1]))
+		gli.Uniform1f(lgar.len, float32(length))
 		gli.Uniform1i(lgar.gradient, 0)
 		gli.Uniform1i(lgar.alphaTex, alphaTexSlot)
 		return lgar.vertex, lgar.alphaTexCoord
@@ -391,18 +390,18 @@ func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLo
 		gli.UseProgram(rgar.id)
 		from := cv.tf(rg.from)
 		to := cv.tf(rg.to)
-		dir := to.Sub(from)
-		length := dir.Len()
-		dir = dir.DivF(length)
-		gli.Uniform2f(rgar.canvasSize, cv.fw, cv.fh)
-		inv := cv.state.transform.Invert()
+		dir := to.sub(from)
+		length := dir.len()
+		dir = dir.divf(length)
+		gli.Uniform2f(rgar.canvasSize, float32(cv.fw), float32(cv.fh))
+		inv := cv.state.transform.invert().f32()
 		gli.UniformMatrix3fv(rgar.invmat, 1, false, &inv[0])
-		gli.Uniform2f(rgar.from, from[0], from[1])
-		gli.Uniform2f(rgar.to, to[0], to[1])
-		gli.Uniform2f(rgar.dir, dir[0], dir[1])
-		gli.Uniform1f(rgar.radFrom, rg.radFrom)
-		gli.Uniform1f(rgar.radTo, rg.radTo)
-		gli.Uniform1f(rgar.len, length)
+		gli.Uniform2f(rgar.from, float32(from[0]), float32(from[1]))
+		gli.Uniform2f(rgar.to, float32(to[0]), float32(to[1]))
+		gli.Uniform2f(rgar.dir, float32(dir[0]), float32(dir[1]))
+		gli.Uniform1f(rgar.radFrom, float32(rg.radFrom))
+		gli.Uniform1f(rgar.radTo, float32(rg.radTo))
+		gli.Uniform1f(rgar.len, float32(length))
 		gli.Uniform1i(rgar.gradient, 0)
 		gli.Uniform1i(rgar.alphaTex, alphaTexSlot)
 		return rgar.vertex, rgar.alphaTexCoord
@@ -411,8 +410,8 @@ func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLo
 		gli.UseProgram(ipar.id)
 		gli.ActiveTexture(gl_TEXTURE0)
 		gli.BindTexture(gl_TEXTURE_2D, img.tex)
-		gli.Uniform2f(ipar.canvasSize, cv.fw, cv.fh)
-		inv := cv.state.transform.Invert()
+		gli.Uniform2f(ipar.canvasSize, float32(cv.fw), float32(cv.fh))
+		inv := cv.state.transform.invert().f32()
 		gli.UniformMatrix3fv(ipar.invmat, 1, false, &inv[0])
 		gli.Uniform2f(ipar.imageSize, float32(img.w), float32(img.h))
 		gli.Uniform1i(ipar.image, 0)
@@ -421,20 +420,20 @@ func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLo
 	}
 
 	gli.UseProgram(sar.id)
-	gli.Uniform2f(sar.canvasSize, cv.fw, cv.fh)
+	gli.Uniform2f(sar.canvasSize, float32(cv.fw), float32(cv.fh))
 	c := style.color
-	gli.Uniform4f(sar.color, c.r, c.g, c.b, c.a)
+	gli.Uniform4f(sar.color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
 	gli.Uniform1i(sar.alphaTex, alphaTexSlot)
 	return sar.vertex, sar.alphaTexCoord
 }
 
 // SetLineWidth sets the line width for any line drawing calls
-func (cv *Canvas) SetLineWidth(width float32) {
+func (cv *Canvas) SetLineWidth(width float64) {
 	cv.state.lineWidth = width
 }
 
 // SetFont sets the font and font size
-func (cv *Canvas) SetFont(font interface{}, size float32) {
+func (cv *Canvas) SetFont(font interface{}, size float64) {
 	switch v := font.(type) {
 	case *Font:
 		cv.state.font = v
@@ -464,14 +463,14 @@ func (cv *Canvas) SetLineEnd(end lineEnd) {
 }
 
 // SetLineDash sets the line dash style
-func (cv *Canvas) SetLineDash(dash []float32) {
+func (cv *Canvas) SetLineDash(dash []float64) {
 	l := len(dash)
 	if l%2 == 0 {
-		d2 := make([]float32, l)
+		d2 := make([]float64, l)
 		copy(d2, dash)
 		cv.state.lineDash = d2
 	} else {
-		d2 := make([]float32, l*2)
+		d2 := make([]float64, l*2)
 		copy(d2[:l], dash)
 		copy(d2[l:], dash)
 		cv.state.lineDash = d2
@@ -503,37 +502,37 @@ func (cv *Canvas) Restore() {
 	}
 }
 
-func (cv *Canvas) Scale(x, y float32) {
-	cv.state.transform = lm.Mat3x3Scale(lm.Vec2{x, y}).Mul(cv.state.transform)
+func (cv *Canvas) Scale(x, y float64) {
+	cv.state.transform = matScale(vec{x, y}).mul(cv.state.transform)
 }
 
-func (cv *Canvas) Translate(x, y float32) {
-	cv.state.transform = lm.Mat3x3Translate(lm.Vec2{x, y}).Mul(cv.state.transform)
+func (cv *Canvas) Translate(x, y float64) {
+	cv.state.transform = matTranslate(vec{x, y}).mul(cv.state.transform)
 }
 
-func (cv *Canvas) Rotate(angle float32) {
-	cv.state.transform = lm.Mat3x3Rotate(angle).Mul(cv.state.transform)
+func (cv *Canvas) Rotate(angle float64) {
+	cv.state.transform = matRotate(angle).mul(cv.state.transform)
 }
 
-func (cv *Canvas) Transform(a, b, c, d, e, f float32) {
-	cv.state.transform = lm.Mat3x3{a, b, 0, c, d, 0, e, f, 1}.Mul(cv.state.transform)
+func (cv *Canvas) Transform(a, b, c, d, e, f float64) {
+	cv.state.transform = mat{a, b, 0, c, d, 0, e, f, 1}.mul(cv.state.transform)
 }
 
-func (cv *Canvas) SetTransform(a, b, c, d, e, f float32) {
-	cv.state.transform = lm.Mat3x3{a, b, 0, c, d, 0, e, f, 1}
+func (cv *Canvas) SetTransform(a, b, c, d, e, f float64) {
+	cv.state.transform = mat{a, b, 0, c, d, 0, e, f, 1}
 }
 
 // FillRect fills a rectangle with the active fill style
-func (cv *Canvas) FillRect(x, y, w, h float32) {
+func (cv *Canvas) FillRect(x, y, w, h float64) {
 	cv.activate()
 
-	p0 := cv.tf(lm.Vec2{x, y})
-	p1 := cv.tf(lm.Vec2{x, y + h})
-	p2 := cv.tf(lm.Vec2{x + w, y + h})
-	p3 := cv.tf(lm.Vec2{x + w, y})
+	p0 := cv.tf(vec{x, y})
+	p1 := cv.tf(vec{x, y + h})
+	p2 := cv.tf(vec{x + w, y + h})
+	p3 := cv.tf(vec{x + w, y})
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	data := [8]float32{p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]}
+	data := [8]float64{p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]}
 	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
 	vertex := cv.useShader(&cv.state.fill)

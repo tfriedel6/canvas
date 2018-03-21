@@ -1,10 +1,8 @@
 package canvas
 
 import (
+	"math"
 	"runtime"
-
-	"github.com/barnex/fmath"
-	"github.com/tfriedel6/lm"
 )
 
 type LinearGradient struct {
@@ -13,11 +11,11 @@ type LinearGradient struct {
 
 type RadialGradient struct {
 	gradient
-	radFrom, radTo float32
+	radFrom, radTo float64
 }
 
 type gradient struct {
-	from, to lm.Vec2
+	from, to vec
 	stops    []gradientStop
 	tex      uint32
 	loaded   bool
@@ -25,12 +23,12 @@ type gradient struct {
 }
 
 type gradientStop struct {
-	pos   float32
+	pos   float64
 	color glColor
 }
 
-func NewLinearGradient(x0, y0, x1, y1 float32) *LinearGradient {
-	lg := &LinearGradient{gradient: gradient{from: lm.Vec2{x0, y0}, to: lm.Vec2{x1, y1}}}
+func NewLinearGradient(x0, y0, x1, y1 float64) *LinearGradient {
+	lg := &LinearGradient{gradient: gradient{from: vec{x0, y0}, to: vec{x1, y1}}}
 	gli.GenTextures(1, &lg.tex)
 	gli.ActiveTexture(gl_TEXTURE0)
 	gli.BindTexture(gl_TEXTURE_1D, lg.tex)
@@ -45,8 +43,8 @@ func NewLinearGradient(x0, y0, x1, y1 float32) *LinearGradient {
 	return lg
 }
 
-func NewRadialGradient(x0, y0, r0, x1, y1, r1 float32) *RadialGradient {
-	rg := &RadialGradient{gradient: gradient{from: lm.Vec2{x0, y0}, to: lm.Vec2{x1, y1}}, radFrom: r0, radTo: r1}
+func NewRadialGradient(x0, y0, r0, x1, y1, r1 float64) *RadialGradient {
+	rg := &RadialGradient{gradient: gradient{from: vec{x0, y0}, to: vec{x1, y1}}, radFrom: r0, radTo: r1}
 	gli.GenTextures(1, &rg.tex)
 	gli.ActiveTexture(gl_TEXTURE0)
 	gli.BindTexture(gl_TEXTURE_1D, rg.tex)
@@ -75,18 +73,18 @@ func (g *gradient) load() {
 	var pixels [2048 * 4]byte
 	pp := 0
 	for i := 0; i < 2048; i++ {
-		c := g.colorAt(float32(i) / 2047)
-		pixels[pp] = byte(fmath.Floor(c.r*255 + 0.5))
-		pixels[pp+1] = byte(fmath.Floor(c.g*255 + 0.5))
-		pixels[pp+2] = byte(fmath.Floor(c.b*255 + 0.5))
-		pixels[pp+3] = byte(fmath.Floor(c.a*255 + 0.5))
+		c := g.colorAt(float64(i) / 2047)
+		pixels[pp] = byte(math.Floor(c.r*255 + 0.5))
+		pixels[pp+1] = byte(math.Floor(c.g*255 + 0.5))
+		pixels[pp+2] = byte(math.Floor(c.b*255 + 0.5))
+		pixels[pp+3] = byte(math.Floor(c.a*255 + 0.5))
 		pp += 4
 	}
 	gli.TexImage1D(gl_TEXTURE_1D, 0, gl_RGBA, 2048, 0, gl_RGBA, gl_UNSIGNED_BYTE, gli.Ptr(&pixels[0]))
 	g.loaded = true
 }
 
-func (g *gradient) colorAt(pos float32) glColor {
+func (g *gradient) colorAt(pos float64) glColor {
 	if len(g.stops) == 0 {
 		return glColor{}
 	} else if len(g.stops) == 1 {
@@ -115,7 +113,7 @@ func (g *gradient) colorAt(pos float32) glColor {
 	return c
 }
 
-func (g *gradient) AddColorStop(pos float32, color ...interface{}) {
+func (g *gradient) AddColorStop(pos float64, color ...interface{}) {
 	c, _ := parseColor(color...)
 	insert := len(g.stops)
 	for i, stop := range g.stops {

@@ -3,11 +3,9 @@ package canvas
 import (
 	"math"
 	"sort"
-
-	"github.com/tfriedel6/lm"
 )
 
-func pointIsRightOfLine(a, b, p lm.Vec2) bool {
+func pointIsRightOfLine(a, b, p vec) bool {
 	if a[1] == b[1] {
 		return false
 	}
@@ -17,13 +15,13 @@ func pointIsRightOfLine(a, b, p lm.Vec2) bool {
 	if p[1] < a[1] || p[1] > b[1] {
 		return false
 	}
-	v := b.Sub(a)
+	v := b.sub(a)
 	r := (p[1] - a[1]) / v[1]
 	x := a[0] + r*v[0]
 	return p[0] > x
 }
 
-func triangleContainsPoint(a, b, c, p lm.Vec2) bool {
+func triangleContainsPoint(a, b, c, p vec) bool {
 	// if point is outside triangle bounds, return false
 	if p[0] < a[0] && p[0] < b[0] && p[0] < c[0] {
 		return false
@@ -52,7 +50,7 @@ func triangleContainsPoint(a, b, c, p lm.Vec2) bool {
 	return count == 1
 }
 
-func polygonContainsPoint(polygon []lm.Vec2, p lm.Vec2) bool {
+func polygonContainsPoint(polygon []vec, p vec) bool {
 	a := polygon[len(polygon)-1]
 	count := 0
 	for _, b := range polygon {
@@ -65,7 +63,7 @@ func polygonContainsPoint(polygon []lm.Vec2, p lm.Vec2) bool {
 }
 
 func triangulatePath(path []pathPoint, target []float32) []float32 {
-	var buf [500]lm.Vec2
+	var buf [500]vec
 	polygon := buf[:0]
 	for _, p := range path {
 		polygon = append(polygon, p.tf)
@@ -78,7 +76,7 @@ func triangulatePath(path []pathPoint, target []float32) []float32 {
 			a := polygon[i]
 			b := polygon[(i+1)%len(polygon)]
 			c := polygon[(i+2)%len(polygon)]
-			if isSamePoint(a, c, math.SmallestNonzeroFloat32) {
+			if isSamePoint(a, c, math.SmallestNonzeroFloat64) {
 				break
 			}
 			for i2, p := range polygon {
@@ -88,13 +86,13 @@ func triangulatePath(path []pathPoint, target []float32) []float32 {
 				if triangleContainsPoint(a, b, c, p) {
 					continue triangles
 				}
-				center := a.Add(b).Add(c).DivF(3)
+				center := a.add(b).add(c).divf(3)
 				if !polygonContainsPoint(polygon, center) {
 					continue triangles
 				}
 				break
 			}
-			target = append(target, a[0], a[1], b[0], b[1], c[0], c[1])
+			target = append(target, float32(a[0]), float32(a[1]), float32(b[0]), float32(b[1]), float32(c[0]), float32(c[1]))
 			break
 		}
 		remove := (i + 1) % len(polygon)
@@ -108,8 +106,8 @@ func (cv *Canvas) cutIntersections(path []pathPoint) []pathPoint {
 		from, to int
 		j        int
 		b        bool
-		ratio    float32
-		point    lm.Vec2
+		ratio    float64
+		point    vec
 	}
 
 	var cutBuf [50]cut
