@@ -5,7 +5,6 @@ import (
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
-	"log"
 	"runtime"
 	"time"
 
@@ -110,7 +109,6 @@ func (wnd *Window) MainLoop(drawFunc func()) {
 
 		err := sdl.GL_MakeCurrent(wnd.Window, wnd.GLContext)
 		if err != nil {
-			log.Println(err)
 			time.Sleep(10 * time.Millisecond)
 			continue
 		}
