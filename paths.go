@@ -353,12 +353,20 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec,
 		if l0p1.sub(l1p1).lenSqr() < 0.000000001 {
 			ip0 = l0p1.sub(l1p1).mulf(0.5).add(l1p1)
 		} else {
-			ip0, _, _ = lineIntersection(l0p0, l0p1, l1p1, l1p0)
+			var q float64
+			ip0, _, q = lineIntersection(l0p0, l0p1, l1p1, l1p0)
+			if q >= 1 {
+				ip0 = l0p1.add(l1p1).mulf(0.5)
+			}
 		}
 		if l0p3.sub(l1p3).lenSqr() < 0.000000001 {
 			ip1 = l0p3.sub(l1p3).mulf(0.5).add(l1p3)
 		} else {
-			ip1, _, _ = lineIntersection(l0p2, l0p3, l1p3, l1p2)
+			var q float64
+			ip1, _, q = lineIntersection(l0p2, l0p3, l1p3, l1p2)
+			if q >= 1 {
+				ip1 = l0p3.add(l1p3).mulf(0.5)
+			}
 		}
 
 		tris = append(tris,
