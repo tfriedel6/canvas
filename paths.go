@@ -243,15 +243,8 @@ func (cv *Canvas) Stroke() {
 
 	cv.activate()
 
-	gli.ColorMask(false, false, false, false)
-	gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
-	gli.StencilOp(gl_KEEP, gl_KEEP, gl_REPLACE)
-	gli.StencilMask(0x01)
-
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-
-	var buf [1000]float32
-	tris := buf[:0]
+	var triBuf [1000]float32
+	tris := triBuf[:0]
 	tris = append(tris, 0, 0, float32(cv.fw), 0, float32(cv.fw), float32(cv.fh), 0, 0, float32(cv.fw), float32(cv.fh), 0, float32(cv.fh))
 
 	start := true
@@ -309,13 +302,17 @@ func (cv *Canvas) Stroke() {
 		start = false
 	}
 
+	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
+
+	gli.ColorMask(false, false, false, false)
+	gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
+	gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
+	gli.StencilMask(0x01)
 
 	gli.UseProgram(sr.id)
 	gli.Uniform4f(sr.color, 0, 0, 0, 0)
 	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
-
-	gli.ColorMask(false, false, false, false)
 
 	gli.EnableVertexAttribArray(sr.vertex)
 	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
@@ -334,7 +331,7 @@ func (cv *Canvas) Stroke() {
 	gli.DisableVertexAttribArray(vertex)
 
 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
-	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
+	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
 
 	gli.StencilMask(0x01)
 	gli.Clear(gl_STENCIL_BUFFER_BIT)
@@ -462,7 +459,7 @@ func (cv *Canvas) clip(path []pathPoint) {
 
 	gli.ColorMask(false, false, false, false)
 	gli.StencilFunc(gl_ALWAYS, 2, 0xFF)
-	gli.StencilOp(gl_KEEP, gl_KEEP, gl_REPLACE)
+	gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
 	gli.StencilMask(0x02)
 	gli.Clear(gl_STENCIL_BUFFER_BIT)
 
