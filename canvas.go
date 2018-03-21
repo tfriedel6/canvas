@@ -532,7 +532,7 @@ func (cv *Canvas) FillRect(x, y, w, h float64) {
 	p3 := cv.tf(vec{x + w, y})
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	data := [8]float64{p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]}
+	data := [8]float32{float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]), float32(p2[0]), float32(p2[1]), float32(p3[0]), float32(p3[1])}
 	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
 	vertex := cv.useShader(&cv.state.fill)

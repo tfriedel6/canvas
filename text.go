@@ -103,8 +103,8 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		p3 := cv.tf(vec{float64(bounds.Max.X) + x, float64(bounds.Min.Y) + y})
 		tw := float64(bounds.Dx()) / alphaTexSize
 		th := float64(bounds.Dy()) / alphaTexSize
-		data := [16]float64{p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1],
-			0, 1, 0, 1 - th, tw, 1 - th, tw, 1}
+		data := [16]float32{float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]), float32(p2[0]), float32(p2[1]), float32(p3[0]), float32(p3[1]),
+			0, 1, 0, float32(1 - th), float32(tw), float32(1 - th), float32(tw), 1}
 		gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
 		gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, nil)

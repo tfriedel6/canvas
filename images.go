@@ -224,8 +224,8 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 	p3 := cv.tf(vec{dx + dw, dy})
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	data := [16]float64{p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1],
-		sx, sy, sx, sy + sh, sx + sw, sy + sh, sx + sw, sy}
+	data := [16]float32{float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]), float32(p2[0]), float32(p2[1]), float32(p3[0]), float32(p3[1]),
+		float32(sx), float32(sy), float32(sx), float32(sy + sh), float32(sx + sw), float32(sy + sh), float32(sx + sw), float32(sy)}
 	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
 	gli.ActiveTexture(gl_TEXTURE0)
