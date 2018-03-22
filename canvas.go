@@ -91,14 +91,21 @@ func New(x, y, w, h int) *Canvas {
 	return cv
 }
 
+// SetSize changes the internal size of the canvas. This would
+// usually be called for example when the window is resized
 func (cv *Canvas) SetSize(w, h int) {
 	cv.w, cv.h = w, h
 	cv.fw, cv.fh = float64(w), float64(h)
 	activeCanvas = nil
 }
 
-func (cv *Canvas) W() int           { return cv.w }
-func (cv *Canvas) H() int           { return cv.h }
+// Width returns the internal width of the canvas
+func (cv *Canvas) Width() int { return cv.w }
+
+// Height returns the internal height of the canvas
+func (cv *Canvas) Height() int { return cv.h }
+
+// Size returns the internal width and height of the canvas
 func (cv *Canvas) Size() (int, int) { return cv.w, cv.h }
 
 func (cv *Canvas) tf(v vec) vec {
@@ -148,6 +155,9 @@ var (
 	glChan   = make(chan func())
 )
 
+// LoadGL needs to be called once per GL context to load the GL assets
+// that canvas needs. The parameter is an implementation of the GL interface
+// in this package that should make this package neutral to GL implementations
 func LoadGL(glimpl GL) (err error) {
 	gli = glimpl
 
@@ -452,12 +462,14 @@ func (cv *Canvas) SetFont(font interface{}, size float64) {
 	cv.state.fontSize = size
 }
 
-// SetLineJoin sets the style of line joints for rendering a path with Stroke
+// SetLineJoin sets the style of line joints for rendering a path with Stroke.
+// The value can be Miter, Bevel, or Round
 func (cv *Canvas) SetLineJoin(join lineJoin) {
 	cv.state.lineJoin = join
 }
 
 // SetLineEnd sets the style of line endings for rendering a path with Stroke
+// The value can be Butt, Square, or Round
 func (cv *Canvas) SetLineEnd(end lineEnd) {
 	cv.state.lineEnd = end
 }
@@ -502,22 +514,27 @@ func (cv *Canvas) Restore() {
 	}
 }
 
+// Scale updates the current transformation with a scaling by the given values
 func (cv *Canvas) Scale(x, y float64) {
 	cv.state.transform = matScale(vec{x, y}).mul(cv.state.transform)
 }
 
+// Translate updates the current transformation with a translation by the given values
 func (cv *Canvas) Translate(x, y float64) {
 	cv.state.transform = matTranslate(vec{x, y}).mul(cv.state.transform)
 }
 
+// Rotate updates the current transformation with a rotation by the given angle
 func (cv *Canvas) Rotate(angle float64) {
 	cv.state.transform = matRotate(angle).mul(cv.state.transform)
 }
 
+// Transform updates the current transformation with the given matrix
 func (cv *Canvas) Transform(a, b, c, d, e, f float64) {
 	cv.state.transform = mat{a, b, 0, c, d, 0, e, f, 1}.mul(cv.state.transform)
 }
 
+// SetTransform replaces the current transformation with the given matrix
 func (cv *Canvas) SetTransform(a, b, c, d, e, f float64) {
 	cv.state.transform = mat{a, b, 0, c, d, 0, e, f, 1}
 }
