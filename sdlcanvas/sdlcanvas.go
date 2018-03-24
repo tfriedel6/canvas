@@ -15,9 +15,13 @@ import (
 )
 
 type Window struct {
-	Window    *sdl.Window
-	GLContext sdl.GLContext
-	fps       float32
+	Window     *sdl.Window
+	GLContext  sdl.GLContext
+	frameTimes [10]time.Time
+	frameIndex int
+	frameCount int
+	fps        float32
+	close      bool
 }
 
 func CreateCanvasWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
@@ -83,31 +87,59 @@ func (wnd *Window) FPS() float32 {
 	return wnd.fps
 }
 
-func (wnd *Window) MainLoop(drawFunc func()) {
-	var frameTimes [10]time.Time
-	frameIndex := 0
-	frameCount := 0
+func (wnd *Window) Close() {
+	wnd.close = true
+}
 
-	// main loop
-	for running := true; running; {
-		for {
-			ei := sdl.PollEvent()
-			if ei == nil {
-				break
+func (wnd *Window) IsClosed() bool {
+	return wnd.close
+}
+
+func (wnd *Window) StartFrame() error {
+	for {
+		ei := sdl.PollEvent()
+		if ei == nil {
+			break
+		}
+		switch e := ei.(type) {
+		case *sdl.WindowEvent:
+			if e.Event == sdl.WINDOWEVENT_CLOSE {
+				wnd.close = true
 			}
-			switch e := ei.(type) {
-			case *sdl.WindowEvent:
-				if e.Event == sdl.WINDOWEVENT_CLOSE {
-					running = false
-				}
-			case *sdl.KeyDownEvent:
-				if e.Keysym.Scancode == sdl.SCANCODE_ESCAPE {
-					running = false
-				}
+		case *sdl.KeyDownEvent:
+			if e.Keysym.Scancode == sdl.SCANCODE_ESCAPE {
+				wnd.close = true
 			}
 		}
+	}
 
-		err := sdl.GL_MakeCurrent(wnd.Window, wnd.GLContext)
+	err := sdl.GL_MakeCurrent(wnd.Window, wnd.GLContext)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (wnd *Window) FinishFrame() {
+	now := time.Now()
+	wnd.frameTimes[wnd.frameIndex] = now
+	wnd.frameIndex++
+	wnd.frameIndex %= len(wnd.frameTimes)
+	if wnd.frameCount < len(wnd.frameTimes) {
+		wnd.frameCount++
+	} else {
+		diff := now.Sub(wnd.frameTimes[wnd.frameIndex]).Seconds()
+		wnd.fps = float32(wnd.frameCount-1) / float32(diff)
+	}
+
+	sdl.GL_SwapWindow(wnd.Window)
+}
+
+func (wnd *Window) MainLoop(drawFunc func()) {
+	// main loop
+	for !wnd.close {
+		err := wnd.StartFrame()
 		if err != nil {
 			time.Sleep(10 * time.Millisecond)
 			continue
@@ -115,17 +147,6 @@ func (wnd *Window) MainLoop(drawFunc func()) {
 
 		drawFunc()
 
-		now := time.Now()
-		frameTimes[frameIndex] = now
-		frameIndex++
-		frameIndex %= len(frameTimes)
-		if frameCount < len(frameTimes) {
-			frameCount++
-		} else {
-			diff := now.Sub(frameTimes[frameIndex]).Seconds()
-			wnd.fps = float32(frameCount-1) / float32(diff)
-		}
-
-		sdl.GL_SwapWindow(wnd.Window)
+		wnd.FinishFrame()
 	}
 }
