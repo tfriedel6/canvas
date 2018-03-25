@@ -465,17 +465,12 @@ func (cv *Canvas) Clip() {
 func (cv *Canvas) clip(path []pathPoint) {
 	cv.activate()
 
-	gli.ColorMask(false, false, false, false)
-	gli.StencilFunc(gl_ALWAYS, 2, 0xFF)
-	gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
-	gli.StencilMask(0x02)
-	gli.Clear(gl_STENCIL_BUFFER_BIT)
-
 	var triBuf [1000]float32
 	tris := triBuf[:0]
 	tris = append(tris, 0, 0, float32(cv.fw), 0, float32(cv.fw), float32(cv.fh), 0, 0, float32(cv.fw), float32(cv.fh), 0, float32(cv.fh))
+	baseLen := len(tris)
 	tris = triangulatePath(path, tris)
-	if len(tris) > 0 {
+	if len(tris) <= baseLen {
 		return
 	}
 
@@ -488,9 +483,22 @@ func (cv *Canvas) clip(path []pathPoint) {
 	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
 	gli.EnableVertexAttribArray(sr.vertex)
 
-	gli.DrawArrays(gl_TRIANGLES, 0, 6)
-	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
+	gli.ColorMask(false, false, false, false)
+
+	gli.StencilMask(0x04)
+	gli.StencilFunc(gl_ALWAYS, 4, 0x04)
+	gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
 	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
+
+	gli.StencilMask(0x02)
+	gli.StencilFunc(gl_EQUAL, 0, 0x06)
+	gli.StencilOp(gl_KEEP, gl_INVERT, gl_INVERT)
+	gli.DrawArrays(gl_TRIANGLES, 0, 6)
+
+	gli.StencilMask(0x04)
+	gli.StencilFunc(gl_ALWAYS, 0, 0x04)
+	gli.StencilOp(gl_ZERO, gl_ZERO, gl_ZERO)
+	gli.DrawArrays(gl_TRIANGLES, 0, 6)
 
 	gli.DisableVertexAttribArray(sr.vertex)
 

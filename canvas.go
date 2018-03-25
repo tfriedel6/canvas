@@ -262,7 +262,10 @@ func LoadGL(glimpl GL) (err error) {
 	gli.Enable(gl_BLEND)
 	gli.BlendFunc(gl_SRC_ALPHA, gl_ONE_MINUS_SRC_ALPHA)
 	gli.Enable(gl_STENCIL_TEST)
-	gli.StencilFunc(gl_EQUAL, 1, 0x00)
+	gli.StencilMask(0xFF)
+	gli.Clear(gl_STENCIL_BUFFER_BIT)
+	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
+	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
 
 	return
 }
