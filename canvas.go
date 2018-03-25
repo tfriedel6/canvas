@@ -505,16 +505,16 @@ func (cv *Canvas) Restore() {
 	if l <= 0 {
 		return
 	}
-	hadClip := len(cv.state.clip) > 0
+	gli.StencilMask(0x02)
+	gli.Clear(gl_STENCIL_BUFFER_BIT)
+	gli.StencilMask(0xFF)
+	for _, st := range cv.stateStack {
+		if len(st.clip) > 0 {
+			cv.clip(st.clip)
+		}
+	}
 	cv.state = cv.stateStack[l-1]
 	cv.stateStack = cv.stateStack[:l-1]
-	if len(cv.state.clip) > 0 {
-		cv.clip(cv.state.clip)
-	} else if hadClip {
-		gli.StencilMask(0x02)
-		gli.Clear(gl_STENCIL_BUFFER_BIT)
-		gli.StencilMask(0xFF)
-	}
 }
 
 // Scale updates the current transformation with a scaling by the given values
