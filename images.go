@@ -72,6 +72,21 @@ func LoadImage(src interface{}, name string) (*Image, error) {
 	return img, nil
 }
 
+func getImage(image interface{}) *Image {
+	switch v := image.(type) {
+	case *Image:
+		return v
+	case string:
+		if img, ok := images[v]; ok {
+			return img
+		}
+		if img, err := LoadImage(v, v); err == nil {
+			return img
+		}
+	}
+	return nil
+}
+
 func loadImageRGBA(src *image.RGBA) (*Image, error) {
 	img := &Image{w: src.Bounds().Dx(), h: src.Bounds().Dy()}
 	gli.GenTextures(1, &img.tex)
@@ -197,20 +212,7 @@ func (img *Image) Delete() {
 // Where dx/dy/dw/dh are the destination coordinates and sx/sy/sw/sh are the
 // source coordinates
 func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
-	var img *Image
-	switch v := image.(type) {
-	case *Image:
-		img = v
-	case string:
-		if i, ok := images[v]; ok {
-			img = i
-		} else {
-			i, err := LoadImage(v, v)
-			if err == nil {
-				img = i
-			}
-		}
-	}
+	img := getImage(image)
 
 	if img == nil {
 		return

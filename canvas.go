@@ -299,13 +299,8 @@ func parseStyle(value ...interface{}) drawStyle {
 		case *RadialGradient:
 			style.radialGradient = v
 			return style
-		case *Image:
-			style.image = v
-			return style
-		case string:
-			if img, ok := images[v]; ok {
-				style.image = img
-			}
+		case *Image, string:
+			style.image = getImage(v)
 		}
 	}
 	c, ok := parseColor(value...)
