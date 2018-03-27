@@ -9,6 +9,8 @@ import (
 var imageBufTex uint32
 var imageBuf []byte
 
+// GetImageData returns an RGBA image of the currently displayed image. The
+// alpha channel is always opaque
 func (cv *Canvas) GetImageData(x, y, w, h int) *image.RGBA {
 	cv.activate()
 
@@ -42,6 +44,7 @@ func (cv *Canvas) GetImageData(x, y, w, h int) *image.RGBA {
 	return rgba
 }
 
+// PutImageData puts the given image at the given x/y coordinates
 func (cv *Canvas) PutImageData(img *image.RGBA, x, y int) {
 	cv.activate()
 

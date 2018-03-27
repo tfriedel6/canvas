@@ -789,6 +789,9 @@ const (
 	gl_ZERO                                          = 0
 )
 
+// The GL interface is used to make this package independent of any particular
+// OpenGL implementation. The goglimpl subpackage conatins an implementation of
+// this interface based on Go-GL v3.2
 type GL interface {
 	Ptr(data interface{}) unsafe.Pointer
 	PtrOffset(offset int) unsafe.Pointer

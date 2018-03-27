@@ -9,6 +9,7 @@ import (
 	"unsafe"
 )
 
+// Image represents a loaded image that can be used in various drawing functions
 type Image struct {
 	w, h    int
 	tex     uint32
@@ -17,6 +18,11 @@ type Image struct {
 
 var images = make(map[string]*Image)
 
+// LoadImage loads an image. The src parameter can be either an image from the
+// standard image package, a byte slice that will be loaded, or a file name
+// string. If you want the canvas package to load the image, make sure you
+// import the required format packages. Name is an optional name that can also
+// be used in draw functions
 func LoadImage(src interface{}, name string) (*Image, error) {
 	var img *Image
 	var err error
@@ -163,15 +169,33 @@ func loadImageConverted(src image.Image) (*Image, error) {
 	return img, nil
 }
 
-func (img *Image) W() int           { return img.w }
-func (img *Image) H() int           { return img.h }
+// Width returns the width of the image
+func (img *Image) Width() int { return img.w }
+
+// Height returns the height of the image
+func (img *Image) Height() int { return img.h }
+
+// Size returns the width and height of the image
 func (img *Image) Size() (int, int) { return img.w, img.h }
 
+// Delete deletes the image from memory. Any draw calls with a deleted image
+// will not do anything
 func (img *Image) Delete() {
 	gli.DeleteTextures(1, &img.tex)
 	img.deleted = true
 }
 
+// Draw image draws the given image to the given coordinates. The image
+// parameter can be an Image loaded by LoadImage, a file name string that will
+// be loaded and cached, or a name string that corresponds to a previously
+// loaded image with the same name parameter.
+//
+// The coordinates must be one of the following:
+//  DrawImage("image", dx, dy)
+//  DrawImage("image", dx, dy, dw, dh)
+//  DrawImage("image", sx, sy, sw, sh, dx, dy, dw, dh)
+// Where dx/dy/dw/dh are the destination coordinates and sx/sy/sw/sh are the
+// source coordinates
 func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 	var img *Image
 	switch v := image.(type) {

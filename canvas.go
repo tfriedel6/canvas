@@ -157,7 +157,8 @@ var (
 
 // LoadGL needs to be called once per GL context to load the GL assets
 // that canvas needs. The parameter is an implementation of the GL interface
-// in this package that should make this package neutral to GL implementations
+// in this package that should make this package neutral to GL implementations.
+// The goglimpl subpackage contains an implementation based on Go-GL v3.2
 func LoadGL(glimpl GL) (err error) {
 	gli = glimpl
 
