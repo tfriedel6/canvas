@@ -56,7 +56,12 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 	// create window
 	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, w, h, sdl.WINDOW_RESIZABLE|sdl.WINDOW_OPENGL)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Error creating window: %v", err)
+		sdl.GL_SetAttribute(sdl.GL_MULTISAMPLEBUFFERS, 0)
+		sdl.GL_SetAttribute(sdl.GL_MULTISAMPLESAMPLES, 0)
+		window, err = sdl.CreateWindow(title, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, w, h, sdl.WINDOW_RESIZABLE|sdl.WINDOW_OPENGL)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Error creating window: %v", err)
+		}
 	}
 
 	// create GL context
