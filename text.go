@@ -123,3 +123,41 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 
 	gli.ActiveTexture(gl_TEXTURE0)
 }
+
+type TextMetrics struct {
+	Width float64
+}
+
+func (cv *Canvas) MeasureText(str string) TextMetrics {
+	frc := fontRenderingContext
+	frc.setFont(cv.state.font.font)
+	frc.setFontSize(float64(cv.state.fontSize))
+	fnt := cv.state.font.font
+
+	var x float64
+	prev, hasPrev := truetype.Index(0), false
+	for _, rn := range str {
+		idx := fnt.Index(rn)
+		if idx == 0 {
+			prev = 0
+			hasPrev = false
+			continue
+		}
+		if hasPrev {
+			kern := fnt.Kern(frc.scale, prev, idx)
+			if frc.hinting != font.HintingNone {
+				kern = (kern + 32) &^ 63
+			}
+			x += float64(kern) / 64
+		}
+		advance, _, _, err := frc.glyph(idx, fixed.Point26_6{})
+		if err != nil {
+			prev = 0
+			hasPrev = false
+			continue
+		}
+		x += float64(advance) / 64
+	}
+
+	return TextMetrics{Width: x}
+}
