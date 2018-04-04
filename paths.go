@@ -244,7 +244,11 @@ func (cv *Canvas) ClosePath() {
 }
 
 func (cv *Canvas) Stroke() {
-	if len(cv.linePath) == 0 {
+	cv.stroke(cv.linePath)
+}
+
+func (cv *Canvas) stroke(path []pathPoint) {
+	if len(path) == 0 {
 		return
 	}
 
@@ -256,7 +260,7 @@ func (cv *Canvas) Stroke() {
 
 	start := true
 	var p0 vec
-	for _, p := range cv.linePath {
+	for _, p := range path {
 		if p.move {
 			p0 = p.tf
 			start = true
@@ -538,4 +542,20 @@ func (cv *Canvas) Rect(x, y, w, h float64) {
 	cv.LineTo(x+w, y+h)
 	cv.LineTo(x, y+h)
 	cv.ClosePath()
+}
+
+// Rect creates a closed rectangle path for stroking or filling
+func (cv *Canvas) StrokeRect(x, y, w, h float64) {
+	v0 := vec{x, y}
+	v1 := vec{x + w, y}
+	v2 := vec{x + w, y + h}
+	v3 := vec{x, y + h}
+	v0t, v1t, v2t, v3t := cv.tf(v0), cv.tf(v1), cv.tf(v2), cv.tf(v3)
+	var path [5]pathPoint
+	path[0] = pathPoint{pos: v0, tf: v0t, move: true, next: v1t, attach: true}
+	path[1] = pathPoint{pos: v1, tf: v1t, next: v2t, attach: true}
+	path[2] = pathPoint{pos: v2, tf: v2t, next: v3t, attach: true}
+	path[3] = pathPoint{pos: v3, tf: v3t, next: v0t, attach: true}
+	path[4] = pathPoint{pos: v0, tf: v0t}
+	cv.stroke(path[:])
 }
