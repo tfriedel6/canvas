@@ -17,17 +17,11 @@ type Canvas struct {
 
 	polyPath []pathPoint
 	linePath []pathPoint
+	convex   bool
+	rect     bool
 
 	state      drawState
 	stateStack []drawState
-}
-
-type pathPoint struct {
-	pos    vec
-	tf     vec
-	move   bool
-	next   vec
-	attach bool
 }
 
 type drawState struct {

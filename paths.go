@@ -5,6 +5,20 @@ import (
 	"unsafe"
 )
 
+type pathPoint struct {
+	pos   vec
+	tf    vec
+	next  vec
+	flags pathPointFlag
+}
+
+type pathPointFlag uint8
+
+const (
+	pathMove pathPointFlag = 1 << iota
+	pathAttach
+)
+
 func (cv *Canvas) BeginPath() {
 	if cv.linePath == nil {
 		cv.linePath = make([]pathPoint, 0, 100)
@@ -25,8 +39,8 @@ func (cv *Canvas) MoveTo(x, y float64) {
 	if len(cv.linePath) > 0 && isSamePoint(cv.linePath[len(cv.linePath)-1].tf, tf, 0.1) {
 		return
 	}
-	cv.linePath = append(cv.linePath, pathPoint{pos: vec{x, y}, tf: tf, move: true})
-	cv.polyPath = append(cv.polyPath, pathPoint{pos: vec{x, y}, tf: tf, move: true})
+	cv.linePath = append(cv.linePath, pathPoint{pos: vec{x, y}, tf: tf, flags: pathMove})
+	cv.polyPath = append(cv.polyPath, pathPoint{pos: vec{x, y}, tf: tf, flags: pathMove})
 }
 
 func (cv *Canvas) LineTo(x, y float64) {
@@ -39,7 +53,7 @@ func (cv *Canvas) strokeLineTo(x, y float64) {
 		return
 	}
 	if len(cv.linePath) == 0 {
-		cv.linePath = append(cv.linePath, pathPoint{pos: vec{x, y}, tf: cv.tf(vec{x, y}), move: true})
+		cv.linePath = append(cv.linePath, pathPoint{pos: vec{x, y}, tf: cv.tf(vec{x, y}), flags: pathMove})
 		return
 	}
 	if len(cv.state.lineDash) > 0 {
@@ -66,10 +80,10 @@ func (cv *Canvas) strokeLineTo(x, y float64) {
 
 			if draw {
 				cv.linePath[len(cv.linePath)-1].next = cv.tf(p)
-				cv.linePath[len(cv.linePath)-1].attach = true
-				cv.linePath = append(cv.linePath, pathPoint{pos: p, tf: cv.tf(p), move: false})
+				cv.linePath[len(cv.linePath)-1].flags |= pathAttach
+				cv.linePath = append(cv.linePath, pathPoint{pos: p, tf: cv.tf(p)})
 			} else {
-				cv.linePath = append(cv.linePath, pathPoint{pos: p, tf: cv.tf(p), move: true})
+				cv.linePath = append(cv.linePath, pathPoint{pos: p, tf: cv.tf(p), flags: pathMove})
 			}
 
 			lp = p
@@ -78,8 +92,8 @@ func (cv *Canvas) strokeLineTo(x, y float64) {
 	} else {
 		tf := cv.tf(vec{x, y})
 		cv.linePath[len(cv.linePath)-1].next = tf
-		cv.linePath[len(cv.linePath)-1].attach = true
-		cv.linePath = append(cv.linePath, pathPoint{pos: vec{x, y}, tf: tf, move: false})
+		cv.linePath[len(cv.linePath)-1].flags |= pathAttach
+		cv.linePath = append(cv.linePath, pathPoint{pos: vec{x, y}, tf: tf})
 	}
 }
 
@@ -88,13 +102,13 @@ func (cv *Canvas) fillLineTo(x, y float64) {
 		return
 	}
 	if len(cv.polyPath) == 0 {
-		cv.polyPath = append(cv.polyPath, pathPoint{pos: vec{x, y}, tf: cv.tf(vec{x, y}), move: true})
+		cv.polyPath = append(cv.polyPath, pathPoint{pos: vec{x, y}, tf: cv.tf(vec{x, y}), flags: pathMove})
 		return
 	}
 	tf := cv.tf(vec{x, y})
 	cv.polyPath[len(cv.polyPath)-1].next = tf
-	cv.polyPath[len(cv.polyPath)-1].attach = true
-	cv.polyPath = append(cv.polyPath, pathPoint{pos: vec{x, y}, tf: tf, move: false})
+	cv.polyPath[len(cv.polyPath)-1].flags |= pathAttach
+	cv.polyPath = append(cv.polyPath, pathPoint{pos: vec{x, y}, tf: tf})
 }
 
 func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise bool) {
@@ -233,7 +247,7 @@ func (cv *Canvas) ClosePath() {
 	}
 	closeIdx := 0
 	for i := len(cv.linePath) - 1; i >= 0; i-- {
-		if cv.linePath[i].move {
+		if cv.linePath[i].flags&pathMove != 0 {
 			closeIdx = i
 			break
 		}
@@ -261,7 +275,7 @@ func (cv *Canvas) stroke(path []pathPoint) {
 	start := true
 	var p0 vec
 	for _, p := range path {
-		if p.move {
+		if p.flags&pathMove != 0 {
 			p0 = p.tf
 			start = true
 			continue
@@ -289,7 +303,7 @@ func (cv *Canvas) stroke(path []pathPoint) {
 			}
 		}
 
-		if !p.attach {
+		if p.flags&pathAttach == 0 {
 			switch cv.state.lineEnd {
 			case Butt:
 				// no need to do anything
@@ -305,7 +319,7 @@ func (cv *Canvas) stroke(path []pathPoint) {
 			float32(lp0[0]), float32(lp0[1]), float32(lp1[0]), float32(lp1[1]), float32(lp3[0]), float32(lp3[1]),
 			float32(lp0[0]), float32(lp0[1]), float32(lp3[0]), float32(lp3[1]), float32(lp2[0]), float32(lp2[1]))
 
-		if p.attach {
+		if p.flags&pathAttach != 0 {
 			tris = cv.lineJoint(p, p0, p1, p.next, lp0, lp1, lp2, lp3, tris)
 		}
 
@@ -441,7 +455,7 @@ func (cv *Canvas) Fill() {
 	cv.activate()
 	start := 0
 	for i, p := range cv.polyPath {
-		if !p.move {
+		if p.flags&pathMove == 0 {
 			continue
 		}
 		if i >= start+3 {
@@ -552,10 +566,10 @@ func (cv *Canvas) StrokeRect(x, y, w, h float64) {
 	v3 := vec{x, y + h}
 	v0t, v1t, v2t, v3t := cv.tf(v0), cv.tf(v1), cv.tf(v2), cv.tf(v3)
 	var path [5]pathPoint
-	path[0] = pathPoint{pos: v0, tf: v0t, move: true, next: v1t, attach: true}
-	path[1] = pathPoint{pos: v1, tf: v1t, next: v2t, attach: true}
-	path[2] = pathPoint{pos: v2, tf: v2t, next: v3t, attach: true}
-	path[3] = pathPoint{pos: v3, tf: v3t, next: v0t, attach: true}
+	path[0] = pathPoint{pos: v0, tf: v0t, flags: pathMove | pathAttach, next: v1t}
+	path[1] = pathPoint{pos: v1, tf: v1t, next: v2t, flags: pathAttach}
+	path[2] = pathPoint{pos: v2, tf: v2t, next: v3t, flags: pathAttach}
+	path[3] = pathPoint{pos: v3, tf: v3t, next: v0t, flags: pathAttach}
 	path[4] = pathPoint{pos: v0, tf: v0t}
 	cv.stroke(path[:])
 }
