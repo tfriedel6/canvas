@@ -18,6 +18,7 @@ const (
 	pathMove pathPointFlag = 1 << iota
 	pathAttach
 	pathIsRect
+	pathIsConvex
 )
 
 func (cv *Canvas) BeginPath() {
@@ -113,6 +114,9 @@ func (cv *Canvas) fillLineTo(x, y float64) {
 }
 
 func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise bool) {
+	lastLineWasMove := len(cv.linePath) == 0 || cv.linePath[len(cv.linePath)-1].flags&pathMove != 0
+	lastPolyWasMove := len(cv.polyPath) == 0 || cv.polyPath[len(cv.polyPath)-1].flags&pathMove != 0
+
 	startAngle = math.Mod(startAngle, math.Pi*2)
 	if startAngle < 0 {
 		startAngle += math.Pi * 2
@@ -146,6 +150,13 @@ func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise 
 	}
 	s, c := math.Sincos(endAngle)
 	cv.LineTo(x+radius*c, y+radius*s)
+
+	if lastLineWasMove {
+		cv.linePath[len(cv.linePath)-1].flags |= pathIsConvex
+	}
+	if lastPolyWasMove {
+		cv.polyPath[len(cv.polyPath)-1].flags |= pathIsConvex
+	}
 }
 
 func (cv *Canvas) ArcTo(x1, y1, x2, y2, radius float64) {
@@ -460,29 +471,39 @@ func (cv *Canvas) Fill() {
 			continue
 		}
 		if i >= start+3 {
-			cv.fillPoly(start, i)
+			cv.fillPoly(cv.polyPath[start:i])
 		}
 		start = i
 	}
 	if len(cv.polyPath) >= start+3 {
-		cv.fillPoly(start, len(cv.polyPath))
+		cv.fillPoly(cv.polyPath[start:])
 	}
 }
 
-func (cv *Canvas) fillPoly(from, to int) {
-	path := cv.polyPath[from:to]
+func (cv *Canvas) fillPoly(path []pathPoint) {
 	if len(path) < 3 {
 		return
 	}
-	path = cv.cutIntersections(path)
 
 	cv.activate()
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 	var triBuf [1000]float32
-	tris := triangulatePath(path, triBuf[:0])
-	if len(tris) == 0 {
-		return
+	var tris []float32
+	if path[len(path)-1].flags&pathIsConvex != 0 {
+		p0, p1 := path[0].tf, path[1].tf
+		last := len(path)
+		for i := 2; i < last; i++ {
+			p2 := path[i].tf
+			tris = append(tris, float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]), float32(p2[0]), float32(p2[1]))
+			p1 = p2
+		}
+	} else {
+		path = cv.cutIntersections(path)
+		tris = triangulatePath(path, triBuf[:0])
+		if len(tris) == 0 {
+			return
+		}
 	}
 	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
 
