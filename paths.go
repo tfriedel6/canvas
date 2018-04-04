@@ -527,3 +527,12 @@ func (cv *Canvas) clip(path []pathPoint) {
 	cv.state.clip = make([]pathPoint, len(cv.polyPath))
 	copy(cv.state.clip, cv.polyPath)
 }
+
+// Rect creates a closed rectangle path for stroking or filling
+func (cv *Canvas) Rect(x, y, w, h float64) {
+	cv.MoveTo(x, y)
+	cv.LineTo(x+w, y)
+	cv.LineTo(x+w, y+h)
+	cv.LineTo(x, y+h)
+	cv.ClosePath()
+}
