@@ -445,6 +445,9 @@ func (cv *Canvas) Fill() {
 		}
 		start = i
 	}
+	if len(cv.polyPath) >= start+3 {
+		cv.fillPoly(start, len(cv.polyPath))
+	}
 }
 
 func (cv *Canvas) fillPoly(from, to int) {
