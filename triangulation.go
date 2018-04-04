@@ -113,17 +113,17 @@ func (cv *Canvas) cutIntersections(path []pathPoint) []pathPoint {
 	var cutBuf [50]cut
 	cuts := cutBuf[:0]
 
-	for i := 0; i < len(cv.polyPath); i++ {
-		ip := (i + len(cv.polyPath) - 1) % len(cv.polyPath)
-		a0 := cv.polyPath[ip].pos
-		a1 := cv.polyPath[i].pos
-		for j := i + 1; j < len(cv.polyPath); j++ {
-			jp := (j + len(cv.polyPath) - 1) % len(cv.polyPath)
+	for i := 0; i < len(path); i++ {
+		ip := (i + len(path) - 1) % len(path)
+		a0 := path[ip].pos
+		a1 := path[i].pos
+		for j := i + 1; j < len(path); j++ {
+			jp := (j + len(path) - 1) % len(path)
 			if ip == j || jp == i {
 				continue
 			}
-			b0 := cv.polyPath[jp].pos
-			b1 := cv.polyPath[j].pos
+			b0 := path[jp].pos
+			b1 := path[j].pos
 			p, r1, r2 := lineIntersection(a0, a1, b0, b1)
 			if r1 <= 0 || r1 >= 1 || r2 <= 0 || r2 >= 1 {
 				continue

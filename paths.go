@@ -231,9 +231,16 @@ func (cv *Canvas) ClosePath() {
 	if isSamePoint(cv.linePath[len(cv.linePath)-1].tf, cv.linePath[0].tf, 0.1) {
 		return
 	}
-	cv.LineTo(cv.linePath[0].pos[0], cv.linePath[0].pos[1])
-	cv.linePath[len(cv.linePath)-1].next = cv.linePath[0].tf
-	cv.polyPath[len(cv.polyPath)-1].next = cv.polyPath[0].tf
+	closeIdx := 0
+	for i := len(cv.linePath) - 1; i >= 0; i-- {
+		if cv.linePath[i].move {
+			closeIdx = i
+			break
+		}
+	}
+	cv.LineTo(cv.linePath[closeIdx].pos[0], cv.linePath[closeIdx].pos[1])
+	cv.linePath[len(cv.linePath)-1].next = cv.linePath[closeIdx].tf
+	cv.polyPath[len(cv.polyPath)-1].next = cv.polyPath[closeIdx].tf
 }
 
 func (cv *Canvas) Stroke() {
@@ -424,14 +431,24 @@ func lineIntersection(a0, a1, b0, b1 vec) (vec, float64, float64) {
 }
 
 func (cv *Canvas) Fill() {
-	lastMove := 0
-	for i, p := range cv.polyPath {
-		if p.move {
-			lastMove = i
-		}
+	if len(cv.polyPath) < 3 {
+		return
 	}
+	cv.activate()
+	start := 0
+	for i, p := range cv.polyPath {
+		if !p.move {
+			continue
+		}
+		if i >= start+3 {
+			cv.fillPoly(start, i)
+		}
+		start = i
+	}
+}
 
-	path := cv.polyPath[lastMove:]
+func (cv *Canvas) fillPoly(from, to int) {
+	path := cv.polyPath[from:to]
 	if len(path) < 3 {
 		return
 	}
