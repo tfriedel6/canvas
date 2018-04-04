@@ -17,6 +17,7 @@ type pathPointFlag uint8
 const (
 	pathMove pathPointFlag = 1 << iota
 	pathAttach
+	pathIsRect
 )
 
 func (cv *Canvas) BeginPath() {
@@ -497,10 +498,26 @@ func (cv *Canvas) Clip() {
 		return
 	}
 
-	cv.clip(cv.polyPath)
+	path := cv.polyPath
+	for i := len(path) - 1; i >= 0; i-- {
+		if path[i].flags&pathMove != 0 {
+			path = path[i:]
+			break
+		}
+	}
+
+	cv.clip(path)
 }
 
 func (cv *Canvas) clip(path []pathPoint) {
+	if len(path) < 3 {
+		return
+	}
+	if path[len(path)-1].flags&pathIsRect != 0 {
+		cv.scissor(path)
+		return
+	}
+
 	cv.activate()
 
 	var triBuf [1000]float32
@@ -549,6 +566,35 @@ func (cv *Canvas) clip(path []pathPoint) {
 	copy(cv.state.clip, cv.polyPath)
 }
 
+func (cv *Canvas) scissor(path []pathPoint) {
+	tl, br := vec{math.MaxFloat64, math.MaxFloat64}, vec{}
+	for _, p := range path {
+		tl[0] = math.Min(p.tf[0], tl[0])
+		tl[1] = math.Min(p.tf[1], tl[1])
+		br[0] = math.Max(p.tf[0], br[0])
+		br[1] = math.Max(p.tf[1], br[1])
+	}
+
+	if cv.state.scissor.on {
+		tl[0] = math.Max(tl[0], cv.state.scissor.tl[0])
+		tl[1] = math.Max(tl[1], cv.state.scissor.tl[1])
+		br[0] = math.Min(br[0], cv.state.scissor.br[0])
+		br[1] = math.Min(br[1], cv.state.scissor.br[1])
+	}
+
+	cv.state.scissor = scissor{tl: tl, br: br, on: true}
+	cv.applyScissor()
+}
+
+func (cv *Canvas) applyScissor() {
+	s := &cv.state.scissor
+	if s.on {
+		gli.Scissor(int32(s.tl[0]+0.5), int32(cv.fh-s.br[1]+0.5), int32(s.br[0]-s.tl[0]+0.5), int32(s.br[1]-s.tl[1]+0.5))
+	} else {
+		gli.Scissor(0, 0, int32(cv.w), int32(cv.h))
+	}
+}
+
 // Rect creates a closed rectangle path for stroking or filling
 func (cv *Canvas) Rect(x, y, w, h float64) {
 	cv.MoveTo(x, y)
@@ -556,6 +602,8 @@ func (cv *Canvas) Rect(x, y, w, h float64) {
 	cv.LineTo(x+w, y+h)
 	cv.LineTo(x, y+h)
 	cv.ClosePath()
+	cv.linePath[len(cv.linePath)-1].flags |= pathIsRect
+	cv.polyPath[len(cv.polyPath)-1].flags |= pathIsRect
 }
 
 // Rect creates a closed rectangle path for stroking or filling

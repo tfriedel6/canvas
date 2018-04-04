@@ -38,7 +38,8 @@ type drawState struct {
 	lineDashPoint  int
 	lineDashOffset float64
 
-	clip []pathPoint
+	scissor scissor
+	clip    []pathPoint
 	/*
 		The current transformation matrix.
 		The current clipping region.
@@ -55,6 +56,11 @@ type drawStyle struct {
 	radialGradient *RadialGradient
 	linearGradient *LinearGradient
 	image          *Image
+}
+
+type scissor struct {
+	on     bool
+	tl, br vec
 }
 
 type lineJoin uint8
@@ -260,6 +266,8 @@ func LoadGL(glimpl GL) (err error) {
 	gli.Clear(gl_STENCIL_BUFFER_BIT)
 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
 	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
+
+	gli.Enable(gl_SCISSOR_TEST)
 
 	return
 }
@@ -504,6 +512,7 @@ func (cv *Canvas) Restore() {
 	}
 	cv.state = cv.stateStack[l-1]
 	cv.stateStack = cv.stateStack[:l-1]
+	cv.applyScissor()
 }
 
 // Scale updates the current transformation with a scaling by the given values

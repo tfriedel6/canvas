@@ -826,6 +826,7 @@ type GL interface {
 	GetUniformLocation(program uint32, name *uint8) int32
 	LinkProgram(program uint32)
 	ReadPixels(x int32, y int32, width int32, height int32, format uint32, xtype uint32, pixels unsafe.Pointer)
+	Scissor(x int32, y int32, width int32, height int32)
 	ShaderSource(shader uint32, count int32, xstring **uint8, length *int32)
 	StencilFunc(xfunc uint32, ref int32, mask uint32)
 	StencilMask(mask uint32)
