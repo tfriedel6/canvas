@@ -2,7 +2,6 @@ package canvas
 
 import (
 	"fmt"
-	"unsafe"
 
 	"github.com/golang/freetype/truetype"
 )
@@ -536,24 +535,4 @@ func (cv *Canvas) Transform(a, b, c, d, e, f float64) {
 // SetTransform replaces the current transformation with the given matrix
 func (cv *Canvas) SetTransform(a, b, c, d, e, f float64) {
 	cv.state.transform = mat{a, b, 0, c, d, 0, e, f, 1}
-}
-
-// FillRect fills a rectangle with the active fill style
-func (cv *Canvas) FillRect(x, y, w, h float64) {
-	cv.activate()
-
-	p0 := cv.tf(vec{x, y})
-	p1 := cv.tf(vec{x, y + h})
-	p2 := cv.tf(vec{x + w, y + h})
-	p3 := cv.tf(vec{x + w, y})
-
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	data := [8]float32{float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]), float32(p2[0]), float32(p2[1]), float32(p3[0]), float32(p3[1])}
-	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
-
-	vertex := cv.useShader(&cv.state.fill)
-	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, nil)
-	gli.EnableVertexAttribArray(vertex)
-	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
-	gli.DisableVertexAttribArray(vertex)
 }
