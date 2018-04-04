@@ -20,6 +20,8 @@ type Font struct {
 var fonts = make(map[string]*Font)
 var zeroes [alphaTexSize]byte
 
+var defaultFont *Font
+
 func LoadFont(src interface{}, name string) (*Font, error) {
 	var f *Font
 	switch v := src.(type) {
@@ -47,11 +49,18 @@ func LoadFont(src interface{}, name string) (*Font, error) {
 	if name != "" {
 		fonts[name] = f
 	}
+	if defaultFont == nil {
+		defaultFont = f
+	}
 	return f, nil
 }
 
 func (cv *Canvas) FillText(str string, x, y float64) {
 	cv.activate()
+
+	if cv.state.font == nil {
+		return
+	}
 
 	frc := fontRenderingContext
 	frc.setFont(cv.state.font.font)
@@ -129,6 +138,10 @@ type TextMetrics struct {
 }
 
 func (cv *Canvas) MeasureText(str string) TextMetrics {
+	if cv.state.font == nil {
+		return TextMetrics{}
+	}
+
 	frc := fontRenderingContext
 	frc.setFont(cv.state.font.font)
 	frc.setFontSize(float64(cv.state.fontSize))
