@@ -442,11 +442,9 @@ func (cv *Canvas) SetLineWidth(width float64) {
 	cv.state.lineWidth = width
 }
 
-// SetFont sets the font and font size. The font parameter can be:
-// - a font loaded with the LoadFont function
-// - a string matching the name parameter on LoadFont
-// - a filename for a font to load which will be cached
-// - nil, in which case the first loaded font will be used
+// SetFont sets the font and font size. The font parameter can be a font loaded
+// with the LoadFont function, a filename for a font to load (which will be
+// cached), or nil, in which case the first loaded font will be used
 func (cv *Canvas) SetFont(font interface{}, size float64) {
 	if font == nil {
 		cv.state.font = defaultFont
@@ -460,9 +458,11 @@ func (cv *Canvas) SetFont(font interface{}, size float64) {
 			if f, ok := fonts[v]; ok {
 				cv.state.font = f
 			} else {
-				f, err := LoadFont(v, v)
+				f, err := LoadFont(v)
 				if err == nil {
 					cv.state.font = f
+				} else {
+					fonts[v] = f
 				}
 			}
 		}

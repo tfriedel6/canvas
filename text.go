@@ -22,7 +22,7 @@ var zeroes [alphaTexSize]byte
 
 var defaultFont *Font
 
-func LoadFont(src interface{}, name string) (*Font, error) {
+func LoadFont(src interface{}) (*Font, error) {
 	var f *Font
 	switch v := src.(type) {
 	case *truetype.Font:
@@ -45,9 +45,6 @@ func LoadFont(src interface{}, name string) (*Font, error) {
 		f = &Font{font: font}
 	default:
 		return nil, errors.New("Unsupported source type")
-	}
-	if name != "" {
-		fonts[name] = f
 	}
 	if defaultFont == nil {
 		defaultFont = f
