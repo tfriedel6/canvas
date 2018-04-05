@@ -460,9 +460,8 @@ func (cv *Canvas) SetFont(font interface{}, size float64) {
 			} else {
 				f, err := LoadFont(v)
 				if err == nil {
-					cv.state.font = f
-				} else {
 					fonts[v] = f
+					cv.state.font = f
 				}
 			}
 		}

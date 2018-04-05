@@ -79,8 +79,8 @@ func getImage(image interface{}) *Image {
 			return img
 		}
 		img, err := LoadImage(v)
-		if err == nil {
-			return img
+		if err != nil {
+			return nil
 		}
 		images[v] = img
 	}
