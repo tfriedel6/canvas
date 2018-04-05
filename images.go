@@ -21,9 +21,8 @@ var images = make(map[string]*Image)
 // LoadImage loads an image. The src parameter can be either an image from the
 // standard image package, a byte slice that will be loaded, or a file name
 // string. If you want the canvas package to load the image, make sure you
-// import the required format packages. Name is an optional name that can also
-// be used in draw functions
-func LoadImage(src interface{}, name string) (*Image, error) {
+// import the required format packages
+func LoadImage(src interface{}) (*Image, error) {
 	var img *Image
 	var err error
 	switch v := src.(type) {
@@ -51,22 +50,21 @@ func LoadImage(src interface{}, name string) (*Image, error) {
 		if err != nil {
 			return nil, err
 		}
-		return LoadImage(srcImg, name)
+		return LoadImage(srcImg)
 	case []byte:
 		srcImg, _, err := image.Decode(bytes.NewReader(v))
 		if err != nil {
 			return nil, err
 		}
-		return LoadImage(srcImg, name)
+		return LoadImage(srcImg)
 	default:
 		return nil, errors.New("Unsupported source type")
 	}
-	if name != "" {
-		images[name] = img
-	}
 	runtime.SetFinalizer(img, func(img *Image) {
-		glChan <- func() {
-			gli.DeleteTextures(1, &img.tex)
+		if !img.deleted {
+			glChan <- func() {
+				gli.DeleteTextures(1, &img.tex)
+			}
 		}
 	})
 	return img, nil
@@ -80,9 +78,11 @@ func getImage(image interface{}) *Image {
 		if img, ok := images[v]; ok {
 			return img
 		}
-		if img, err := LoadImage(v, v); err == nil {
+		img, err := LoadImage(v)
+		if err == nil {
 			return img
 		}
+		images[v] = img
 	}
 	return nil
 }
