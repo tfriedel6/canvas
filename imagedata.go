@@ -85,6 +85,7 @@ func (cv *Canvas) PutImageData(img *image.RGBA, x, y int) {
 	gli.UseProgram(ir.id)
 	gli.Uniform1i(ir.image, 0)
 	gli.Uniform2f(ir.canvasSize, float32(cv.fw), float32(cv.fh))
+	gli.Uniform1f(ir.globalAlpha, 1)
 	gli.VertexAttribPointer(ir.vertex, 2, gl_FLOAT, false, 0, nil)
 	gli.VertexAttribPointer(ir.texCoord, 2, gl_FLOAT, false, 0, gli.PtrOffset(8*4))
 	gli.EnableVertexAttribArray(ir.vertex)

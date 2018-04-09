@@ -25,14 +25,15 @@ type Canvas struct {
 }
 
 type drawState struct {
-	transform mat
-	fill      drawStyle
-	stroke    drawStyle
-	font      *Font
-	fontSize  float64
-	lineWidth float64
-	lineJoin  lineJoin
-	lineEnd   lineEnd
+	transform   mat
+	fill        drawStyle
+	stroke      drawStyle
+	font        *Font
+	fontSize    float64
+	lineWidth   float64
+	lineJoin    lineJoin
+	lineEnd     lineEnd
+	globalAlpha float64
 
 	lineDash       []float64
 	lineDashPoint  int
@@ -86,6 +87,9 @@ func New(x, y, w, h int) *Canvas {
 		stateStack: make([]drawState, 0, 20),
 	}
 	cv.state.lineWidth = 1
+	cv.state.globalAlpha = 1
+	cv.state.fill.color = glColor{a: 1}
+	cv.state.stroke.color = glColor{a: 1}
 	cv.state.transform = matIdentity()
 	return cv
 }
@@ -329,6 +333,7 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 		gli.Uniform2f(lgr.dir, float32(dir[0]), float32(dir[1]))
 		gli.Uniform1f(lgr.len, float32(length))
 		gli.Uniform1i(lgr.gradient, 0)
+		gli.Uniform1f(lgr.globalAlpha, float32(cv.state.globalAlpha))
 		return lgr.vertex
 	}
 	if rg := style.radialGradient; rg != nil {
@@ -351,6 +356,7 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 		gli.Uniform1f(rgr.radTo, float32(rg.radTo))
 		gli.Uniform1f(rgr.len, float32(length))
 		gli.Uniform1i(rgr.gradient, 0)
+		gli.Uniform1f(rgr.globalAlpha, float32(cv.state.globalAlpha))
 		return rgr.vertex
 	}
 	if img := style.image; img != nil {
@@ -362,6 +368,7 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 		gli.UniformMatrix3fv(ipr.invmat, 1, false, &inv[0])
 		gli.Uniform2f(ipr.imageSize, float32(img.w), float32(img.h))
 		gli.Uniform1i(ipr.image, 0)
+		gli.Uniform1f(ipr.globalAlpha, float32(cv.state.globalAlpha))
 		return ipr.vertex
 	}
 
@@ -369,6 +376,7 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
 	c := style.color
 	gli.Uniform4f(sr.color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
+	gli.Uniform1f(sr.globalAlpha, float32(cv.state.globalAlpha))
 	return sr.vertex
 }
 
@@ -391,6 +399,7 @@ func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLo
 		gli.Uniform1f(lgar.len, float32(length))
 		gli.Uniform1i(lgar.gradient, 0)
 		gli.Uniform1i(lgar.alphaTex, alphaTexSlot)
+		gli.Uniform1f(lgar.globalAlpha, float32(cv.state.globalAlpha))
 		return lgar.vertex, lgar.alphaTexCoord
 	}
 	if rg := style.radialGradient; rg != nil {
@@ -414,6 +423,7 @@ func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLo
 		gli.Uniform1f(rgar.len, float32(length))
 		gli.Uniform1i(rgar.gradient, 0)
 		gli.Uniform1i(rgar.alphaTex, alphaTexSlot)
+		gli.Uniform1f(rgar.globalAlpha, float32(cv.state.globalAlpha))
 		return rgar.vertex, rgar.alphaTexCoord
 	}
 	if img := style.image; img != nil {
@@ -426,6 +436,7 @@ func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLo
 		gli.Uniform2f(ipar.imageSize, float32(img.w), float32(img.h))
 		gli.Uniform1i(ipar.image, 0)
 		gli.Uniform1i(ipar.alphaTex, alphaTexSlot)
+		gli.Uniform1f(ipar.globalAlpha, float32(cv.state.globalAlpha))
 		return ipar.vertex, ipar.alphaTexCoord
 	}
 
@@ -434,6 +445,7 @@ func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLo
 	c := style.color
 	gli.Uniform4f(sar.color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
 	gli.Uniform1i(sar.alphaTex, alphaTexSlot)
+	gli.Uniform1f(sar.globalAlpha, float32(cv.state.globalAlpha))
 	return sar.vertex, sar.alphaTexCoord
 }
 
@@ -496,6 +508,11 @@ func (cv *Canvas) SetLineDash(dash []float64) {
 	}
 	cv.state.lineDashPoint = 0
 	cv.state.lineDashOffset = 0
+}
+
+// SetGlobalAlpha sets the global alpha value
+func (cv *Canvas) SetGlobalAlpha(alpha float64) {
+	cv.state.globalAlpha = alpha
 }
 
 // Save saves the current draw state to a stack

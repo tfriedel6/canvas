@@ -465,31 +465,65 @@ func (cv *Canvas) Fill() {
 		return
 	}
 	cv.activate()
+
+	var triBuf [1000]float32
+	tris := triBuf[:0]
+	tris = append(tris, 0, 0, float32(cv.fw), 0, float32(cv.fw), float32(cv.fh), 0, 0, float32(cv.fw), float32(cv.fh), 0, float32(cv.fh))
+
 	start := 0
 	for i, p := range cv.polyPath {
 		if p.flags&pathMove == 0 {
 			continue
 		}
 		if i >= start+3 {
-			cv.fillPoly(cv.polyPath[start:i])
+			tris = cv.appendSubPathTriangles(tris, cv.polyPath[start:i])
 		}
 		start = i
 	}
 	if len(cv.polyPath) >= start+3 {
-		cv.fillPoly(cv.polyPath[start:])
+		tris = cv.appendSubPathTriangles(tris, cv.polyPath[start:])
 	}
-}
-
-func (cv *Canvas) fillPoly(path []pathPoint) {
-	if len(path) < 3 {
+	if len(tris) == 0 {
 		return
 	}
 
-	cv.activate()
-
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	var triBuf [1000]float32
-	var tris []float32
+	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
+
+	gli.ColorMask(false, false, false, false)
+	gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
+	gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
+	gli.StencilMask(0x01)
+
+	gli.UseProgram(sr.id)
+	gli.Uniform4f(sr.color, 0, 0, 0, 0)
+	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
+
+	gli.EnableVertexAttribArray(sr.vertex)
+	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
+	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
+	gli.DisableVertexAttribArray(sr.vertex)
+
+	gli.ColorMask(true, true, true, true)
+
+	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
+	gli.StencilMask(0xFF)
+
+	vertex := cv.useShader(&cv.state.fill)
+	gli.EnableVertexAttribArray(vertex)
+	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, nil)
+	gli.DrawArrays(gl_TRIANGLES, 0, 6)
+	gli.DisableVertexAttribArray(vertex)
+
+	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
+	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
+
+	gli.StencilMask(0x01)
+	gli.Clear(gl_STENCIL_BUFFER_BIT)
+	gli.StencilMask(0xFF)
+}
+
+func (cv *Canvas) appendSubPathTriangles(tris []float32, path []pathPoint) []float32 {
 	if path[len(path)-1].flags&pathIsConvex != 0 {
 		p0, p1 := path[0].tf, path[1].tf
 		last := len(path)
@@ -500,18 +534,9 @@ func (cv *Canvas) fillPoly(path []pathPoint) {
 		}
 	} else {
 		path = cv.cutIntersections(path)
-		tris = triangulatePath(path, triBuf[:0])
-		if len(tris) == 0 {
-			return
-		}
+		tris = triangulatePath(path, tris)
 	}
-	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
-
-	vertex := cv.useShader(&cv.state.fill)
-	gli.EnableVertexAttribArray(vertex)
-	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, nil)
-	gli.DrawArrays(gl_TRIANGLES, 0, int32(len(tris)/2))
-	gli.DisableVertexAttribArray(vertex)
+	return tris
 }
 
 func (cv *Canvas) Clip() {

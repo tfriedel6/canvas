@@ -15,8 +15,11 @@ precision mediump float;
 #endif
 varying vec2 v_texCoord;
 uniform sampler2D image;
+uniform float globalAlpha;
 void main() {
-    gl_FragColor = texture2D(image, v_texCoord);
+	vec4 col = texture2D(image, v_texCoord);
+	col.a *= globalAlpha;
+    gl_FragColor = col;
 }`
 
 var solidVS = `
@@ -31,8 +34,11 @@ var solidFS = `
 precision mediump float;
 #endif
 uniform vec4 color;
+uniform float globalAlpha;
 void main() {
-    gl_FragColor = color;
+	vec4 col = color;
+	col.a *= globalAlpha;
+    gl_FragColor = col;
 }`
 
 var linearGradientVS = `
@@ -53,12 +59,15 @@ uniform mat3 invmat;
 uniform sampler1D gradient;
 uniform vec2 from, dir;
 uniform float len;
+uniform float globalAlpha;
 void main() {
 	vec3 untf = vec3(v_cp, 1.0) * invmat;
 	vec2 v = untf.xy - from;
 	float r = dot(v, dir) / len;
 	r = clamp(r, 0.0, 1.0);
-    gl_FragColor = texture1D(gradient, r);
+	vec4 col = texture1D(gradient, r);
+	col.a *= globalAlpha;
+    gl_FragColor = col;
 }`
 
 var radialGradientVS = `
@@ -80,6 +89,7 @@ uniform sampler1D gradient;
 uniform vec2 from, to, dir;
 uniform float radFrom, radTo;
 uniform float len;
+uniform float globalAlpha;
 bool isNaN(float v) {
   return v < 0.0 || 0.0 < v || v == 0.0 ? false : true;
 }
@@ -99,8 +109,10 @@ void main() {
 		return;
 	}
 	float o = max(o1, o2);
-	float r = radFrom + o * (radTo - radFrom);
-	gl_FragColor = texture1D(gradient, o);
+	//float r = radFrom + o * (radTo - radFrom);
+	vec4 col = texture1D(gradient, o);
+	col.a *= globalAlpha;
+    gl_FragColor = col;
 }`
 
 var imagePatternVS = `
@@ -120,9 +132,12 @@ varying vec2 v_cp;
 uniform vec2 imageSize;
 uniform mat3 invmat;
 uniform sampler2D image;
+uniform float globalAlpha;
 void main() {
 	vec3 untf = vec3(v_cp, 1.0) * invmat;
-    gl_FragColor = texture2D(image, mod(untf.xy / imageSize, 1.0));
+	vec4 col = texture2D(image, mod(untf.xy / imageSize, 1.0));
+	col.a *= globalAlpha;
+    gl_FragColor = col;
 }`
 
 var solidAlphaVS = `
@@ -141,9 +156,10 @@ precision mediump float;
 varying vec2 v_atc;
 uniform vec4 color;
 uniform sampler2D alphaTex;
+uniform float globalAlpha;
 void main() {
     vec4 col = color;
-    col.a *= texture2D(alphaTex, v_atc).a;
+    col.a *= texture2D(alphaTex, v_atc).a * globalAlpha;
     gl_FragColor = col;
 }`
 
@@ -170,13 +186,14 @@ uniform sampler1D gradient;
 uniform vec2 from, dir;
 uniform float len;
 uniform sampler2D alphaTex;
+uniform float globalAlpha;
 void main() {
 	vec3 untf = vec3(v_cp, 1.0) * invmat;
 	vec2 v = untf.xy - from;
 	float r = dot(v, dir) / len;
 	r = clamp(r, 0.0, 1.0);
     vec4 col = texture1D(gradient, r);
-    col.a *= texture2D(alphaTex, v_atc).a;
+    col.a *= texture2D(alphaTex, v_atc).a * globalAlpha;
     gl_FragColor = col;
 }`
 
@@ -203,6 +220,7 @@ uniform vec2 from, to, dir;
 uniform float radFrom, radTo;
 uniform float len;
 uniform sampler2D alphaTex;
+uniform float globalAlpha;
 bool isNaN(float v) {
   return v < 0.0 || 0.0 < v || v == 0.0 ? false : true;
 }
@@ -224,7 +242,7 @@ void main() {
 	float o = max(o1, o2);
 	float r = radFrom + o * (radTo - radFrom);
     vec4 col = texture1D(gradient, o);
-    col.a *= texture2D(alphaTex, v_atc).a;
+    col.a *= texture2D(alphaTex, v_atc).a * globalAlpha;
 	gl_FragColor = col;
 }`
 
@@ -249,9 +267,10 @@ uniform vec2 imageSize;
 uniform mat3 invmat;
 uniform sampler2D image;
 uniform sampler2D alphaTex;
+uniform float globalAlpha;
 void main() {
 	vec3 untf = vec3(v_cp, 1.0) * invmat;
     vec4 col = texture2D(image, mod(untf.xy / imageSize, 1.0));
-    col.a *= texture2D(alphaTex, v_atc).a;
+    col.a *= texture2D(alphaTex, v_atc).a * globalAlpha;
 	gl_FragColor = col;
 }`
