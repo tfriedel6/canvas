@@ -200,6 +200,8 @@ func (wnd *Window) MainLoop(run func()) {
 				if e.Event == sdl.WINDOWEVENT_CLOSE {
 					wnd.close = true
 				}
+			case *sdl.QuitEvent:
+				wnd.close = true
 			case *sdl.KeyDownEvent:
 				if e.Keysym.Scancode == sdl.SCANCODE_ESCAPE {
 					wnd.close = true
