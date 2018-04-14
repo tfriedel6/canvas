@@ -2,6 +2,7 @@ package canvas
 
 import (
 	"errors"
+	"image"
 	"io/ioutil"
 	"unsafe"
 
@@ -90,35 +91,46 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 			}
 			x += float64(kern) / 64
 		}
-		advance, mask, offset, err := frc.glyph(idx, fixed.Point26_6{})
-		if err != nil {
-			prev = 0
-			hasPrev = false
-			continue
-		}
-		bounds := mask.Bounds().Add(offset)
 
-		for y, w, h := 0, bounds.Dx(), bounds.Dy(); y < h; y++ {
-			off := y * mask.Stride
-			gli.TexSubImage2D(gl_TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(w), 1, gl_ALPHA, gl_UNSIGNED_BYTE, gli.Ptr(&mask.Pix[off]))
-		}
-
+		bounds, err := frc.glyphBounds(idx, fixed.Point26_6{})
+		var advance fixed.Int26_6
 		p0 := cv.tf(vec{float64(bounds.Min.X) + x, float64(bounds.Min.Y) + y})
 		p1 := cv.tf(vec{float64(bounds.Min.X) + x, float64(bounds.Max.Y) + y})
 		p2 := cv.tf(vec{float64(bounds.Max.X) + x, float64(bounds.Max.Y) + y})
 		p3 := cv.tf(vec{float64(bounds.Max.X) + x, float64(bounds.Min.Y) + y})
-		tw := float64(bounds.Dx()) / alphaTexSize
-		th := float64(bounds.Dy()) / alphaTexSize
-		data := [16]float32{float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]), float32(p2[0]), float32(p2[1]), float32(p3[0]), float32(p3[1]),
-			0, 1, 0, float32(1 - th), float32(tw), float32(1 - th), float32(tw), 1}
-		gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
+		inside := (p0[0] >= 0 || p1[0] >= 0 || p2[0] >= 0 || p3[0] >= 0) &&
+			(p0[1] >= 0 || p1[1] >= 0 || p2[1] >= 0 || p3[1] >= 0) &&
+			(p0[0] < cv.fw || p1[0] < cv.fw || p2[0] < cv.fw || p3[0] < cv.fw) &&
+			(p0[1] < cv.fh || p1[1] < cv.fh || p2[1] < cv.fh || p3[1] < cv.fh)
+		if inside {
+			var mask *image.Alpha
+			advance, mask, _, err = frc.glyph(idx, fixed.Point26_6{})
+			if err != nil {
+				prev = 0
+				hasPrev = false
+				continue
+			}
 
-		gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, nil)
-		gli.VertexAttribPointer(alphaTexCoord, 2, gl_FLOAT, false, 0, gli.PtrOffset(8*4))
-		gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
+			for y, w, h := 0, bounds.Dx(), bounds.Dy(); y < h; y++ {
+				off := y * mask.Stride
+				gli.TexSubImage2D(gl_TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(w), 1, gl_ALPHA, gl_UNSIGNED_BYTE, gli.Ptr(&mask.Pix[off]))
+			}
 
-		for y, w, h := 0, bounds.Dx(), bounds.Dy(); y < h; y++ {
-			gli.TexSubImage2D(gl_TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(w), 1, gl_ALPHA, gl_UNSIGNED_BYTE, gli.Ptr(&zeroes[0]))
+			tw := float64(bounds.Dx()) / alphaTexSize
+			th := float64(bounds.Dy()) / alphaTexSize
+			data := [16]float32{float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]), float32(p2[0]), float32(p2[1]), float32(p3[0]), float32(p3[1]),
+				0, 1, 0, float32(1 - th), float32(tw), float32(1 - th), float32(tw), 1}
+			gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
+
+			gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, nil)
+			gli.VertexAttribPointer(alphaTexCoord, 2, gl_FLOAT, false, 0, gli.PtrOffset(8*4))
+			gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
+
+			for y, w, h := 0, bounds.Dx(), bounds.Dy(); y < h; y++ {
+				gli.TexSubImage2D(gl_TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(w), 1, gl_ALPHA, gl_UNSIGNED_BYTE, gli.Ptr(&zeroes[0]))
+			}
+		} else {
+			advance, _ = frc.glyphAdvance(idx)
 		}
 
 		x += float64(advance) / 64

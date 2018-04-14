@@ -202,6 +202,24 @@ func (c *frContext) glyphAdvance(glyph truetype.Index) (fixed.Int26_6, error) {
 	return c.glyphBuf.AdvanceWidth, nil
 }
 
+func (c *frContext) glyphBounds(glyph truetype.Index, p fixed.Point26_6) (image.Rectangle, error) {
+	if err := c.glyphBuf.Load(c.f, c.scale, glyph, c.hinting); err != nil {
+		return image.Rectangle{}, err
+	}
+
+	fx := p.X & 0x3f
+	fy := p.Y & 0x3f
+	xmin := int(fx+c.glyphBuf.Bounds.Min.X) >> 6
+	ymin := int(fy-c.glyphBuf.Bounds.Max.Y) >> 6
+	xmax := int(fx+c.glyphBuf.Bounds.Max.X+0x3f) >> 6
+	ymax := int(fy-c.glyphBuf.Bounds.Min.Y+0x3f) >> 6
+	bounds := image.Rectangle{
+		Min: image.Point{X: xmin, Y: ymin},
+		Max: image.Point{X: xmax, Y: ymax}}
+
+	return bounds, nil
+}
+
 const maxInt = int(^uint(0) >> 1)
 
 // DrawString draws s at p and returns p advanced by the text extent. The text
