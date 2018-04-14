@@ -160,7 +160,7 @@ func (cv *Canvas) MeasureText(str string) TextMetrics {
 			}
 			x += float64(kern) / 64
 		}
-		advance, _, _, err := frc.glyph(idx, fixed.Point26_6{})
+		advance, err := frc.glyphAdvance(idx)
 		if err != nil {
 			prev = 0
 			hasPrev = false
