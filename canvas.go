@@ -30,6 +30,7 @@ type drawState struct {
 	stroke      drawStyle
 	font        *Font
 	fontSize    float64
+	textAlign   textAlign
 	lineWidth   float64
 	lineJoin    lineJoin
 	lineEnd     lineEnd
@@ -73,6 +74,16 @@ const (
 	Round
 	Square
 	Butt
+)
+
+type textAlign uint8
+
+const (
+	Left = iota
+	Center
+	Right
+	Start
+	End
 )
 
 // New creates a new canvas with the given viewport coordinates.
@@ -479,6 +490,12 @@ func (cv *Canvas) SetFont(font interface{}, size float64) {
 		}
 	}
 	cv.state.fontSize = size
+}
+
+// SetTextAlign sets the text align for any text drawing calls.
+// The value can be Left, Center, Right, Start, or End
+func (cv *Canvas) SetTextAlign(align textAlign) {
+	cv.state.textAlign = align
 }
 
 // SetLineJoin sets the style of line joints for rendering a path with Stroke.

@@ -78,7 +78,7 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 	for i, rn := range str {
 		idx := fnt.Index(rn)
 		if idx == 0 {
-			continue
+			idx = fnt.Index(' ')
 		}
 		bounds, err := frc.glyphBounds(idx, p)
 		if err != nil {
@@ -173,6 +173,12 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		draw.Draw(textImage, mask.Bounds().Add(offset).Sub(textOffset), mask, image.ZP, draw.Over)
 
 		curX += float64(advance) / 64
+	}
+
+	if cv.state.textAlign == Center {
+		x -= float64(strWidth) * 0.5
+	} else if cv.state.textAlign == Right || cv.state.textAlign == End {
+		x -= float64(strWidth)
 	}
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
