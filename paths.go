@@ -281,8 +281,9 @@ func (cv *Canvas) ClosePath() {
 		}
 	}
 	cv.LineTo(cv.linePath[closeIdx].pos[0], cv.linePath[closeIdx].pos[1])
-	cv.linePath[len(cv.linePath)-1].next = cv.linePath[closeIdx].tf
-	cv.polyPath[len(cv.polyPath)-1].next = cv.polyPath[closeIdx].tf
+	cv.linePath[len(cv.linePath)-1].next = cv.linePath[closeIdx].next
+	cv.linePath[len(cv.linePath)-1].flags |= pathAttach
+	cv.polyPath[len(cv.polyPath)-1].next = cv.polyPath[closeIdx].next
 }
 
 // Stroke uses the current StrokeStyle to draw the path
