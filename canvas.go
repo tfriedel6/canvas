@@ -1,3 +1,5 @@
+// Package canvas provides an API that tries to closely mirror that
+// of the HTML5 canvas API, using OpenGL to do the rendering.
 package canvas
 
 import (
