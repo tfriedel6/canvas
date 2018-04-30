@@ -669,7 +669,7 @@ func (cv *Canvas) Rect(x, y, w, h float64) {
 	cv.polyPath[len(cv.polyPath)-1].flags |= pathIsRect
 }
 
-// Rect creates a closed rectangle path for stroking or filling
+// StrokeRect draws a rectangle using the current stroke style
 func (cv *Canvas) StrokeRect(x, y, w, h float64) {
 	v0 := vec{x, y}
 	v1 := vec{x + w, y}
