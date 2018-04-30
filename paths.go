@@ -376,7 +376,6 @@ func (cv *Canvas) stroke(path []pathPoint) {
 	gli.ColorMask(true, true, true, true)
 
 	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
-	gli.StencilMask(0xFF)
 
 	vertex := cv.useShader(&cv.state.stroke)
 	gli.EnableVertexAttribArray(vertex)
@@ -387,7 +386,6 @@ func (cv *Canvas) stroke(path []pathPoint) {
 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
 	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
 
-	gli.StencilMask(0x01)
 	gli.Clear(gl_STENCIL_BUFFER_BIT)
 	gli.StencilMask(0xFF)
 }
@@ -525,7 +523,6 @@ func (cv *Canvas) Fill() {
 	gli.ColorMask(true, true, true, true)
 
 	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
-	gli.StencilMask(0xFF)
 
 	vertex := cv.useShader(&cv.state.fill)
 	gli.EnableVertexAttribArray(vertex)
@@ -536,7 +533,6 @@ func (cv *Canvas) Fill() {
 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
 	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
 
-	gli.StencilMask(0x01)
 	gli.Clear(gl_STENCIL_BUFFER_BIT)
 	gli.StencilMask(0xFF)
 }
@@ -701,9 +697,13 @@ func (cv *Canvas) FillRect(x, y, w, h float64) {
 	data := [8]float32{float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]), float32(p2[0]), float32(p2[1]), float32(p3[0]), float32(p3[1])}
 	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
 
+	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
+
 	vertex := cv.useShader(&cv.state.fill)
 	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, nil)
 	gli.EnableVertexAttribArray(vertex)
 	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
 	gli.DisableVertexAttribArray(vertex)
+
+	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
 }
