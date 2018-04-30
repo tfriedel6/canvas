@@ -249,6 +249,8 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 	p2 := cv.tf(vec{dx + dw, dy + dh})
 	p3 := cv.tf(vec{dx + dw, dy})
 
+	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
+
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 	data := [16]float32{float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]), float32(p2[0]), float32(p2[1]), float32(p3[0]), float32(p3[1]),
 		float32(sx), float32(sy), float32(sx), float32(sy + sh), float32(sx + sw), float32(sy + sh), float32(sx + sw), float32(sy)}
@@ -268,4 +270,6 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
 	gli.DisableVertexAttribArray(ir.vertex)
 	gli.DisableVertexAttribArray(ir.texCoord)
+
+	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
 }

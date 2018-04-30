@@ -181,6 +181,8 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		x -= float64(strWidth)
 	}
 
+	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
+
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 
 	vertex, alphaTexCoord := cv.useAlphaShader(&cv.state.fill, 1)
@@ -219,6 +221,8 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 	gli.DisableVertexAttribArray(alphaTexCoord)
 
 	gli.ActiveTexture(gl_TEXTURE0)
+
+	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
 }
 
 type TextMetrics struct {
