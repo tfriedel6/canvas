@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	wnd, cv, err := sdlcanvas.CreateWindow(1280, 720, "Canvas Test")
+	wnd, cv, err := sdlcanvas.CreateWindow(1280, 720, "Canvas Example")
 	if err != nil {
 		log.Println(err)
 		return
