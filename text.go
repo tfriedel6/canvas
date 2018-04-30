@@ -15,6 +15,8 @@ import (
 
 var fontRenderingContext = newFRContext()
 
+// Font is a loaded font that can be passed to the
+// SetFont method
 type Font struct {
 	font *truetype.Font
 }
@@ -25,6 +27,8 @@ var textImage *image.Alpha
 
 var defaultFont *Font
 
+// LoadFont loads a font and returns the result. The font
+// can be a file name or a byte slice in TTF format
 func LoadFont(src interface{}) (*Font, error) {
 	var f *Font
 	switch v := src.(type) {
@@ -55,6 +59,8 @@ func LoadFont(src interface{}) (*Font, error) {
 	return f, nil
 }
 
+// FillText draws the given string at the given coordinates
+// using the currently set font and font height
 func (cv *Canvas) FillText(str string, x, y float64) {
 	cv.activate()
 
@@ -225,10 +231,13 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
 }
 
+// TextMetrics is the result of a MeasureText call
 type TextMetrics struct {
 	Width float64
 }
 
+// MeasureText measures the given string using the
+// current font and font height
 func (cv *Canvas) MeasureText(str string) TextMetrics {
 	if cv.state.font == nil {
 		return TextMetrics{}

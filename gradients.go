@@ -5,10 +5,18 @@ import (
 	"runtime"
 )
 
+// LinearGradient is a gradient with any number of
+// stops and any number of colors. The gradient will
+// be drawn such that each point on the gradient
+// will correspond to a straight line
 type LinearGradient struct {
 	gradient
 }
 
+// RadialGradient is a gradient with any number of
+// stops and any number of colors. The gradient will
+// be drawn such that each point on the gradient
+// will correspond to a circle
 type RadialGradient struct {
 	gradient
 	radFrom, radTo float64
@@ -27,6 +35,9 @@ type gradientStop struct {
 	color glColor
 }
 
+// NewLinearGradient creates a new linear gradient with
+// the coordinates from where to where the gradient
+// will apply on the canvas
 func NewLinearGradient(x0, y0, x1, y1 float64) *LinearGradient {
 	lg := &LinearGradient{gradient: gradient{from: vec{x0, y0}, to: vec{x1, y1}}}
 	gli.GenTextures(1, &lg.tex)
@@ -43,6 +54,10 @@ func NewLinearGradient(x0, y0, x1, y1 float64) *LinearGradient {
 	return lg
 }
 
+// NewRadialGradient creates a new linear gradient with
+// the coordinates and the radii for two circles. The
+// gradient will apply from the first to the second
+// circle
 func NewRadialGradient(x0, y0, r0, x1, y1, r1 float64) *RadialGradient {
 	rg := &RadialGradient{gradient: gradient{from: vec{x0, y0}, to: vec{x1, y1}}, radFrom: r0, radTo: r1}
 	gli.GenTextures(1, &rg.tex)
@@ -59,8 +74,10 @@ func NewRadialGradient(x0, y0, r0, x1, y1, r1 float64) *RadialGradient {
 	return rg
 }
 
+// Delete explicitly deletes the gradient
 func (g *gradient) Delete() {
 	gli.DeleteTextures(1, &g.tex)
+	g.deleted = true
 }
 
 func (g *gradient) load() {
@@ -113,6 +130,9 @@ func (g *gradient) colorAt(pos float64) glColor {
 	return c
 }
 
+// AddColorStop adds a color stop to the gradient. The stops
+// don't have to be added in order, they are sorted into the
+// right place
 func (g *gradient) AddColorStop(pos float64, color ...interface{}) {
 	c, _ := parseColor(color...)
 	insert := len(g.stops)

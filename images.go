@@ -200,7 +200,7 @@ func (img *Image) Delete() {
 	img.deleted = true
 }
 
-// Draw image draws the given image to the given coordinates. The image
+// DrawImage draws the given image to the given coordinates. The image
 // parameter can be an Image loaded by LoadImage, a file name string that will
 // be loaded and cached, or a name string that corresponds to a previously
 // loaded image with the same name parameter.

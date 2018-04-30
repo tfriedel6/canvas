@@ -68,6 +68,7 @@ type scissor struct {
 type lineJoin uint8
 type lineEnd uint8
 
+// Line join and end constants for SetLineJoin and SetLineEnd
 const (
 	Miter = iota
 	Bevel
@@ -78,6 +79,7 @@ const (
 
 type textAlign uint8
 
+// Text alignment constants for SetTextAlign
 const (
 	Left = iota
 	Center
