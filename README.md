@@ -1,14 +1,75 @@
+[GoDoc is available here](https://godoc.org/github.com/tfriedel6/canvas)
+
 # Go canvas
 
 Canvas is a Go library based on OpenGL that tries to provide the HTML5 canvas API as closely as possible.
 
 Many of the basic functions are supported, but it is still a work in progress. The library aims to accept a lot of different parameters on each function in a similar way as the Javascript API does.
 
-Since the library uses OpenGL directly in many places, the performance is likely to be decent, but not great. Browser implementation are likely to be much more optimized, but this is certainly useable.
+Whereas the Javascript API uses a context that all draw calls go to, here all draw calls are directly on the canvas type. The other difference is that here setters are used instead of properties for things like fonts and line width. 
 
-[GoDoc is available here](https://godoc.org/github.com/tfriedel6/canvas)
+The library is intended to provide decent performance. Obviously it will not be able to rival hand coded OpenGL for a given purpose, but for many purposes it will be enough. It can also be combined with hand coded OpenGL.
 
-# sdlcanvas
+# SDL convenience package
 
-The sdlcanvas subpackage provides a very simple way to get started with just a few lines of code. As the name implies it is based on the SDL library. It creates a window for you and gives you a canvas to draw with. It also serves as a useful example for more complex programs.
+The sdlcanvas subpackage provides a very simple way to get started with just a few lines of code. As the name implies it is based on the SDL library. It creates a window for you and gives you a canvas to draw with.
 
+# Example
+
+Look at the example/drawing package for some drawing examples. 
+
+Here is a simple example for how to get started:
+
+```go
+package main
+
+import (
+	"math"
+
+	"github.com/tfriedel6/canvas/sdlcanvas"
+)
+
+func main() {
+	wnd, cv, err := sdlcanvas.CreateWindow(1280, 720, "Hello")
+	if err != nil {
+		panic(err)
+	}
+	defer wnd.Destroy()
+
+	wnd.MainLoop(func() {
+		w, h := float64(cv.Width()), float64(cv.Height())
+		cv.SetFillStyle("#000")
+		cv.FillRect(0, 0, w, h)
+
+		for r := 0.0; r < math.Pi*2; r += math.Pi * 0.1 {
+			cv.SetFillStyle(int(r*10), int(r*20), int(r*40))
+			cv.BeginPath()
+			cv.MoveTo(w*0.5, h*0.5)
+			cv.Arc(w*0.5, h*0.5, math.Min(w, h)*0.4, r, r+0.1*math.Pi, false)
+			cv.ClosePath()
+			cv.Fill()
+		}
+
+		cv.SetStrokeStyle("#FFF")
+		cv.SetLineWidth(10)
+		cv.BeginPath()
+		cv.Arc(w*0.5, h*0.5, math.Min(w, h)*0.4, 0, math.Pi*2, false)
+		cv.Stroke()
+	})
+}
+```
+
+# Missing features
+
+Many features are implemented, although there is no guarantee that they work exactly as their HTML5 counterparts. Here is a list of missing features:
+
+- globalCompositeOperation
+- lineDashOffset
+- miterLimit
+- shadows
+- textBaseline
+- clearRect
+- getLineDash
+- isPointInPath
+- isPointInStroke
+- strokeText
