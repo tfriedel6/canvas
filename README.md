@@ -59,6 +59,10 @@ func main() {
 }
 ```
 
+The result:
+
+<img src="https://i.imgur.com/Nz8cT4M.png" width="320">
+
 # Implemented features
 
 These features *should* work just like their HTML5 counterparts, but there are likely to be a lot of edge cases where they don't work exactly the same way.
