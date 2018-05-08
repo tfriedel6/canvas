@@ -59,9 +59,47 @@ func main() {
 }
 ```
 
-# Missing features
+# Implemented features
 
-Many features are implemented, although there is no guarantee that they work exactly as their HTML5 counterparts. Here is a list of missing features:
+These features *should* work just like their HTML5 counterparts, but there are likely to be a lot of edge cases where they don't work exactly the same way.
+
+- beginPath
+- closePath
+- moveTo
+- lineTo
+- rect
+- arc
+- arcTo
+- quadraticCurveTo
+- bezierCurveTo
+- stroke
+- fill
+- clip
+- save
+- restore
+- scale
+- translate
+- rotate
+- transform
+- setTransform
+- fillText
+- measureText
+- textAlign
+- fillStyle
+- strokeStyle
+- linear gradients
+- radial gradients
+- image patterns
+- lineWidth
+- lineEnd (square, butt, round)
+- lineJoin (bevel, miter, round)
+- lineDash
+- global alpha
+- drawImage
+- getImageData
+- putImageData
+
+# Missing features
 
 - globalCompositeOperation
 - lineDashOffset
