@@ -299,12 +299,18 @@ func glError() error {
 	return nil
 }
 
-// SetFillStyle sets the color, gradient, or image for any fill calls
+// SetFillStyle sets the color, gradient, or image for any fill calls. To set a
+// color, there are several acceptable formats: 3 or 4 int values for RGB(A) in
+// the range 0-255, 3 or 4 float values for RGB(A) in the range 0-1, hex strings
+// in the format "#AABBCC", "#AABBCCDD", "#ABC", or "#ABCD"
 func (cv *Canvas) SetFillStyle(value ...interface{}) {
 	cv.state.fill = parseStyle(value...)
 }
 
-// SetStrokeStyle sets the color, gradient, or image for any line drawing calls
+// SetStrokeStyle sets the color, gradient, or image for any line drawing calls.
+// To set a color, there are several acceptable formats: 3 or 4 int values for
+// RGB(A) in the range 0-255, 3 or 4 float values for RGB(A) in the range 0-1,
+// hex strings in the format "#AABBCC", "#AABBCCDD", "#ABC", or "#ABCD"
 func (cv *Canvas) SetStrokeStyle(value ...interface{}) {
 	cv.state.stroke = parseStyle(value...)
 }
