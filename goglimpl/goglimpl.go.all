@@ -1,0 +1,973 @@
+package goglimpl
+
+import (
+	"unsafe"
+
+	"github.com/go-gl/gl/v3.2-core/gl"
+)
+
+type GLImpl struct{}
+
+func (_ GLImpl) Ptr(data interface{}) unsafe.Pointer {
+	return gl.Ptr(data)
+}
+func (_ GLImpl) PtrOffset(offset int) unsafe.Pointer {
+	return gl.PtrOffset(offset)
+}
+func (_ GLImpl) Str(str string) *uint8 {
+	return gl.Str(str)
+}
+func (_ GLImpl) GoStr(cstr *uint8) string {
+	return gl.GoStr(cstr)
+}
+func (_ GLImpl) Strs(strs ...string) (cstrs **uint8, free func()) {
+	return gl.Strs(strs...)
+}
+func (_ GLImpl) ActiveTexture(texture uint32) {
+	gl.ActiveTexture(texture)
+}
+func (_ GLImpl) AttachShader(program uint32, shader uint32) {
+	gl.AttachShader(program, shader)
+}
+func (_ GLImpl) BeginConditionalRender(id uint32, mode uint32) {
+	gl.BeginConditionalRender(id, mode)
+}
+func (_ GLImpl) BeginQuery(target uint32, id uint32) {
+	gl.BeginQuery(target, id)
+}
+func (_ GLImpl) BeginTransformFeedback(primitiveMode uint32) {
+	gl.BeginTransformFeedback(primitiveMode)
+}
+func (_ GLImpl) BindAttribLocation(program uint32, index uint32, name *uint8) {
+	gl.BindAttribLocation(program, index, name)
+}
+func (_ GLImpl) BindBuffer(target uint32, buffer uint32) {
+	gl.BindBuffer(target, buffer)
+}
+func (_ GLImpl) BindBufferBase(target uint32, index uint32, buffer uint32) {
+	gl.BindBufferBase(target, index, buffer)
+}
+func (_ GLImpl) BindBufferRange(target uint32, index uint32, buffer uint32, offset int, size int) {
+	gl.BindBufferRange(target, index, buffer, offset, size)
+}
+func (_ GLImpl) BindFragDataLocation(program uint32, color uint32, name *uint8) {
+	gl.BindFragDataLocation(program, color, name)
+}
+func (_ GLImpl) BindFramebuffer(target uint32, framebuffer uint32) {
+	gl.BindFramebuffer(target, framebuffer)
+}
+func (_ GLImpl) BindRenderbuffer(target uint32, renderbuffer uint32) {
+	gl.BindRenderbuffer(target, renderbuffer)
+}
+func (_ GLImpl) BindTexture(target uint32, texture uint32) {
+	gl.BindTexture(target, texture)
+}
+func (_ GLImpl) BindVertexArray(array uint32) {
+	gl.BindVertexArray(array)
+}
+func (_ GLImpl) BlendColor(red float32, green float32, blue float32, alpha float32) {
+	gl.BlendColor(red, green, blue, alpha)
+}
+func (_ GLImpl) BlendEquation(mode uint32) {
+	gl.BlendEquation(mode)
+}
+func (_ GLImpl) BlendEquationSeparate(modeRGB uint32, modeAlpha uint32) {
+	gl.BlendEquationSeparate(modeRGB, modeAlpha)
+}
+func (_ GLImpl) BlendFunc(sfactor uint32, dfactor uint32) {
+	gl.BlendFunc(sfactor, dfactor)
+}
+func (_ GLImpl) BlendFuncSeparate(sfactorRGB uint32, dfactorRGB uint32, sfactorAlpha uint32, dfactorAlpha uint32) {
+	gl.BlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha)
+}
+func (_ GLImpl) BlitFramebuffer(srcX0 int32, srcY0 int32, srcX1 int32, srcY1 int32, dstX0 int32, dstY0 int32, dstX1 int32, dstY1 int32, mask uint32, filter uint32) {
+	gl.BlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter)
+}
+func (_ GLImpl) BufferData(target uint32, size int, data unsafe.Pointer, usage uint32) {
+	gl.BufferData(target, size, data, usage)
+}
+func (_ GLImpl) BufferSubData(target uint32, offset int, size int, data unsafe.Pointer) {
+	gl.BufferSubData(target, offset, size, data)
+}
+func (_ GLImpl) CheckFramebufferStatus(target uint32) uint32 {
+	return gl.CheckFramebufferStatus(target)
+}
+func (_ GLImpl) ClampColor(target uint32, clamp uint32) {
+	gl.ClampColor(target, clamp)
+}
+func (_ GLImpl) Clear(mask uint32) {
+	gl.Clear(mask)
+}
+func (_ GLImpl) ClearBufferfi(buffer uint32, drawbuffer int32, depth float32, stencil int32) {
+	gl.ClearBufferfi(buffer, drawbuffer, depth, stencil)
+}
+func (_ GLImpl) ClearBufferfv(buffer uint32, drawbuffer int32, value *float32) {
+	gl.ClearBufferfv(buffer, drawbuffer, value)
+}
+func (_ GLImpl) ClearBufferiv(buffer uint32, drawbuffer int32, value *int32) {
+	gl.ClearBufferiv(buffer, drawbuffer, value)
+}
+func (_ GLImpl) ClearBufferuiv(buffer uint32, drawbuffer int32, value *uint32) {
+	gl.ClearBufferuiv(buffer, drawbuffer, value)
+}
+func (_ GLImpl) ClearColor(red float32, green float32, blue float32, alpha float32) {
+	gl.ClearColor(red, green, blue, alpha)
+}
+func (_ GLImpl) ClearDepth(depth float64) {
+	gl.ClearDepth(depth)
+}
+func (_ GLImpl) ClearStencil(s int32) {
+	gl.ClearStencil(s)
+}
+func (_ GLImpl) ClientWaitSync(sync uintptr, flags uint32, timeout uint64) uint32 {
+	return gl.ClientWaitSync(sync, flags, timeout)
+}
+func (_ GLImpl) ColorMask(red bool, green bool, blue bool, alpha bool) {
+	gl.ColorMask(red, green, blue, alpha)
+}
+func (_ GLImpl) ColorMaski(index uint32, r bool, g bool, b bool, a bool) {
+	gl.ColorMaski(index, r, g, b, a)
+}
+func (_ GLImpl) CompileShader(shader uint32) {
+	gl.CompileShader(shader)
+}
+func (_ GLImpl) CompressedTexImage1D(target uint32, level int32, internalformat uint32, width int32, border int32, imageSize int32, data unsafe.Pointer) {
+	gl.CompressedTexImage1D(target, level, internalformat, width, border, imageSize, data)
+}
+func (_ GLImpl) CompressedTexImage2D(target uint32, level int32, internalformat uint32, width int32, height int32, border int32, imageSize int32, data unsafe.Pointer) {
+	gl.CompressedTexImage2D(target, level, internalformat, width, height, border, imageSize, data)
+}
+func (_ GLImpl) CompressedTexImage3D(target uint32, level int32, internalformat uint32, width int32, height int32, depth int32, border int32, imageSize int32, data unsafe.Pointer) {
+	gl.CompressedTexImage3D(target, level, internalformat, width, height, depth, border, imageSize, data)
+}
+func (_ GLImpl) CompressedTexSubImage1D(target uint32, level int32, xoffset int32, width int32, format uint32, imageSize int32, data unsafe.Pointer) {
+	gl.CompressedTexSubImage1D(target, level, xoffset, width, format, imageSize, data)
+}
+func (_ GLImpl) CompressedTexSubImage2D(target uint32, level int32, xoffset int32, yoffset int32, width int32, height int32, format uint32, imageSize int32, data unsafe.Pointer) {
+	gl.CompressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, imageSize, data)
+}
+func (_ GLImpl) CompressedTexSubImage3D(target uint32, level int32, xoffset int32, yoffset int32, zoffset int32, width int32, height int32, depth int32, format uint32, imageSize int32, data unsafe.Pointer) {
+	gl.CompressedTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data)
+}
+func (_ GLImpl) CopyBufferSubData(readTarget uint32, writeTarget uint32, readOffset int, writeOffset int, size int) {
+	gl.CopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size)
+}
+func (_ GLImpl) CopyTexImage1D(target uint32, level int32, internalformat uint32, x int32, y int32, width int32, border int32) {
+	gl.CopyTexImage1D(target, level, internalformat, x, y, width, border)
+}
+func (_ GLImpl) CopyTexImage2D(target uint32, level int32, internalformat uint32, x int32, y int32, width int32, height int32, border int32) {
+	gl.CopyTexImage2D(target, level, internalformat, x, y, width, height, border)
+}
+func (_ GLImpl) CopyTexSubImage1D(target uint32, level int32, xoffset int32, x int32, y int32, width int32) {
+	gl.CopyTexSubImage1D(target, level, xoffset, x, y, width)
+}
+func (_ GLImpl) CopyTexSubImage2D(target uint32, level int32, xoffset int32, yoffset int32, x int32, y int32, width int32, height int32) {
+	gl.CopyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height)
+}
+func (_ GLImpl) CopyTexSubImage3D(target uint32, level int32, xoffset int32, yoffset int32, zoffset int32, x int32, y int32, width int32, height int32) {
+	gl.CopyTexSubImage3D(target, level, xoffset, yoffset, zoffset, x, y, width, height)
+}
+func (_ GLImpl) CreateProgram() uint32 {
+	return gl.CreateProgram()
+}
+func (_ GLImpl) CreateShader(xtype uint32) uint32 {
+	return gl.CreateShader(xtype)
+}
+func (_ GLImpl) CullFace(mode uint32) {
+	gl.CullFace(mode)
+}
+func (_ GLImpl) DeleteBuffers(n int32, buffers *uint32) {
+	gl.DeleteBuffers(n, buffers)
+}
+func (_ GLImpl) DeleteFramebuffers(n int32, framebuffers *uint32) {
+	gl.DeleteFramebuffers(n, framebuffers)
+}
+func (_ GLImpl) DeleteProgram(program uint32) {
+	gl.DeleteProgram(program)
+}
+func (_ GLImpl) DeleteQueries(n int32, ids *uint32) {
+	gl.DeleteQueries(n, ids)
+}
+func (_ GLImpl) DeleteRenderbuffers(n int32, renderbuffers *uint32) {
+	gl.DeleteRenderbuffers(n, renderbuffers)
+}
+func (_ GLImpl) DeleteShader(shader uint32) {
+	gl.DeleteShader(shader)
+}
+func (_ GLImpl) DeleteSync(sync uintptr) {
+	gl.DeleteSync(sync)
+}
+func (_ GLImpl) DeleteTextures(n int32, textures *uint32) {
+	gl.DeleteTextures(n, textures)
+}
+func (_ GLImpl) DeleteVertexArrays(n int32, arrays *uint32) {
+	gl.DeleteVertexArrays(n, arrays)
+}
+func (_ GLImpl) DepthFunc(xfunc uint32) {
+	gl.DepthFunc(xfunc)
+}
+func (_ GLImpl) DepthMask(flag bool) {
+	gl.DepthMask(flag)
+}
+func (_ GLImpl) DepthRange(near float64, far float64) {
+	gl.DepthRange(near, far)
+}
+func (_ GLImpl) DetachShader(program uint32, shader uint32) {
+	gl.DetachShader(program, shader)
+}
+func (_ GLImpl) Disable(cap uint32) {
+	gl.Disable(cap)
+}
+func (_ GLImpl) DisableVertexAttribArray(index uint32) {
+	gl.DisableVertexAttribArray(index)
+}
+func (_ GLImpl) Disablei(target uint32, index uint32) {
+	gl.Disablei(target, index)
+}
+func (_ GLImpl) DrawArrays(mode uint32, first int32, count int32) {
+	gl.DrawArrays(mode, first, count)
+}
+func (_ GLImpl) DrawArraysInstanced(mode uint32, first int32, count int32, instancecount int32) {
+	gl.DrawArraysInstanced(mode, first, count, instancecount)
+}
+func (_ GLImpl) DrawBuffer(buf uint32) {
+	gl.DrawBuffer(buf)
+}
+func (_ GLImpl) DrawBuffers(n int32, bufs *uint32) {
+	gl.DrawBuffers(n, bufs)
+}
+func (_ GLImpl) DrawElements(mode uint32, count int32, xtype uint32, indices unsafe.Pointer) {
+	gl.DrawElements(mode, count, xtype, indices)
+}
+func (_ GLImpl) DrawElementsBaseVertex(mode uint32, count int32, xtype uint32, indices unsafe.Pointer, basevertex int32) {
+	gl.DrawElementsBaseVertex(mode, count, xtype, indices, basevertex)
+}
+func (_ GLImpl) DrawElementsInstanced(mode uint32, count int32, xtype uint32, indices unsafe.Pointer, instancecount int32) {
+	gl.DrawElementsInstanced(mode, count, xtype, indices, instancecount)
+}
+func (_ GLImpl) DrawElementsInstancedBaseVertex(mode uint32, count int32, xtype uint32, indices unsafe.Pointer, instancecount int32, basevertex int32) {
+	gl.DrawElementsInstancedBaseVertex(mode, count, xtype, indices, instancecount, basevertex)
+}
+func (_ GLImpl) DrawRangeElements(mode uint32, start uint32, end uint32, count int32, xtype uint32, indices unsafe.Pointer) {
+	gl.DrawRangeElements(mode, start, end, count, xtype, indices)
+}
+func (_ GLImpl) DrawRangeElementsBaseVertex(mode uint32, start uint32, end uint32, count int32, xtype uint32, indices unsafe.Pointer, basevertex int32) {
+	gl.DrawRangeElementsBaseVertex(mode, start, end, count, xtype, indices, basevertex)
+}
+func (_ GLImpl) Enable(cap uint32) {
+	gl.Enable(cap)
+}
+func (_ GLImpl) EnableVertexAttribArray(index uint32) {
+	gl.EnableVertexAttribArray(index)
+}
+func (_ GLImpl) Enablei(target uint32, index uint32) {
+	gl.Enablei(target, index)
+}
+func (_ GLImpl) EndConditionalRender() {
+	gl.EndConditionalRender()
+}
+func (_ GLImpl) EndQuery(target uint32) {
+	gl.EndQuery(target)
+}
+func (_ GLImpl) EndTransformFeedback() {
+	gl.EndTransformFeedback()
+}
+func (_ GLImpl) FenceSync(condition uint32, flags uint32) uintptr {
+	return gl.FenceSync(condition, flags)
+}
+func (_ GLImpl) Finish() {
+	gl.Finish()
+}
+func (_ GLImpl) Flush() {
+	gl.Flush()
+}
+func (_ GLImpl) FlushMappedBufferRange(target uint32, offset int, length int) {
+	gl.FlushMappedBufferRange(target, offset, length)
+}
+func (_ GLImpl) FramebufferRenderbuffer(target uint32, attachment uint32, renderbuffertarget uint32, renderbuffer uint32) {
+	gl.FramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer)
+}
+func (_ GLImpl) FramebufferTexture(target uint32, attachment uint32, texture uint32, level int32) {
+	gl.FramebufferTexture(target, attachment, texture, level)
+}
+func (_ GLImpl) FramebufferTexture1D(target uint32, attachment uint32, textarget uint32, texture uint32, level int32) {
+	gl.FramebufferTexture1D(target, attachment, textarget, texture, level)
+}
+func (_ GLImpl) FramebufferTexture2D(target uint32, attachment uint32, textarget uint32, texture uint32, level int32) {
+	gl.FramebufferTexture2D(target, attachment, textarget, texture, level)
+}
+func (_ GLImpl) FramebufferTexture3D(target uint32, attachment uint32, textarget uint32, texture uint32, level int32, zoffset int32) {
+	gl.FramebufferTexture3D(target, attachment, textarget, texture, level, zoffset)
+}
+func (_ GLImpl) FramebufferTextureLayer(target uint32, attachment uint32, texture uint32, level int32, layer int32) {
+	gl.FramebufferTextureLayer(target, attachment, texture, level, layer)
+}
+func (_ GLImpl) FrontFace(mode uint32) {
+	gl.FrontFace(mode)
+}
+func (_ GLImpl) GenBuffers(n int32, buffers *uint32) {
+	gl.GenBuffers(n, buffers)
+}
+func (_ GLImpl) GenFramebuffers(n int32, framebuffers *uint32) {
+	gl.GenFramebuffers(n, framebuffers)
+}
+func (_ GLImpl) GenQueries(n int32, ids *uint32) {
+	gl.GenQueries(n, ids)
+}
+func (_ GLImpl) GenRenderbuffers(n int32, renderbuffers *uint32) {
+	gl.GenRenderbuffers(n, renderbuffers)
+}
+func (_ GLImpl) GenTextures(n int32, textures *uint32) {
+	gl.GenTextures(n, textures)
+}
+func (_ GLImpl) GenVertexArrays(n int32, arrays *uint32) {
+	gl.GenVertexArrays(n, arrays)
+}
+func (_ GLImpl) GenerateMipmap(target uint32) {
+	gl.GenerateMipmap(target)
+}
+func (_ GLImpl) GetActiveAttrib(program uint32, index uint32, bufSize int32, length *int32, size *int32, xtype *uint32, name *uint8) {
+	gl.GetActiveAttrib(program, index, bufSize, length, size, xtype, name)
+}
+func (_ GLImpl) GetActiveUniform(program uint32, index uint32, bufSize int32, length *int32, size *int32, xtype *uint32, name *uint8) {
+	gl.GetActiveUniform(program, index, bufSize, length, size, xtype, name)
+}
+func (_ GLImpl) GetActiveUniformBlockName(program uint32, uniformBlockIndex uint32, bufSize int32, length *int32, uniformBlockName *uint8) {
+	gl.GetActiveUniformBlockName(program, uniformBlockIndex, bufSize, length, uniformBlockName)
+}
+func (_ GLImpl) GetActiveUniformBlockiv(program uint32, uniformBlockIndex uint32, pname uint32, params *int32) {
+	gl.GetActiveUniformBlockiv(program, uniformBlockIndex, pname, params)
+}
+func (_ GLImpl) GetActiveUniformName(program uint32, uniformIndex uint32, bufSize int32, length *int32, uniformName *uint8) {
+	gl.GetActiveUniformName(program, uniformIndex, bufSize, length, uniformName)
+}
+func (_ GLImpl) GetActiveUniformsiv(program uint32, uniformCount int32, uniformIndices *uint32, pname uint32, params *int32) {
+	gl.GetActiveUniformsiv(program, uniformCount, uniformIndices, pname, params)
+}
+func (_ GLImpl) GetAttachedShaders(program uint32, maxCount int32, count *int32, shaders *uint32) {
+	gl.GetAttachedShaders(program, maxCount, count, shaders)
+}
+func (_ GLImpl) GetAttribLocation(program uint32, name *uint8) int32 {
+	return gl.GetAttribLocation(program, name)
+}
+func (_ GLImpl) GetBooleani_v(target uint32, index uint32, data *bool) {
+	gl.GetBooleani_v(target, index, data)
+}
+func (_ GLImpl) GetBooleanv(pname uint32, data *bool) {
+	gl.GetBooleanv(pname, data)
+}
+func (_ GLImpl) GetBufferParameteri64v(target uint32, pname uint32, params *int64) {
+	gl.GetBufferParameteri64v(target, pname, params)
+}
+func (_ GLImpl) GetBufferParameteriv(target uint32, pname uint32, params *int32) {
+	gl.GetBufferParameteriv(target, pname, params)
+}
+func (_ GLImpl) GetBufferPointerv(target uint32, pname uint32, params *unsafe.Pointer) {
+	gl.GetBufferPointerv(target, pname, params)
+}
+func (_ GLImpl) GetBufferSubData(target uint32, offset int, size int, data unsafe.Pointer) {
+	gl.GetBufferSubData(target, offset, size, data)
+}
+func (_ GLImpl) GetCompressedTexImage(target uint32, level int32, img unsafe.Pointer) {
+	gl.GetCompressedTexImage(target, level, img)
+}
+func (_ GLImpl) GetDoublev(pname uint32, data *float64) {
+	gl.GetDoublev(pname, data)
+}
+func (_ GLImpl) GetError() uint32 {
+	return gl.GetError()
+}
+func (_ GLImpl) GetFloatv(pname uint32, data *float32) {
+	gl.GetFloatv(pname, data)
+}
+func (_ GLImpl) GetFragDataLocation(program uint32, name *uint8) int32 {
+	return gl.GetFragDataLocation(program, name)
+}
+func (_ GLImpl) GetFramebufferAttachmentParameteriv(target uint32, attachment uint32, pname uint32, params *int32) {
+	gl.GetFramebufferAttachmentParameteriv(target, attachment, pname, params)
+}
+func (_ GLImpl) GetInteger64i_v(target uint32, index uint32, data *int64) {
+	gl.GetInteger64i_v(target, index, data)
+}
+func (_ GLImpl) GetInteger64v(pname uint32, data *int64) {
+	gl.GetInteger64v(pname, data)
+}
+func (_ GLImpl) GetIntegeri_v(target uint32, index uint32, data *int32) {
+	gl.GetIntegeri_v(target, index, data)
+}
+func (_ GLImpl) GetIntegerv(pname uint32, data *int32) {
+	gl.GetIntegerv(pname, data)
+}
+func (_ GLImpl) GetMultisamplefv(pname uint32, index uint32, val *float32) {
+	gl.GetMultisamplefv(pname, index, val)
+}
+func (_ GLImpl) GetProgramInfoLog(program uint32, bufSize int32, length *int32, infoLog *uint8) {
+	gl.GetProgramInfoLog(program, bufSize, length, infoLog)
+}
+func (_ GLImpl) GetProgramiv(program uint32, pname uint32, params *int32) {
+	gl.GetProgramiv(program, pname, params)
+}
+func (_ GLImpl) GetQueryObjectiv(id uint32, pname uint32, params *int32) {
+	gl.GetQueryObjectiv(id, pname, params)
+}
+func (_ GLImpl) GetQueryObjectuiv(id uint32, pname uint32, params *uint32) {
+	gl.GetQueryObjectuiv(id, pname, params)
+}
+func (_ GLImpl) GetQueryiv(target uint32, pname uint32, params *int32) {
+	gl.GetQueryiv(target, pname, params)
+}
+func (_ GLImpl) GetRenderbufferParameteriv(target uint32, pname uint32, params *int32) {
+	gl.GetRenderbufferParameteriv(target, pname, params)
+}
+func (_ GLImpl) GetShaderInfoLog(shader uint32, bufSize int32, length *int32, infoLog *uint8) {
+	gl.GetShaderInfoLog(shader, bufSize, length, infoLog)
+}
+func (_ GLImpl) GetShaderSource(shader uint32, bufSize int32, length *int32, source *uint8) {
+	gl.GetShaderSource(shader, bufSize, length, source)
+}
+func (_ GLImpl) GetShaderiv(shader uint32, pname uint32, params *int32) {
+	gl.GetShaderiv(shader, pname, params)
+}
+func (_ GLImpl) GetString(name uint32) *uint8 {
+	return gl.GetString(name)
+}
+func (_ GLImpl) GetStringi(name uint32, index uint32) *uint8 {
+	return gl.GetStringi(name, index)
+}
+func (_ GLImpl) GetSynciv(sync uintptr, pname uint32, bufSize int32, length *int32, values *int32) {
+	gl.GetSynciv(sync, pname, bufSize, length, values)
+}
+func (_ GLImpl) GetTexImage(target uint32, level int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
+	gl.GetTexImage(target, level, format, xtype, pixels)
+}
+func (_ GLImpl) GetTexLevelParameterfv(target uint32, level int32, pname uint32, params *float32) {
+	gl.GetTexLevelParameterfv(target, level, pname, params)
+}
+func (_ GLImpl) GetTexLevelParameteriv(target uint32, level int32, pname uint32, params *int32) {
+	gl.GetTexLevelParameteriv(target, level, pname, params)
+}
+func (_ GLImpl) GetTexParameterIiv(target uint32, pname uint32, params *int32) {
+	gl.GetTexParameterIiv(target, pname, params)
+}
+func (_ GLImpl) GetTexParameterIuiv(target uint32, pname uint32, params *uint32) {
+	gl.GetTexParameterIuiv(target, pname, params)
+}
+func (_ GLImpl) GetTexParameterfv(target uint32, pname uint32, params *float32) {
+	gl.GetTexParameterfv(target, pname, params)
+}
+func (_ GLImpl) GetTexParameteriv(target uint32, pname uint32, params *int32) {
+	gl.GetTexParameteriv(target, pname, params)
+}
+func (_ GLImpl) GetTransformFeedbackVarying(program uint32, index uint32, bufSize int32, length *int32, size *int32, xtype *uint32, name *uint8) {
+	gl.GetTransformFeedbackVarying(program, index, bufSize, length, size, xtype, name)
+}
+func (_ GLImpl) GetUniformBlockIndex(program uint32, uniformBlockName *uint8) uint32 {
+	return gl.GetUniformBlockIndex(program, uniformBlockName)
+}
+func (_ GLImpl) GetUniformIndices(program uint32, uniformCount int32, uniformNames **uint8, uniformIndices *uint32) {
+	gl.GetUniformIndices(program, uniformCount, uniformNames, uniformIndices)
+}
+func (_ GLImpl) GetUniformLocation(program uint32, name *uint8) int32 {
+	return gl.GetUniformLocation(program, name)
+}
+func (_ GLImpl) GetUniformfv(program uint32, location int32, params *float32) {
+	gl.GetUniformfv(program, location, params)
+}
+func (_ GLImpl) GetUniformiv(program uint32, location int32, params *int32) {
+	gl.GetUniformiv(program, location, params)
+}
+func (_ GLImpl) GetUniformuiv(program uint32, location int32, params *uint32) {
+	gl.GetUniformuiv(program, location, params)
+}
+func (_ GLImpl) GetVertexAttribIiv(index uint32, pname uint32, params *int32) {
+	gl.GetVertexAttribIiv(index, pname, params)
+}
+func (_ GLImpl) GetVertexAttribIuiv(index uint32, pname uint32, params *uint32) {
+	gl.GetVertexAttribIuiv(index, pname, params)
+}
+func (_ GLImpl) GetVertexAttribPointerv(index uint32, pname uint32, pointer *unsafe.Pointer) {
+	gl.GetVertexAttribPointerv(index, pname, pointer)
+}
+func (_ GLImpl) GetVertexAttribdv(index uint32, pname uint32, params *float64) {
+	gl.GetVertexAttribdv(index, pname, params)
+}
+func (_ GLImpl) GetVertexAttribfv(index uint32, pname uint32, params *float32) {
+	gl.GetVertexAttribfv(index, pname, params)
+}
+func (_ GLImpl) GetVertexAttribiv(index uint32, pname uint32, params *int32) {
+	gl.GetVertexAttribiv(index, pname, params)
+}
+func (_ GLImpl) Hint(target uint32, mode uint32) {
+	gl.Hint(target, mode)
+}
+func (_ GLImpl) IsBuffer(buffer uint32) bool {
+	return gl.IsBuffer(buffer)
+}
+func (_ GLImpl) IsEnabled(cap uint32) bool {
+	return gl.IsEnabled(cap)
+}
+func (_ GLImpl) IsEnabledi(target uint32, index uint32) bool {
+	return gl.IsEnabledi(target, index)
+}
+func (_ GLImpl) IsFramebuffer(framebuffer uint32) bool {
+	return gl.IsFramebuffer(framebuffer)
+}
+func (_ GLImpl) IsProgram(program uint32) bool {
+	return gl.IsProgram(program)
+}
+func (_ GLImpl) IsQuery(id uint32) bool {
+	return gl.IsQuery(id)
+}
+func (_ GLImpl) IsRenderbuffer(renderbuffer uint32) bool {
+	return gl.IsRenderbuffer(renderbuffer)
+}
+func (_ GLImpl) IsShader(shader uint32) bool {
+	return gl.IsShader(shader)
+}
+func (_ GLImpl) IsSync(sync uintptr) bool {
+	return gl.IsSync(sync)
+}
+func (_ GLImpl) IsTexture(texture uint32) bool {
+	return gl.IsTexture(texture)
+}
+func (_ GLImpl) IsVertexArray(array uint32) bool {
+	return gl.IsVertexArray(array)
+}
+func (_ GLImpl) LineWidth(width float32) {
+	gl.LineWidth(width)
+}
+func (_ GLImpl) LinkProgram(program uint32) {
+	gl.LinkProgram(program)
+}
+func (_ GLImpl) LogicOp(opcode uint32) {
+	gl.LogicOp(opcode)
+}
+func (_ GLImpl) MapBuffer(target uint32, access uint32) unsafe.Pointer {
+	return gl.MapBuffer(target, access)
+}
+func (_ GLImpl) MapBufferRange(target uint32, offset int, length int, access uint32) unsafe.Pointer {
+	return gl.MapBufferRange(target, offset, length, access)
+}
+func (_ GLImpl) MultiDrawArrays(mode uint32, first *int32, count *int32, drawcount int32) {
+	gl.MultiDrawArrays(mode, first, count, drawcount)
+}
+func (_ GLImpl) MultiDrawElements(mode uint32, count *int32, xtype uint32, indices *unsafe.Pointer, drawcount int32) {
+	gl.MultiDrawElements(mode, count, xtype, indices, drawcount)
+}
+func (_ GLImpl) MultiDrawElementsBaseVertex(mode uint32, count *int32, xtype uint32, indices *unsafe.Pointer, drawcount int32, basevertex *int32) {
+	gl.MultiDrawElementsBaseVertex(mode, count, xtype, indices, drawcount, basevertex)
+}
+func (_ GLImpl) PixelStoref(pname uint32, param float32) {
+	gl.PixelStoref(pname, param)
+}
+func (_ GLImpl) PixelStorei(pname uint32, param int32) {
+	gl.PixelStorei(pname, param)
+}
+func (_ GLImpl) PointParameterf(pname uint32, param float32) {
+	gl.PointParameterf(pname, param)
+}
+func (_ GLImpl) PointParameterfv(pname uint32, params *float32) {
+	gl.PointParameterfv(pname, params)
+}
+func (_ GLImpl) PointParameteri(pname uint32, param int32) {
+	gl.PointParameteri(pname, param)
+}
+func (_ GLImpl) PointParameteriv(pname uint32, params *int32) {
+	gl.PointParameteriv(pname, params)
+}
+func (_ GLImpl) PointSize(size float32) {
+	gl.PointSize(size)
+}
+func (_ GLImpl) PolygonMode(face uint32, mode uint32) {
+	gl.PolygonMode(face, mode)
+}
+func (_ GLImpl) PolygonOffset(factor float32, units float32) {
+	gl.PolygonOffset(factor, units)
+}
+func (_ GLImpl) PrimitiveRestartIndex(index uint32) {
+	gl.PrimitiveRestartIndex(index)
+}
+func (_ GLImpl) ProvokingVertex(mode uint32) {
+	gl.ProvokingVertex(mode)
+}
+func (_ GLImpl) ReadBuffer(src uint32) {
+	gl.ReadBuffer(src)
+}
+func (_ GLImpl) ReadPixels(x int32, y int32, width int32, height int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
+	gl.ReadPixels(x, y, width, height, format, xtype, pixels)
+}
+func (_ GLImpl) RenderbufferStorage(target uint32, internalformat uint32, width int32, height int32) {
+	gl.RenderbufferStorage(target, internalformat, width, height)
+}
+func (_ GLImpl) RenderbufferStorageMultisample(target uint32, samples int32, internalformat uint32, width int32, height int32) {
+	gl.RenderbufferStorageMultisample(target, samples, internalformat, width, height)
+}
+func (_ GLImpl) SampleCoverage(value float32, invert bool) {
+	gl.SampleCoverage(value, invert)
+}
+func (_ GLImpl) SampleMaski(maskNumber uint32, mask uint32) {
+	gl.SampleMaski(maskNumber, mask)
+}
+func (_ GLImpl) Scissor(x int32, y int32, width int32, height int32) {
+	gl.Scissor(x, y, width, height)
+}
+func (_ GLImpl) ShaderSource(shader uint32, count int32, xstring **uint8, length *int32) {
+	gl.ShaderSource(shader, count, xstring, length)
+}
+func (_ GLImpl) StencilFunc(xfunc uint32, ref int32, mask uint32) {
+	gl.StencilFunc(xfunc, ref, mask)
+}
+func (_ GLImpl) StencilFuncSeparate(face uint32, xfunc uint32, ref int32, mask uint32) {
+	gl.StencilFuncSeparate(face, xfunc, ref, mask)
+}
+func (_ GLImpl) StencilMask(mask uint32) {
+	gl.StencilMask(mask)
+}
+func (_ GLImpl) StencilMaskSeparate(face uint32, mask uint32) {
+	gl.StencilMaskSeparate(face, mask)
+}
+func (_ GLImpl) StencilOp(fail uint32, zfail uint32, zpass uint32) {
+	gl.StencilOp(fail, zfail, zpass)
+}
+func (_ GLImpl) StencilOpSeparate(face uint32, sfail uint32, dpfail uint32, dppass uint32) {
+	gl.StencilOpSeparate(face, sfail, dpfail, dppass)
+}
+func (_ GLImpl) TexBuffer(target uint32, internalformat uint32, buffer uint32) {
+	gl.TexBuffer(target, internalformat, buffer)
+}
+func (_ GLImpl) TexImage1D(target uint32, level int32, internalformat int32, width int32, border int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
+	gl.TexImage1D(target, level, internalformat, width, border, format, xtype, pixels)
+}
+func (_ GLImpl) TexImage2D(target uint32, level int32, internalformat int32, width int32, height int32, border int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
+	gl.TexImage2D(target, level, internalformat, width, height, border, format, xtype, pixels)
+}
+func (_ GLImpl) TexImage2DMultisample(target uint32, samples int32, internalformat uint32, width int32, height int32, fixedsamplelocations bool) {
+	gl.TexImage2DMultisample(target, samples, internalformat, width, height, fixedsamplelocations)
+}
+func (_ GLImpl) TexImage3D(target uint32, level int32, internalformat int32, width int32, height int32, depth int32, border int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
+	gl.TexImage3D(target, level, internalformat, width, height, depth, border, format, xtype, pixels)
+}
+func (_ GLImpl) TexImage3DMultisample(target uint32, samples int32, internalformat uint32, width int32, height int32, depth int32, fixedsamplelocations bool) {
+	gl.TexImage3DMultisample(target, samples, internalformat, width, height, depth, fixedsamplelocations)
+}
+func (_ GLImpl) TexParameterIiv(target uint32, pname uint32, params *int32) {
+	gl.TexParameterIiv(target, pname, params)
+}
+func (_ GLImpl) TexParameterIuiv(target uint32, pname uint32, params *uint32) {
+	gl.TexParameterIuiv(target, pname, params)
+}
+func (_ GLImpl) TexParameterf(target uint32, pname uint32, param float32) {
+	gl.TexParameterf(target, pname, param)
+}
+func (_ GLImpl) TexParameterfv(target uint32, pname uint32, params *float32) {
+	gl.TexParameterfv(target, pname, params)
+}
+func (_ GLImpl) TexParameteri(target uint32, pname uint32, param int32) {
+	gl.TexParameteri(target, pname, param)
+}
+func (_ GLImpl) TexParameteriv(target uint32, pname uint32, params *int32) {
+	gl.TexParameteriv(target, pname, params)
+}
+func (_ GLImpl) TexSubImage1D(target uint32, level int32, xoffset int32, width int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
+	gl.TexSubImage1D(target, level, xoffset, width, format, xtype, pixels)
+}
+func (_ GLImpl) TexSubImage2D(target uint32, level int32, xoffset int32, yoffset int32, width int32, height int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
+	gl.TexSubImage2D(target, level, xoffset, yoffset, width, height, format, xtype, pixels)
+}
+func (_ GLImpl) TexSubImage3D(target uint32, level int32, xoffset int32, yoffset int32, zoffset int32, width int32, height int32, depth int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
+	gl.TexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, xtype, pixels)
+}
+func (_ GLImpl) TransformFeedbackVaryings(program uint32, count int32, varyings **uint8, bufferMode uint32) {
+	gl.TransformFeedbackVaryings(program, count, varyings, bufferMode)
+}
+func (_ GLImpl) Uniform1f(location int32, v0 float32) {
+	gl.Uniform1f(location, v0)
+}
+func (_ GLImpl) Uniform1fv(location int32, count int32, value *float32) {
+	gl.Uniform1fv(location, count, value)
+}
+func (_ GLImpl) Uniform1i(location int32, v0 int32) {
+	gl.Uniform1i(location, v0)
+}
+func (_ GLImpl) Uniform1iv(location int32, count int32, value *int32) {
+	gl.Uniform1iv(location, count, value)
+}
+func (_ GLImpl) Uniform1ui(location int32, v0 uint32) {
+	gl.Uniform1ui(location, v0)
+}
+func (_ GLImpl) Uniform1uiv(location int32, count int32, value *uint32) {
+	gl.Uniform1uiv(location, count, value)
+}
+func (_ GLImpl) Uniform2f(location int32, v0 float32, v1 float32) {
+	gl.Uniform2f(location, v0, v1)
+}
+func (_ GLImpl) Uniform2fv(location int32, count int32, value *float32) {
+	gl.Uniform2fv(location, count, value)
+}
+func (_ GLImpl) Uniform2i(location int32, v0 int32, v1 int32) {
+	gl.Uniform2i(location, v0, v1)
+}
+func (_ GLImpl) Uniform2iv(location int32, count int32, value *int32) {
+	gl.Uniform2iv(location, count, value)
+}
+func (_ GLImpl) Uniform2ui(location int32, v0 uint32, v1 uint32) {
+	gl.Uniform2ui(location, v0, v1)
+}
+func (_ GLImpl) Uniform2uiv(location int32, count int32, value *uint32) {
+	gl.Uniform2uiv(location, count, value)
+}
+func (_ GLImpl) Uniform3f(location int32, v0 float32, v1 float32, v2 float32) {
+	gl.Uniform3f(location, v0, v1, v2)
+}
+func (_ GLImpl) Uniform3fv(location int32, count int32, value *float32) {
+	gl.Uniform3fv(location, count, value)
+}
+func (_ GLImpl) Uniform3i(location int32, v0 int32, v1 int32, v2 int32) {
+	gl.Uniform3i(location, v0, v1, v2)
+}
+func (_ GLImpl) Uniform3iv(location int32, count int32, value *int32) {
+	gl.Uniform3iv(location, count, value)
+}
+func (_ GLImpl) Uniform3ui(location int32, v0 uint32, v1 uint32, v2 uint32) {
+	gl.Uniform3ui(location, v0, v1, v2)
+}
+func (_ GLImpl) Uniform3uiv(location int32, count int32, value *uint32) {
+	gl.Uniform3uiv(location, count, value)
+}
+func (_ GLImpl) Uniform4f(location int32, v0 float32, v1 float32, v2 float32, v3 float32) {
+	gl.Uniform4f(location, v0, v1, v2, v3)
+}
+func (_ GLImpl) Uniform4fv(location int32, count int32, value *float32) {
+	gl.Uniform4fv(location, count, value)
+}
+func (_ GLImpl) Uniform4i(location int32, v0 int32, v1 int32, v2 int32, v3 int32) {
+	gl.Uniform4i(location, v0, v1, v2, v3)
+}
+func (_ GLImpl) Uniform4iv(location int32, count int32, value *int32) {
+	gl.Uniform4iv(location, count, value)
+}
+func (_ GLImpl) Uniform4ui(location int32, v0 uint32, v1 uint32, v2 uint32, v3 uint32) {
+	gl.Uniform4ui(location, v0, v1, v2, v3)
+}
+func (_ GLImpl) Uniform4uiv(location int32, count int32, value *uint32) {
+	gl.Uniform4uiv(location, count, value)
+}
+func (_ GLImpl) UniformBlockBinding(program uint32, uniformBlockIndex uint32, uniformBlockBinding uint32) {
+	gl.UniformBlockBinding(program, uniformBlockIndex, uniformBlockBinding)
+}
+func (_ GLImpl) UniformMatrix2fv(location int32, count int32, transpose bool, value *float32) {
+	gl.UniformMatrix2fv(location, count, transpose, value)
+}
+func (_ GLImpl) UniformMatrix2x3fv(location int32, count int32, transpose bool, value *float32) {
+	gl.UniformMatrix2x3fv(location, count, transpose, value)
+}
+func (_ GLImpl) UniformMatrix2x4fv(location int32, count int32, transpose bool, value *float32) {
+	gl.UniformMatrix2x4fv(location, count, transpose, value)
+}
+func (_ GLImpl) UniformMatrix3fv(location int32, count int32, transpose bool, value *float32) {
+	gl.UniformMatrix3fv(location, count, transpose, value)
+}
+func (_ GLImpl) UniformMatrix3x2fv(location int32, count int32, transpose bool, value *float32) {
+	gl.UniformMatrix3x2fv(location, count, transpose, value)
+}
+func (_ GLImpl) UniformMatrix3x4fv(location int32, count int32, transpose bool, value *float32) {
+	gl.UniformMatrix3x4fv(location, count, transpose, value)
+}
+func (_ GLImpl) UniformMatrix4fv(location int32, count int32, transpose bool, value *float32) {
+	gl.UniformMatrix4fv(location, count, transpose, value)
+}
+func (_ GLImpl) UniformMatrix4x2fv(location int32, count int32, transpose bool, value *float32) {
+	gl.UniformMatrix4x2fv(location, count, transpose, value)
+}
+func (_ GLImpl) UniformMatrix4x3fv(location int32, count int32, transpose bool, value *float32) {
+	gl.UniformMatrix4x3fv(location, count, transpose, value)
+}
+func (_ GLImpl) UnmapBuffer(target uint32) bool {
+	return gl.UnmapBuffer(target)
+}
+func (_ GLImpl) UseProgram(program uint32) {
+	gl.UseProgram(program)
+}
+func (_ GLImpl) ValidateProgram(program uint32) {
+	gl.ValidateProgram(program)
+}
+func (_ GLImpl) VertexAttrib1d(index uint32, x float64) {
+	gl.VertexAttrib1d(index, x)
+}
+func (_ GLImpl) VertexAttrib1dv(index uint32, v *float64) {
+	gl.VertexAttrib1dv(index, v)
+}
+func (_ GLImpl) VertexAttrib1f(index uint32, x float32) {
+	gl.VertexAttrib1f(index, x)
+}
+func (_ GLImpl) VertexAttrib1fv(index uint32, v *float32) {
+	gl.VertexAttrib1fv(index, v)
+}
+func (_ GLImpl) VertexAttrib1s(index uint32, x int16) {
+	gl.VertexAttrib1s(index, x)
+}
+func (_ GLImpl) VertexAttrib1sv(index uint32, v *int16) {
+	gl.VertexAttrib1sv(index, v)
+}
+func (_ GLImpl) VertexAttrib2d(index uint32, x float64, y float64) {
+	gl.VertexAttrib2d(index, x, y)
+}
+func (_ GLImpl) VertexAttrib2dv(index uint32, v *float64) {
+	gl.VertexAttrib2dv(index, v)
+}
+func (_ GLImpl) VertexAttrib2f(index uint32, x float32, y float32) {
+	gl.VertexAttrib2f(index, x, y)
+}
+func (_ GLImpl) VertexAttrib2fv(index uint32, v *float32) {
+	gl.VertexAttrib2fv(index, v)
+}
+func (_ GLImpl) VertexAttrib2s(index uint32, x int16, y int16) {
+	gl.VertexAttrib2s(index, x, y)
+}
+func (_ GLImpl) VertexAttrib2sv(index uint32, v *int16) {
+	gl.VertexAttrib2sv(index, v)
+}
+func (_ GLImpl) VertexAttrib3d(index uint32, x float64, y float64, z float64) {
+	gl.VertexAttrib3d(index, x, y, z)
+}
+func (_ GLImpl) VertexAttrib3dv(index uint32, v *float64) {
+	gl.VertexAttrib3dv(index, v)
+}
+func (_ GLImpl) VertexAttrib3f(index uint32, x float32, y float32, z float32) {
+	gl.VertexAttrib3f(index, x, y, z)
+}
+func (_ GLImpl) VertexAttrib3fv(index uint32, v *float32) {
+	gl.VertexAttrib3fv(index, v)
+}
+func (_ GLImpl) VertexAttrib3s(index uint32, x int16, y int16, z int16) {
+	gl.VertexAttrib3s(index, x, y, z)
+}
+func (_ GLImpl) VertexAttrib3sv(index uint32, v *int16) {
+	gl.VertexAttrib3sv(index, v)
+}
+func (_ GLImpl) VertexAttrib4Nbv(index uint32, v *int8) {
+	gl.VertexAttrib4Nbv(index, v)
+}
+func (_ GLImpl) VertexAttrib4Niv(index uint32, v *int32) {
+	gl.VertexAttrib4Niv(index, v)
+}
+func (_ GLImpl) VertexAttrib4Nsv(index uint32, v *int16) {
+	gl.VertexAttrib4Nsv(index, v)
+}
+func (_ GLImpl) VertexAttrib4Nub(index uint32, x uint8, y uint8, z uint8, w uint8) {
+	gl.VertexAttrib4Nub(index, x, y, z, w)
+}
+func (_ GLImpl) VertexAttrib4Nubv(index uint32, v *uint8) {
+	gl.VertexAttrib4Nubv(index, v)
+}
+func (_ GLImpl) VertexAttrib4Nuiv(index uint32, v *uint32) {
+	gl.VertexAttrib4Nuiv(index, v)
+}
+func (_ GLImpl) VertexAttrib4Nusv(index uint32, v *uint16) {
+	gl.VertexAttrib4Nusv(index, v)
+}
+func (_ GLImpl) VertexAttrib4bv(index uint32, v *int8) {
+	gl.VertexAttrib4bv(index, v)
+}
+func (_ GLImpl) VertexAttrib4d(index uint32, x float64, y float64, z float64, w float64) {
+	gl.VertexAttrib4d(index, x, y, z, w)
+}
+func (_ GLImpl) VertexAttrib4dv(index uint32, v *float64) {
+	gl.VertexAttrib4dv(index, v)
+}
+func (_ GLImpl) VertexAttrib4f(index uint32, x float32, y float32, z float32, w float32) {
+	gl.VertexAttrib4f(index, x, y, z, w)
+}
+func (_ GLImpl) VertexAttrib4fv(index uint32, v *float32) {
+	gl.VertexAttrib4fv(index, v)
+}
+func (_ GLImpl) VertexAttrib4iv(index uint32, v *int32) {
+	gl.VertexAttrib4iv(index, v)
+}
+func (_ GLImpl) VertexAttrib4s(index uint32, x int16, y int16, z int16, w int16) {
+	gl.VertexAttrib4s(index, x, y, z, w)
+}
+func (_ GLImpl) VertexAttrib4sv(index uint32, v *int16) {
+	gl.VertexAttrib4sv(index, v)
+}
+func (_ GLImpl) VertexAttrib4ubv(index uint32, v *uint8) {
+	gl.VertexAttrib4ubv(index, v)
+}
+func (_ GLImpl) VertexAttrib4uiv(index uint32, v *uint32) {
+	gl.VertexAttrib4uiv(index, v)
+}
+func (_ GLImpl) VertexAttrib4usv(index uint32, v *uint16) {
+	gl.VertexAttrib4usv(index, v)
+}
+func (_ GLImpl) VertexAttribI1i(index uint32, x int32) {
+	gl.VertexAttribI1i(index, x)
+}
+func (_ GLImpl) VertexAttribI1iv(index uint32, v *int32) {
+	gl.VertexAttribI1iv(index, v)
+}
+func (_ GLImpl) VertexAttribI1ui(index uint32, x uint32) {
+	gl.VertexAttribI1ui(index, x)
+}
+func (_ GLImpl) VertexAttribI1uiv(index uint32, v *uint32) {
+	gl.VertexAttribI1uiv(index, v)
+}
+func (_ GLImpl) VertexAttribI2i(index uint32, x int32, y int32) {
+	gl.VertexAttribI2i(index, x, y)
+}
+func (_ GLImpl) VertexAttribI2iv(index uint32, v *int32) {
+	gl.VertexAttribI2iv(index, v)
+}
+func (_ GLImpl) VertexAttribI2ui(index uint32, x uint32, y uint32) {
+	gl.VertexAttribI2ui(index, x, y)
+}
+func (_ GLImpl) VertexAttribI2uiv(index uint32, v *uint32) {
+	gl.VertexAttribI2uiv(index, v)
+}
+func (_ GLImpl) VertexAttribI3i(index uint32, x int32, y int32, z int32) {
+	gl.VertexAttribI3i(index, x, y, z)
+}
+func (_ GLImpl) VertexAttribI3iv(index uint32, v *int32) {
+	gl.VertexAttribI3iv(index, v)
+}
+func (_ GLImpl) VertexAttribI3ui(index uint32, x uint32, y uint32, z uint32) {
+	gl.VertexAttribI3ui(index, x, y, z)
+}
+func (_ GLImpl) VertexAttribI3uiv(index uint32, v *uint32) {
+	gl.VertexAttribI3uiv(index, v)
+}
+func (_ GLImpl) VertexAttribI4bv(index uint32, v *int8) {
+	gl.VertexAttribI4bv(index, v)
+}
+func (_ GLImpl) VertexAttribI4i(index uint32, x int32, y int32, z int32, w int32) {
+	gl.VertexAttribI4i(index, x, y, z, w)
+}
+func (_ GLImpl) VertexAttribI4iv(index uint32, v *int32) {
+	gl.VertexAttribI4iv(index, v)
+}
+func (_ GLImpl) VertexAttribI4sv(index uint32, v *int16) {
+	gl.VertexAttribI4sv(index, v)
+}
+func (_ GLImpl) VertexAttribI4ubv(index uint32, v *uint8) {
+	gl.VertexAttribI4ubv(index, v)
+}
+func (_ GLImpl) VertexAttribI4ui(index uint32, x uint32, y uint32, z uint32, w uint32) {
+	gl.VertexAttribI4ui(index, x, y, z, w)
+}
+func (_ GLImpl) VertexAttribI4uiv(index uint32, v *uint32) {
+	gl.VertexAttribI4uiv(index, v)
+}
+func (_ GLImpl) VertexAttribI4usv(index uint32, v *uint16) {
+	gl.VertexAttribI4usv(index, v)
+}
+func (_ GLImpl) VertexAttribIPointer(index uint32, size int32, xtype uint32, stride int32, pointer unsafe.Pointer) {
+	gl.VertexAttribIPointer(index, size, xtype, stride, pointer)
+}
+func (_ GLImpl) VertexAttribPointer(index uint32, size int32, xtype uint32, normalized bool, stride int32, pointer unsafe.Pointer) {
+	gl.VertexAttribPointer(index, size, xtype, normalized, stride, pointer)
+}
+func (_ GLImpl) Viewport(x int32, y int32, width int32, height int32) {
+	gl.Viewport(x, y, width, height)
+}
+func (_ GLImpl) WaitSync(sync uintptr, flags uint32, timeout uint64) {
+	gl.WaitSync(sync, flags, timeout)
+}
