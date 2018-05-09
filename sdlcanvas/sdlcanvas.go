@@ -7,6 +7,7 @@ import (
 	_ "image/png"
 	"runtime"
 	"time"
+	"unicode/utf8"
 
 	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/tfriedel6/canvas"
@@ -29,8 +30,9 @@ type Window struct {
 	MouseDown  func(button, x, y int)
 	MouseMove  func(x, y int)
 	MouseUp    func(button, x, y int)
-	KeyDown    func(scancode int, rune rune, name string)
-	KeyUp      func(scancode int, rune rune, name string)
+	KeyDown    func(scancode int, rn rune, name string)
+	KeyUp      func(scancode int, rn rune, name string)
+	KeyChar    func(rn rune)
 }
 
 // CreateWindow creates a window using SDL and initializes the OpenGL context
@@ -154,6 +156,12 @@ func (wnd *Window) StartFrame() error {
 					wnd.KeyUp(int(e.Keysym.Scancode), keyRune(e.Keysym.Scancode), keyName(e.Keysym.Scancode))
 					handled = true
 				}
+			}
+		case *sdl.TextInputEvent:
+			if wnd.KeyChar != nil {
+				rn, _ := utf8.DecodeRune(e.Text[:])
+				wnd.KeyChar(rn)
+				handled = true
 			}
 		}
 
