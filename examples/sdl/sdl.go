@@ -22,23 +22,23 @@ func main() {
 	defer sdl.Quit()
 
 	// the stencil size setting is required for the canvas to work
-	sdl.GL_SetAttribute(sdl.GL_RED_SIZE, 8)
-	sdl.GL_SetAttribute(sdl.GL_GREEN_SIZE, 8)
-	sdl.GL_SetAttribute(sdl.GL_BLUE_SIZE, 8)
-	sdl.GL_SetAttribute(sdl.GL_ALPHA_SIZE, 8)
-	sdl.GL_SetAttribute(sdl.GL_DEPTH_SIZE, 0)
-	sdl.GL_SetAttribute(sdl.GL_STENCIL_SIZE, 8)
-	sdl.GL_SetAttribute(sdl.GL_DOUBLEBUFFER, 1)
-	sdl.GL_SetAttribute(sdl.GL_MULTISAMPLEBUFFERS, 1)
-	sdl.GL_SetAttribute(sdl.GL_MULTISAMPLESAMPLES, 4)
+	sdl.GLSetAttribute(sdl.GL_RED_SIZE, 8)
+	sdl.GLSetAttribute(sdl.GL_GREEN_SIZE, 8)
+	sdl.GLSetAttribute(sdl.GL_BLUE_SIZE, 8)
+	sdl.GLSetAttribute(sdl.GL_ALPHA_SIZE, 8)
+	sdl.GLSetAttribute(sdl.GL_DEPTH_SIZE, 0)
+	sdl.GLSetAttribute(sdl.GL_STENCIL_SIZE, 8)
+	sdl.GLSetAttribute(sdl.GL_DOUBLEBUFFER, 1)
+	sdl.GLSetAttribute(sdl.GL_MULTISAMPLEBUFFERS, 1)
+	sdl.GLSetAttribute(sdl.GL_MULTISAMPLESAMPLES, 4)
 
 	// create window
 	const title = "SDL Test"
 	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, 1280, 720, sdl.WINDOW_RESIZABLE|sdl.WINDOW_OPENGL)
 	if err != nil {
 		// fallback in case multisample is not available
-		sdl.GL_SetAttribute(sdl.GL_MULTISAMPLEBUFFERS, 0)
-		sdl.GL_SetAttribute(sdl.GL_MULTISAMPLESAMPLES, 0)
+		sdl.GLSetAttribute(sdl.GL_MULTISAMPLEBUFFERS, 0)
+		sdl.GLSetAttribute(sdl.GL_MULTISAMPLESAMPLES, 0)
 		window, err = sdl.CreateWindow(title, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, 1280, 720, sdl.WINDOW_RESIZABLE|sdl.WINDOW_OPENGL)
 		if err != nil {
 			log.Fatalf("Error creating window: %v", err)
@@ -47,7 +47,7 @@ func main() {
 	defer window.Destroy()
 
 	// create GL context
-	glContext, err := sdl.GL_CreateContext(window)
+	glContext, err := window.GLCreateContext()
 	if err != nil {
 		log.Fatalf("Error creating GL context: %v", err)
 	}
@@ -59,7 +59,7 @@ func main() {
 	}
 
 	// enable vsync and multisample (if available)
-	sdl.GL_SetSwapInterval(1)
+	sdl.GLSetSwapInterval(1)
 	gl.Enable(gl.MULTISAMPLE)
 
 	// load canvas GL assets
@@ -72,7 +72,7 @@ func main() {
 	cv := canvas.New(0, 0, 0, 0)
 
 	for running := true; running; {
-		err := sdl.GL_MakeCurrent(window, glContext)
+		err := window.GLMakeCurrent(glContext)
 		if err != nil {
 			time.Sleep(10 * time.Millisecond)
 			continue
@@ -86,8 +86,8 @@ func main() {
 			}
 
 			switch e := event.(type) {
-			case *sdl.KeyDownEvent:
-				if e.Keysym.Scancode == sdl.SCANCODE_ESCAPE {
+			case *sdl.KeyboardEvent:
+				if e.Type == sdl.KEYDOWN && e.Keysym.Scancode == sdl.SCANCODE_ESCAPE {
 					running = false
 				}
 			case *sdl.WindowEvent:
@@ -99,13 +99,13 @@ func main() {
 
 		// set canvas size
 		ww, wh := window.GetSize()
-		cv.SetSize(ww, wh)
+		cv.SetSize(int(ww), int(wh))
 
 		// call the run function to do all the drawing
 		run(cv, float64(ww), float64(wh))
 
 		// swap back and front buffer
-		sdl.GL_SwapWindow(window)
+		window.GLSwap()
 	}
 }
 

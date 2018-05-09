@@ -2,7 +2,7 @@ package sdlcanvas
 
 import (
 	"fmt"
-	_ "image/gif"
+	_ "image/gif" // Imported here so that applications based on this package support these formats by default
 	_ "image/jpeg"
 	_ "image/png"
 	"runtime"
@@ -43,29 +43,29 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 		return nil, nil, fmt.Errorf("Error initializing SDL: %v", err)
 	}
 
-	sdl.GL_SetAttribute(sdl.GL_RED_SIZE, 8)
-	sdl.GL_SetAttribute(sdl.GL_GREEN_SIZE, 8)
-	sdl.GL_SetAttribute(sdl.GL_BLUE_SIZE, 8)
-	sdl.GL_SetAttribute(sdl.GL_ALPHA_SIZE, 8)
-	sdl.GL_SetAttribute(sdl.GL_DEPTH_SIZE, 0)
-	sdl.GL_SetAttribute(sdl.GL_STENCIL_SIZE, 8)
-	sdl.GL_SetAttribute(sdl.GL_DOUBLEBUFFER, 1)
-	sdl.GL_SetAttribute(sdl.GL_MULTISAMPLEBUFFERS, 1)
-	sdl.GL_SetAttribute(sdl.GL_MULTISAMPLESAMPLES, 4)
+	sdl.GLSetAttribute(sdl.GL_RED_SIZE, 8)
+	sdl.GLSetAttribute(sdl.GL_GREEN_SIZE, 8)
+	sdl.GLSetAttribute(sdl.GL_BLUE_SIZE, 8)
+	sdl.GLSetAttribute(sdl.GL_ALPHA_SIZE, 8)
+	sdl.GLSetAttribute(sdl.GL_DEPTH_SIZE, 0)
+	sdl.GLSetAttribute(sdl.GL_STENCIL_SIZE, 8)
+	sdl.GLSetAttribute(sdl.GL_DOUBLEBUFFER, 1)
+	sdl.GLSetAttribute(sdl.GL_MULTISAMPLEBUFFERS, 1)
+	sdl.GLSetAttribute(sdl.GL_MULTISAMPLESAMPLES, 4)
 
 	// create window
-	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, w, h, sdl.WINDOW_RESIZABLE|sdl.WINDOW_OPENGL)
+	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, int32(w), int32(h), sdl.WINDOW_RESIZABLE|sdl.WINDOW_OPENGL)
 	if err != nil {
-		sdl.GL_SetAttribute(sdl.GL_MULTISAMPLEBUFFERS, 0)
-		sdl.GL_SetAttribute(sdl.GL_MULTISAMPLESAMPLES, 0)
-		window, err = sdl.CreateWindow(title, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, w, h, sdl.WINDOW_RESIZABLE|sdl.WINDOW_OPENGL)
+		sdl.GLSetAttribute(sdl.GL_MULTISAMPLEBUFFERS, 0)
+		sdl.GLSetAttribute(sdl.GL_MULTISAMPLESAMPLES, 0)
+		window, err = sdl.CreateWindow(title, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, int32(w), int32(h), sdl.WINDOW_RESIZABLE|sdl.WINDOW_OPENGL)
 		if err != nil {
 			return nil, nil, fmt.Errorf("Error creating window: %v", err)
 		}
 	}
 
 	// create GL context
-	glContext, err := sdl.GL_CreateContext(window)
+	glContext, err := window.GLCreateContext()
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error creating GL context: %v", err)
 	}
@@ -76,7 +76,7 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 		return nil, nil, fmt.Errorf("Error initializing GL: %v", err)
 	}
 
-	sdl.GL_SetSwapInterval(1)
+	sdl.GLSetSwapInterval(1)
 	gl.Enable(gl.MULTISAMPLE)
 
 	err = canvas.LoadGL(goglimpl.GLImpl{})
@@ -96,7 +96,7 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 
 // Destroy destroys the GL context and the window
 func (wnd *Window) Destroy() {
-	sdl.GL_DeleteContext(wnd.GLContext)
+	sdl.GLDeleteContext(wnd.GLContext)
 	wnd.Window.Destroy()
 }
 
@@ -112,7 +112,7 @@ func (wnd *Window) Close() {
 
 // StartFrame handles events and gets the window ready for rendering
 func (wnd *Window) StartFrame() error {
-	err := sdl.GL_MakeCurrent(wnd.Window, wnd.GLContext)
+	err := wnd.Window.GLMakeCurrent(wnd.GLContext)
 	if err != nil {
 		return err
 	}
@@ -143,15 +143,17 @@ func (wnd *Window) StartFrame() error {
 				wnd.MouseMove(int(e.X), int(e.Y))
 				handled = true
 			}
-		case *sdl.KeyDownEvent:
-			if wnd.KeyDown != nil {
-				wnd.KeyDown(int(e.Keysym.Scancode), rune(e.Keysym.Unicode), keyName(e.Keysym.Scancode))
-				handled = true
-			}
-		case *sdl.KeyUpEvent:
-			if wnd.KeyUp != nil {
-				wnd.KeyUp(int(e.Keysym.Scancode), rune(e.Keysym.Unicode), keyName(e.Keysym.Scancode))
-				handled = true
+		case *sdl.KeyboardEvent:
+			if e.Type == sdl.KEYDOWN {
+				if wnd.KeyDown != nil {
+					wnd.KeyDown(int(e.Keysym.Scancode), keyRune(e.Keysym.Scancode), keyName(e.Keysym.Scancode))
+					handled = true
+				}
+			} else if e.Type == sdl.KEYUP {
+				if wnd.KeyUp != nil {
+					wnd.KeyUp(int(e.Keysym.Scancode), keyRune(e.Keysym.Scancode), keyName(e.Keysym.Scancode))
+					handled = true
+				}
 			}
 		}
 
@@ -181,7 +183,7 @@ func (wnd *Window) FinishFrame() {
 		wnd.fps = float32(wnd.frameCount-1) / float32(diff)
 	}
 
-	sdl.GL_SwapWindow(wnd.Window)
+	wnd.Window.GLSwap()
 }
 
 // MainLoop runs a main loop and calls run on every frame
@@ -202,8 +204,8 @@ func (wnd *Window) MainLoop(run func()) {
 				}
 			case *sdl.QuitEvent:
 				wnd.close = true
-			case *sdl.KeyDownEvent:
-				if e.Keysym.Scancode == sdl.SCANCODE_ESCAPE {
+			case *sdl.KeyboardEvent:
+				if e.Type == sdl.KEYDOWN && e.Keysym.Scancode == sdl.SCANCODE_ESCAPE {
 					wnd.close = true
 				}
 			}
