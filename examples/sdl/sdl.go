@@ -90,6 +90,8 @@ func main() {
 				if e.Type == sdl.KEYDOWN && e.Keysym.Scancode == sdl.SCANCODE_ESCAPE {
 					running = false
 				}
+			case *sdl.MouseMotionEvent:
+				mx, my = float64(e.X), float64(e.Y)
 			case *sdl.WindowEvent:
 				if e.Type == sdl.WINDOWEVENT_CLOSE {
 					running = false
@@ -109,9 +111,13 @@ func main() {
 	}
 }
 
+var mx, my float64
+
 func run(cv *canvas.Canvas, w, h float64) {
 	cv.SetFillStyle("#000")
 	cv.FillRect(0, 0, w, h)
 	cv.SetFillStyle("#0F0")
 	cv.FillRect(w*0.25, h*0.25, w*0.5, h*0.5)
+	cv.SetStrokeStyle("#00F")
+	cv.StrokeRect(mx-32, my-32, 64, 64)
 }

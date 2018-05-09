@@ -47,6 +47,10 @@ func main() {
 		log.Fatalf("Error loading canvas GL assets: %v", err)
 	}
 
+	window.SetCursorPosCallback(func(w *glfw.Window, xpos float64, ypos float64) {
+		mx, my = xpos, ypos
+	})
+
 	// initialize canvas with zero size, since size is set in main loop
 	cv := canvas.New(0, 0, 0, 0)
 
@@ -66,9 +70,13 @@ func main() {
 	}
 }
 
+var mx, my float64
+
 func run(cv *canvas.Canvas, w, h float64) {
 	cv.SetFillStyle("#000")
 	cv.FillRect(0, 0, w, h)
 	cv.SetFillStyle("#00F")
 	cv.FillRect(w*0.25, h*0.25, w*0.5, h*0.5)
+	cv.SetStrokeStyle("#0F0")
+	cv.StrokeRect(mx-32, my-32, 64, 64)
 }
