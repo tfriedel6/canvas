@@ -14,6 +14,14 @@ The library is intended to provide decent performance. Obviously it will not be 
 
 The sdlcanvas subpackage provides a very simple way to get started with just a few lines of code. As the name implies it is based on the SDL library. It creates a window for you and gives you a canvas to draw with.
 
+# OS support
+
+- Linux
+- Windows
+- OSX (untested)
+
+When using just the canvas package without the sdlcanvas subpackage, this can probably also be made to work for Android and iOS, but this is as yet untested and would require the GL interface to be implemented for the platform.
+
 # Example
 
 Look at the example/drawing package for some drawing examples. 
