@@ -200,18 +200,14 @@ func shaderGetTopLevelLines(source string) []string {
 
 const compilePart = `
 	{
-		csource, freeFunc := gli.Strs(SHADER_SRC + "\x00")
-		defer freeFunc()
-
 		SHADER_VAR = gli.CreateShader(gl_SHADER_TYPE)
-		gli.ShaderSource(SHADER_VAR, 1, csource, nil)
+		gli.ShaderSource(SHADER_VAR, SHADER_SRC)
 		gli.CompileShader(SHADER_VAR)
 
 		var logLength int32
 		gli.GetShaderiv(SHADER_VAR, gl_INFO_LOG_LENGTH, &logLength)
 		if logLength > 0 {
-			shLog := strings.Repeat("\x00", int(logLength+1))
-			gli.GetShaderInfoLog(SHADER_VAR, logLength, nil, gli.Str(shLog))
+			shLog := gli.GetShaderInfoLog(SHADER_VAR, logLength)
 			fmt.Printf("SHADER_TYPE compilation log for SHADER_SRC:\n\n%s\n", shLog)
 		}
 
@@ -236,8 +232,7 @@ const linkPart = `
 		var logLength int32
 		gli.GetProgramiv(program, gl_INFO_LOG_LENGTH, &logLength)
 		if logLength > 0 {
-			shLog := strings.Repeat("\x00", int(logLength+1))
-			gli.GetProgramInfoLog(program, logLength, nil, gli.Str(shLog))
+			shLog := gli.GetProgramInfoLog(program, logLength)
 			fmt.Printf("Shader link log for SHADER_SRC:\n\n%s\n", shLog)
 		}
 
@@ -263,7 +258,6 @@ func buildCodeHeader(buf *bytes.Buffer) {
 	fmt.Fprint(buf, "import (\n")
 	fmt.Fprint(buf, "\t\"errors\"\n")
 	fmt.Fprint(buf, "\t\"fmt\"\n")
-	fmt.Fprint(buf, "\t\"strings\"\n")
 	fmt.Fprint(buf, ")\n\n")
 }
 
@@ -306,9 +300,9 @@ func buildCode(buf *bytes.Buffer, baseName string, inputs []ShaderInput) {
 
 	for _, input := range inputs {
 		if input.IsAttrib {
-			fmt.Fprintf(buf, "\tresult.%s = uint32(gli.GetAttribLocation(program, gli.Str(\"%s\\x00\")))\n", input.Name, input.Name)
+			fmt.Fprintf(buf, "\tresult.%s = uint32(gli.GetAttribLocation(program, \"%s\"))\n", input.Name, input.Name)
 		} else if input.IsUniform {
-			fmt.Fprintf(buf, "\tresult.%s = gli.GetUniformLocation(program, gli.Str(\"%s\\x00\"))\n", input.Name, input.Name)
+			fmt.Fprintf(buf, "\tresult.%s = gli.GetUniformLocation(program, \"%s\")\n", input.Name, input.Name)
 		}
 	}
 

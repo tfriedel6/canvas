@@ -1,6 +1,7 @@
 package goglimpl
 
 import (
+	"strings"
 	"unsafe"
 
 	"github.com/go-gl/gl/v3.2-core/gl"
@@ -13,15 +14,6 @@ var _ canvas.GL = GLImpl{}
 
 func (_ GLImpl) Ptr(data interface{}) unsafe.Pointer {
 	return gl.Ptr(data)
-}
-func (_ GLImpl) PtrOffset(offset int) unsafe.Pointer {
-	return gl.PtrOffset(offset)
-}
-func (_ GLImpl) Str(str string) *uint8 {
-	return gl.Str(str)
-}
-func (_ GLImpl) Strs(strs ...string) (cstrs **uint8, free func()) {
-	return gl.Strs(strs...)
 }
 func (_ GLImpl) ActiveTexture(texture uint32) {
 	gl.ActiveTexture(texture)
@@ -83,26 +75,30 @@ func (_ GLImpl) GenTextures(n int32, textures *uint32) {
 func (_ GLImpl) GenerateMipmap(target uint32) {
 	gl.GenerateMipmap(target)
 }
-func (_ GLImpl) GetAttribLocation(program uint32, name *uint8) int32 {
-	return gl.GetAttribLocation(program, name)
+func (_ GLImpl) GetAttribLocation(program uint32, name string) int32 {
+	return gl.GetAttribLocation(program, gl.Str(name+"\x00"))
 }
 func (_ GLImpl) GetError() uint32 {
 	return gl.GetError()
 }
-func (_ GLImpl) GetProgramInfoLog(program uint32, bufSize int32, length *int32, infoLog *uint8) {
-	gl.GetProgramInfoLog(program, bufSize, length, infoLog)
+func (_ GLImpl) GetProgramInfoLog(program uint32, bufSize int32) string {
+	log := strings.Repeat("\x00", int(bufSize+1))
+	gl.GetProgramInfoLog(program, bufSize, nil, gl.Str(log))
+	return log
 }
 func (_ GLImpl) GetProgramiv(program uint32, pname uint32, params *int32) {
 	gl.GetProgramiv(program, pname, params)
 }
-func (_ GLImpl) GetShaderInfoLog(shader uint32, bufSize int32, length *int32, infoLog *uint8) {
-	gl.GetShaderInfoLog(shader, bufSize, length, infoLog)
+func (_ GLImpl) GetShaderInfoLog(program uint32, bufSize int32) string {
+	log := strings.Repeat("\x00", int(bufSize+1))
+	gl.GetShaderInfoLog(program, bufSize, nil, gl.Str(log))
+	return log
 }
 func (_ GLImpl) GetShaderiv(shader uint32, pname uint32, params *int32) {
 	gl.GetShaderiv(shader, pname, params)
 }
-func (_ GLImpl) GetUniformLocation(program uint32, name *uint8) int32 {
-	return gl.GetUniformLocation(program, name)
+func (_ GLImpl) GetUniformLocation(program uint32, name string) int32 {
+	return gl.GetUniformLocation(program, gl.Str(name+"\x00"))
 }
 func (_ GLImpl) LinkProgram(program uint32) {
 	gl.LinkProgram(program)
@@ -113,8 +109,10 @@ func (_ GLImpl) ReadPixels(x int32, y int32, width int32, height int32, format u
 func (_ GLImpl) Scissor(x int32, y int32, width int32, height int32) {
 	gl.Scissor(x, y, width, height)
 }
-func (_ GLImpl) ShaderSource(shader uint32, count int32, xstring **uint8, length *int32) {
-	gl.ShaderSource(shader, count, xstring, length)
+func (_ GLImpl) ShaderSource(shader uint32, source string) {
+	csource, freeFunc := gl.Strs(source + "\x00")
+	gl.ShaderSource(shader, 1, csource, nil)
+	freeFunc()
 }
 func (_ GLImpl) StencilFunc(xfunc uint32, ref int32, mask uint32) {
 	gl.StencilFunc(xfunc, ref, mask)
@@ -155,8 +153,8 @@ func (_ GLImpl) UniformMatrix3fv(location int32, count int32, transpose bool, va
 func (_ GLImpl) UseProgram(program uint32) {
 	gl.UseProgram(program)
 }
-func (_ GLImpl) VertexAttribPointer(index uint32, size int32, xtype uint32, normalized bool, stride int32, pointer unsafe.Pointer) {
-	gl.VertexAttribPointer(index, size, xtype, normalized, stride, pointer)
+func (_ GLImpl) VertexAttribPointer(index uint32, size int32, xtype uint32, normalized bool, stride int32, offset uint32) {
+	gl.VertexAttribPointer(index, size, xtype, normalized, stride, gl.PtrOffset(int(offset)))
 }
 func (_ GLImpl) Viewport(x int32, y int32, width int32, height int32) {
 	gl.Viewport(x, y, width, height)

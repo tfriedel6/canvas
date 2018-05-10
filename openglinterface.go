@@ -794,9 +794,6 @@ const (
 // this interface based on Go-GL v3.2
 type GL interface {
 	Ptr(data interface{}) unsafe.Pointer
-	PtrOffset(offset int) unsafe.Pointer
-	Str(str string) *uint8
-	Strs(strs ...string) (cstrs **uint8, free func())
 	ActiveTexture(texture uint32)
 	AttachShader(program uint32, shader uint32)
 	BindBuffer(target uint32, buffer uint32)
@@ -817,17 +814,17 @@ type GL interface {
 	GenBuffers(n int32, buffers *uint32)
 	GenTextures(n int32, textures *uint32)
 	GenerateMipmap(target uint32)
-	GetAttribLocation(program uint32, name *uint8) int32
+	GetAttribLocation(program uint32, name string) int32
 	GetError() uint32
-	GetProgramInfoLog(program uint32, bufSize int32, length *int32, infoLog *uint8)
+	GetProgramInfoLog(program uint32, bufSize int32) string
 	GetProgramiv(program uint32, pname uint32, params *int32)
-	GetShaderInfoLog(shader uint32, bufSize int32, length *int32, infoLog *uint8)
+	GetShaderInfoLog(shader uint32, bufSize int32) string
 	GetShaderiv(shader uint32, pname uint32, params *int32)
-	GetUniformLocation(program uint32, name *uint8) int32
+	GetUniformLocation(program uint32, name string) int32
 	LinkProgram(program uint32)
 	ReadPixels(x int32, y int32, width int32, height int32, format uint32, xtype uint32, pixels unsafe.Pointer)
 	Scissor(x int32, y int32, width int32, height int32)
-	ShaderSource(shader uint32, count int32, xstring **uint8, length *int32)
+	ShaderSource(shader uint32, source string)
 	StencilFunc(xfunc uint32, ref int32, mask uint32)
 	StencilMask(mask uint32)
 	StencilOp(fail uint32, zfail uint32, zpass uint32)
@@ -841,6 +838,6 @@ type GL interface {
 	Uniform4f(location int32, v0 float32, v1 float32, v2 float32, v3 float32)
 	UniformMatrix3fv(location int32, count int32, transpose bool, value *float32)
 	UseProgram(program uint32)
-	VertexAttribPointer(index uint32, size int32, xtype uint32, normalized bool, stride int32, pointer unsafe.Pointer)
+	VertexAttribPointer(index uint32, size int32, xtype uint32, normalized bool, stride int32, offset uint32)
 	Viewport(x int32, y int32, width int32, height int32)
 }

@@ -370,7 +370,7 @@ func (cv *Canvas) stroke(path []pathPoint) {
 	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
 
 	gli.EnableVertexAttribArray(sr.vertex)
-	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
+	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
 	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
 	gli.DisableVertexAttribArray(sr.vertex)
 
@@ -380,7 +380,7 @@ func (cv *Canvas) stroke(path []pathPoint) {
 
 	vertex := cv.useShader(&cv.state.stroke)
 	gli.EnableVertexAttribArray(vertex)
-	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, nil)
+	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
 	gli.DrawArrays(gl_TRIANGLES, 0, 6)
 	gli.DisableVertexAttribArray(vertex)
 
@@ -517,7 +517,7 @@ func (cv *Canvas) Fill() {
 	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
 
 	gli.EnableVertexAttribArray(sr.vertex)
-	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
+	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
 	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
 	gli.DisableVertexAttribArray(sr.vertex)
 
@@ -527,7 +527,7 @@ func (cv *Canvas) Fill() {
 
 	vertex := cv.useShader(&cv.state.fill)
 	gli.EnableVertexAttribArray(vertex)
-	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, nil)
+	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
 	gli.DrawArrays(gl_TRIANGLES, 0, 6)
 	gli.DisableVertexAttribArray(vertex)
 
@@ -594,7 +594,7 @@ func (cv *Canvas) clip(path []pathPoint) {
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
-	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, nil)
+	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
 
 	gli.UseProgram(sr.id)
 	gli.Uniform4f(sr.color, 1, 1, 1, 1)
@@ -701,7 +701,7 @@ func (cv *Canvas) FillRect(x, y, w, h float64) {
 	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
 
 	vertex := cv.useShader(&cv.state.fill)
-	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, nil)
+	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
 	gli.EnableVertexAttribArray(vertex)
 	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
 	gli.DisableVertexAttribArray(vertex)
