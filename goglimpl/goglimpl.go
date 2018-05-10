@@ -81,17 +81,27 @@ func (_ GLImpl) GetAttribLocation(program uint32, name string) int32 {
 func (_ GLImpl) GetError() uint32 {
 	return gl.GetError()
 }
-func (_ GLImpl) GetProgramInfoLog(program uint32, bufSize int32) string {
-	log := strings.Repeat("\x00", int(bufSize+1))
-	gl.GetProgramInfoLog(program, bufSize, nil, gl.Str(log))
+func (_ GLImpl) GetProgramInfoLog(program uint32) string {
+	var length int32
+	gl.GetProgramiv(program, gl.INFO_LOG_LENGTH, &length)
+	if length == 0 {
+		return ""
+	}
+	log := strings.Repeat("\x00", int(length+1))
+	gl.GetProgramInfoLog(program, length, nil, gl.Str(log))
 	return log
 }
 func (_ GLImpl) GetProgramiv(program uint32, pname uint32, params *int32) {
 	gl.GetProgramiv(program, pname, params)
 }
-func (_ GLImpl) GetShaderInfoLog(program uint32, bufSize int32) string {
-	log := strings.Repeat("\x00", int(bufSize+1))
-	gl.GetShaderInfoLog(program, bufSize, nil, gl.Str(log))
+func (_ GLImpl) GetShaderInfoLog(program uint32) string {
+	var length int32
+	gl.GetShaderiv(program, gl.INFO_LOG_LENGTH, &length)
+	if length == 0 {
+		return ""
+	}
+	log := strings.Repeat("\x00", int(length+1))
+	gl.GetShaderInfoLog(program, length, nil, gl.Str(log))
 	return log
 }
 func (_ GLImpl) GetShaderiv(shader uint32, pname uint32, params *int32) {
@@ -122,9 +132,6 @@ func (_ GLImpl) StencilMask(mask uint32) {
 }
 func (_ GLImpl) StencilOp(fail uint32, zfail uint32, zpass uint32) {
 	gl.StencilOp(fail, zfail, zpass)
-}
-func (_ GLImpl) TexImage1D(target uint32, level int32, internalformat int32, width int32, border int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
-	gl.TexImage1D(target, level, internalformat, width, border, format, xtype, pixels)
 }
 func (_ GLImpl) TexImage2D(target uint32, level int32, internalformat int32, width int32, height int32, border int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
 	gl.TexImage2D(target, level, internalformat, width, height, border, format, xtype, pixels)

@@ -42,10 +42,11 @@ func NewLinearGradient(x0, y0, x1, y1 float64) *LinearGradient {
 	lg := &LinearGradient{gradient: gradient{from: vec{x0, y0}, to: vec{x1, y1}}}
 	gli.GenTextures(1, &lg.tex)
 	gli.ActiveTexture(gl_TEXTURE0)
-	gli.BindTexture(gl_TEXTURE_1D, lg.tex)
-	gli.TexParameteri(gl_TEXTURE_1D, gl_TEXTURE_MIN_FILTER, gl_LINEAR)
-	gli.TexParameteri(gl_TEXTURE_1D, gl_TEXTURE_MAG_FILTER, gl_LINEAR)
-	gli.TexParameteri(gl_TEXTURE_1D, gl_TEXTURE_WRAP_S, gl_CLAMP_TO_EDGE)
+	gli.BindTexture(gl_TEXTURE_2D, lg.tex)
+	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MIN_FILTER, gl_LINEAR)
+	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MAG_FILTER, gl_LINEAR)
+	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_WRAP_S, gl_CLAMP_TO_EDGE)
+	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_WRAP_T, gl_CLAMP_TO_EDGE)
 	runtime.SetFinalizer(lg, func(lg *LinearGradient) {
 		glChan <- func() {
 			gli.DeleteTextures(1, &lg.tex)
@@ -62,10 +63,11 @@ func NewRadialGradient(x0, y0, r0, x1, y1, r1 float64) *RadialGradient {
 	rg := &RadialGradient{gradient: gradient{from: vec{x0, y0}, to: vec{x1, y1}}, radFrom: r0, radTo: r1}
 	gli.GenTextures(1, &rg.tex)
 	gli.ActiveTexture(gl_TEXTURE0)
-	gli.BindTexture(gl_TEXTURE_1D, rg.tex)
-	gli.TexParameteri(gl_TEXTURE_1D, gl_TEXTURE_MIN_FILTER, gl_LINEAR)
-	gli.TexParameteri(gl_TEXTURE_1D, gl_TEXTURE_MAG_FILTER, gl_LINEAR)
-	gli.TexParameteri(gl_TEXTURE_1D, gl_TEXTURE_WRAP_S, gl_CLAMP_TO_EDGE)
+	gli.BindTexture(gl_TEXTURE_2D, rg.tex)
+	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MIN_FILTER, gl_LINEAR)
+	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MAG_FILTER, gl_LINEAR)
+	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_WRAP_S, gl_CLAMP_TO_EDGE)
+	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_WRAP_T, gl_CLAMP_TO_EDGE)
 	runtime.SetFinalizer(rg, func(rg *RadialGradient) {
 		glChan <- func() {
 			gli.DeleteTextures(1, &rg.tex)
@@ -86,7 +88,7 @@ func (g *gradient) load() {
 	}
 
 	gli.ActiveTexture(gl_TEXTURE0)
-	gli.BindTexture(gl_TEXTURE_1D, g.tex)
+	gli.BindTexture(gl_TEXTURE_2D, g.tex)
 	var pixels [2048 * 4]byte
 	pp := 0
 	for i := 0; i < 2048; i++ {
@@ -97,7 +99,7 @@ func (g *gradient) load() {
 		pixels[pp+3] = byte(math.Floor(c.a*255 + 0.5))
 		pp += 4
 	}
-	gli.TexImage1D(gl_TEXTURE_1D, 0, gl_RGBA, 2048, 0, gl_RGBA, gl_UNSIGNED_BYTE, gli.Ptr(&pixels[0]))
+	gli.TexImage2D(gl_TEXTURE_2D, 0, gl_RGBA, 2048, 1, 0, gl_RGBA, gl_UNSIGNED_BYTE, gli.Ptr(&pixels[0]))
 	g.loaded = true
 }
 

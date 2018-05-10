@@ -204,10 +204,8 @@ const compilePart = `
 		gli.ShaderSource(SHADER_VAR, SHADER_SRC)
 		gli.CompileShader(SHADER_VAR)
 
-		var logLength int32
-		gli.GetShaderiv(SHADER_VAR, gl_INFO_LOG_LENGTH, &logLength)
-		if logLength > 0 {
-			shLog := gli.GetShaderInfoLog(SHADER_VAR, logLength)
+		shLog := gli.GetShaderInfoLog(SHADER_VAR)
+		if len(shLog) > 0 {
 			fmt.Printf("SHADER_TYPE compilation log for SHADER_SRC:\n\n%s\n", shLog)
 		}
 
@@ -229,10 +227,8 @@ const linkPart = `
 		gli.AttachShader(program, fs)
 		gli.LinkProgram(program)
 
-		var logLength int32
-		gli.GetProgramiv(program, gl_INFO_LOG_LENGTH, &logLength)
-		if logLength > 0 {
-			shLog := gli.GetProgramInfoLog(program, logLength)
+		shLog := gli.GetProgramInfoLog(program)
+		if len(shLog) > 0 {
 			fmt.Printf("Shader link log for SHADER_SRC:\n\n%s\n", shLog)
 		}
 

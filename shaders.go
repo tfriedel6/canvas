@@ -56,7 +56,7 @@ precision mediump float;
 #endif
 varying vec2 v_cp;
 uniform mat3 invmat;
-uniform sampler1D gradient;
+uniform sampler2D gradient;
 uniform vec2 from, dir;
 uniform float len;
 uniform float globalAlpha;
@@ -65,7 +65,7 @@ void main() {
 	vec2 v = untf.xy - from;
 	float r = dot(v, dir) / len;
 	r = clamp(r, 0.0, 1.0);
-	vec4 col = texture1D(gradient, r);
+	vec4 col = texture2D(gradient, vec2(r, 0.0));
 	col.a *= globalAlpha;
     gl_FragColor = col;
 }`
@@ -85,7 +85,7 @@ precision mediump float;
 #endif
 varying vec2 v_cp;
 uniform mat3 invmat;
-uniform sampler1D gradient;
+uniform sampler2D gradient;
 uniform vec2 from, to, dir;
 uniform float radFrom, radTo;
 uniform float len;
@@ -110,7 +110,7 @@ void main() {
 	}
 	float o = max(o1, o2);
 	//float r = radFrom + o * (radTo - radFrom);
-	vec4 col = texture1D(gradient, o);
+	vec4 col = texture2D(gradient, vec2(o, 0.0));
 	col.a *= globalAlpha;
     gl_FragColor = col;
 }`
@@ -182,7 +182,7 @@ varying vec2 v_cp;
 varying vec2 v_atc;
 varying vec2 v_texCoord;
 uniform mat3 invmat;
-uniform sampler1D gradient;
+uniform sampler2D gradient;
 uniform vec2 from, dir;
 uniform float len;
 uniform sampler2D alphaTex;
@@ -192,7 +192,7 @@ void main() {
 	vec2 v = untf.xy - from;
 	float r = dot(v, dir) / len;
 	r = clamp(r, 0.0, 1.0);
-    vec4 col = texture1D(gradient, r);
+    vec4 col = texture2D(gradient, vec2(r, 0.0));
     col.a *= texture2D(alphaTex, v_atc).a * globalAlpha;
     gl_FragColor = col;
 }`
@@ -215,7 +215,7 @@ precision mediump float;
 varying vec2 v_cp;
 varying vec2 v_atc;
 uniform mat3 invmat;
-uniform sampler1D gradient;
+uniform sampler2D gradient;
 uniform vec2 from, to, dir;
 uniform float radFrom, radTo;
 uniform float len;
@@ -241,7 +241,7 @@ void main() {
 	}
 	float o = max(o1, o2);
 	float r = radFrom + o * (radTo - radFrom);
-    vec4 col = texture1D(gradient, o);
+    vec4 col = texture2D(gradient, vec2(o, 0.0));
     col.a *= texture2D(alphaTex, v_atc).a * globalAlpha;
 	gl_FragColor = col;
 }`

@@ -816,9 +816,9 @@ type GL interface {
 	GenerateMipmap(target uint32)
 	GetAttribLocation(program uint32, name string) int32
 	GetError() uint32
-	GetProgramInfoLog(program uint32, bufSize int32) string
+	GetProgramInfoLog(program uint32) string
 	GetProgramiv(program uint32, pname uint32, params *int32)
-	GetShaderInfoLog(shader uint32, bufSize int32) string
+	GetShaderInfoLog(shader uint32) string
 	GetShaderiv(shader uint32, pname uint32, params *int32)
 	GetUniformLocation(program uint32, name string) int32
 	LinkProgram(program uint32)
@@ -828,7 +828,6 @@ type GL interface {
 	StencilFunc(xfunc uint32, ref int32, mask uint32)
 	StencilMask(mask uint32)
 	StencilOp(fail uint32, zfail uint32, zpass uint32)
-	TexImage1D(target uint32, level int32, internalformat int32, width int32, border int32, format uint32, xtype uint32, pixels unsafe.Pointer)
 	TexImage2D(target uint32, level int32, internalformat int32, width int32, height int32, border int32, format uint32, xtype uint32, pixels unsafe.Pointer)
 	TexParameteri(target uint32, pname uint32, param int32)
 	TexSubImage2D(target uint32, level int32, xoffset int32, yoffset int32, width int32, height int32, format uint32, xtype uint32, pixels unsafe.Pointer)
