@@ -19,8 +19,11 @@ The sdlcanvas subpackage provides a very simple way to get started with just a f
 - Linux
 - Windows
 - OSX (untested)
+- Android
 
-When using just the canvas package without the sdlcanvas subpackage, this can probably also be made to work for Android and iOS, but this is as yet untested and would require the GL interface to be implemented for the platform.
+iOS should work as well, but still needs to be implemented. 
+
+Unfortunately using full Go apps using gomobile doesn't work since gomobile does not seem to create a GL view with a stencil buffer, and the canvas package makes heavy use of the stencil buffer. Therefore the ```gomobile bind``` command has to be used together with platform specific projects.
 
 # Example
 
