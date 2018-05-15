@@ -135,6 +135,7 @@ func (cv *Canvas) tf(v vec) vec {
 // to be called if any other GL code changes the viewport
 func (cv *Canvas) Activate() {
 	gli.Viewport(int32(cv.x), int32(cv.y), int32(cv.w), int32(cv.h))
+	cv.applyScissor()
 }
 
 var activeCanvas *Canvas
