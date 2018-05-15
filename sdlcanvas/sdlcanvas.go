@@ -19,6 +19,7 @@ import (
 // functions can be set for callbacks
 type Window struct {
 	Window     *sdl.Window
+	WindowID   uint32
 	GLContext  sdl.GLContext
 	frameTimes [10]time.Time
 	frameIndex int
@@ -33,6 +34,7 @@ type Window struct {
 	KeyDown    func(scancode int, rn rune, name string)
 	KeyUp      func(scancode int, rn rune, name string)
 	KeyChar    func(rn rune)
+	SizeChange func(w, h int)
 }
 
 // CreateWindow creates a window using SDL and initializes the OpenGL context
@@ -65,6 +67,10 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 			return nil, nil, fmt.Errorf("Error creating window: %v", err)
 		}
 	}
+	windowID, err := window.GetID()
+	if err != nil {
+		return nil, nil, fmt.Errorf("Error getting window ID: %v", err)
+	}
 
 	// create GL context
 	glContext, err := window.GLCreateContext()
@@ -89,6 +95,7 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 	cv := canvas.New(0, 0, w, h)
 	wnd := &Window{
 		Window:    window,
+		WindowID:  windowID,
 		GLContext: glContext,
 		events:    make([]sdl.Event, 0, 100),
 	}
@@ -162,6 +169,15 @@ func (wnd *Window) StartFrame() error {
 				rn, _ := utf8.DecodeRune(e.Text[:])
 				wnd.KeyChar(rn)
 				handled = true
+			}
+		case *sdl.WindowEvent:
+			if e.WindowID == wnd.WindowID {
+				if e.Event == sdl.WINDOWEVENT_SIZE_CHANGED {
+					if wnd.SizeChange != nil {
+						wnd.SizeChange(int(e.Data1), int(e.Data2))
+						handled = true
+					}
+				}
 			}
 		}
 

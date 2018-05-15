@@ -27,6 +27,10 @@ func main() {
 	rg.AddColorStop(1, "#00ff00")
 	rg.AddColorStop(0.5, "#0000ff")
 
+	wnd.SizeChange = func(w, h int) {
+		cv.SetSize(w, h)
+	}
+
 	wnd.MainLoop(func() {
 		w, h := float64(cv.Width()), float64(cv.Height())
 
