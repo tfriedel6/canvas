@@ -18,7 +18,7 @@ The sdlcanvas subpackage provides a very simple way to get started with just a f
 
 - Linux
 - Windows
-- OSX (untested)
+- OSX
 - Android
 
 iOS should work as well, but still needs to be implemented. 
