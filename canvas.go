@@ -33,6 +33,7 @@ type drawState struct {
 	font        *Font
 	fontSize    float64
 	textAlign   textAlign
+	lineAlpha   float64
 	lineWidth   float64
 	lineJoin    lineJoin
 	lineEnd     lineEnd
@@ -474,7 +475,16 @@ func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLo
 
 // SetLineWidth sets the line width for any line drawing calls
 func (cv *Canvas) SetLineWidth(width float64) {
-	cv.state.lineWidth = width
+	if width < 0 {
+		cv.state.lineWidth = 1
+		cv.state.lineAlpha = 0
+	} else if width < 1 {
+		cv.state.lineWidth = 1
+		cv.state.lineAlpha = width
+	} else {
+		cv.state.lineWidth = width
+		cv.state.lineAlpha = 1
+	}
 }
 
 // SetFont sets the font and font size. The font parameter can be a font loaded

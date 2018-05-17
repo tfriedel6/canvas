@@ -349,7 +349,7 @@ func (cv *Canvas) stroke(path []pathPoint) {
 			float32(lp0[0]), float32(lp0[1]), float32(lp1[0]), float32(lp1[1]), float32(lp3[0]), float32(lp3[1]),
 			float32(lp0[0]), float32(lp0[1]), float32(lp3[0]), float32(lp3[1]), float32(lp2[0]), float32(lp2[1]))
 
-		if p.flags&pathAttach != 0 {
+		if p.flags&pathAttach != 0 && cv.state.lineWidth > 1 {
 			tris = cv.lineJoint(p, p0, p1, p.next, lp0, lp1, lp2, lp3, tris)
 		}
 
@@ -378,7 +378,13 @@ func (cv *Canvas) stroke(path []pathPoint) {
 
 	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
 
+	origAlpha := cv.state.globalAlpha
+	if cv.state.lineAlpha < 1 {
+		cv.state.globalAlpha *= cv.state.lineAlpha
+	}
 	vertex := cv.useShader(&cv.state.stroke)
+	cv.state.globalAlpha = origAlpha
+
 	gli.EnableVertexAttribArray(vertex)
 	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
 	gli.DrawArrays(gl_TRIANGLES, 0, 6)
@@ -681,7 +687,7 @@ func (cv *Canvas) StrokeRect(x, y, w, h float64) {
 	path[1] = pathPoint{pos: v1, tf: v1t, next: v2t, flags: pathAttach}
 	path[2] = pathPoint{pos: v2, tf: v2t, next: v3t, flags: pathAttach}
 	path[3] = pathPoint{pos: v3, tf: v3t, next: v0t, flags: pathAttach}
-	path[4] = pathPoint{pos: v0, tf: v0t}
+	path[4] = pathPoint{pos: v0, tf: v0t, next: v1t, flags: pathAttach}
 	cv.stroke(path[:])
 }
 
