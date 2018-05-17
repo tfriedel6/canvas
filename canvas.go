@@ -136,6 +136,7 @@ func (cv *Canvas) tf(v vec) vec {
 func (cv *Canvas) Activate() {
 	gli.Viewport(int32(cv.x), int32(cv.y), int32(cv.w), int32(cv.h))
 	cv.applyScissor()
+	gli.Clear(gl_STENCIL_BUFFER_BIT)
 }
 
 var activeCanvas *Canvas
