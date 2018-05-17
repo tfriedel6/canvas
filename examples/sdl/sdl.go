@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/tfriedel6/canvas"
-	"github.com/tfriedel6/canvas/goglimpl"
+	"github.com/tfriedel6/canvas/glimpl/gogl"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -63,7 +63,7 @@ func main() {
 	gl.Enable(gl.MULTISAMPLE)
 
 	// load canvas GL assets
-	err = canvas.LoadGL(goglimpl.GLImpl{})
+	err = canvas.LoadGL(glimplgogl.GLImpl{})
 	if err != nil {
 		log.Fatalf("Error loading canvas GL assets: %v", err)
 	}

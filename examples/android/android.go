@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/tfriedel6/canvas"
-	"github.com/tfriedel6/canvas/glandroidimpl"
+	"github.com/tfriedel6/canvas/glimpl/android"
 )
 
 var cv *canvas.Canvas
@@ -19,7 +19,7 @@ func OnSurfaceCreated() {
 }
 
 func OnSurfaceChanged(w, h int) {
-	err := canvas.LoadGL(glandroidimpl.GLImpl{})
+	err := canvas.LoadGL(glimplandroid.GLImpl{})
 	if err != nil {
 		time.Sleep(100 * time.Millisecond)
 		panic(err)

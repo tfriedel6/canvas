@@ -1,4 +1,4 @@
-package goglimpl
+package glimplgogl
 
 import (
 	"strings"

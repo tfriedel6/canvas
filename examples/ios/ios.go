@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/tfriedel6/canvas"
-	"github.com/tfriedel6/canvas/gliosimpl"
+	"github.com/tfriedel6/canvas/glimpl/ios"
 )
 
 var cv *canvas.Canvas
@@ -16,7 +16,7 @@ func TouchEvent(typ string, x, y int) {
 }
 
 func LoadGL(w, h int) {
-	err := canvas.LoadGL(gliosimpl.GLImpl{})
+	err := canvas.LoadGL(glimplios.GLImpl{})
 	if err != nil {
 		time.Sleep(100 * time.Millisecond)
 		panic(err)
