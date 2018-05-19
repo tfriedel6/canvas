@@ -86,7 +86,7 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		if idx == 0 {
 			idx = fnt.Index(' ')
 		}
-		bounds, err := frc.glyphBounds(idx, p)
+		advance, bounds, err := frc.glyphMeasure(idx, p)
 		if err != nil {
 			continue
 		}
@@ -108,10 +108,6 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 			break
 		}
 
-		advance, err := frc.glyphAdvance(idx)
-		if err != nil {
-			continue
-		}
 		if i == 0 {
 			textOffset.X = bounds.Min.X
 		}
@@ -233,7 +229,9 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 
 // TextMetrics is the result of a MeasureText call
 type TextMetrics struct {
-	Width float64
+	Width                    float64
+	ActualBoundingBoxAscent  float64
+	ActualBoundingBoxDescent float64
 }
 
 // MeasureText measures the given string using the
@@ -248,7 +246,10 @@ func (cv *Canvas) MeasureText(str string) TextMetrics {
 	frc.setFontSize(float64(cv.state.fontSize))
 	fnt := cv.state.font.font
 
+	var p fixed.Point26_6
 	var x float64
+	var minY float64
+	var maxY float64
 	prev, hasPrev := truetype.Index(0), false
 	for _, rn := range str {
 		idx := fnt.Index(rn)
@@ -264,14 +265,26 @@ func (cv *Canvas) MeasureText(str string) TextMetrics {
 			}
 			x += float64(kern) / 64
 		}
-		advance, err := frc.glyphAdvance(idx)
+
+		advance, glyphBounds, err := frc.glyphMeasure(idx, p)
 		if err != nil {
 			prev = 0
 			hasPrev = false
 			continue
 		}
+		if glyphMinY := float64(glyphBounds.Min.Y); glyphMinY < minY {
+			minY = glyphMinY
+		}
+		if glyphMaxY := float64(glyphBounds.Max.Y); glyphMaxY > maxY {
+			maxY = glyphMaxY
+		}
 		x += float64(advance) / 64
+		p.X += advance
 	}
 
-	return TextMetrics{Width: x}
+	return TextMetrics{
+		Width: x,
+		ActualBoundingBoxAscent:  -minY,
+		ActualBoundingBoxDescent: +maxY,
+	}
 }
