@@ -199,9 +199,9 @@ func (c *frContext) glyphAdvance(glyph truetype.Index) (fixed.Int26_6, error) {
 	return c.glyphBuf.AdvanceWidth, nil
 }
 
-func (c *frContext) glyphBounds(glyph truetype.Index, p fixed.Point26_6) (image.Rectangle, error) {
+func (c *frContext) glyphMeasure(glyph truetype.Index, p fixed.Point26_6) (fixed.Int26_6, image.Rectangle, error) {
 	if err := c.glyphBuf.Load(c.f, c.scale, glyph, c.hinting); err != nil {
-		return image.Rectangle{}, err
+		return 0, image.Rectangle{}, err
 	}
 
 	fx := p.X & 0x3f
@@ -214,7 +214,12 @@ func (c *frContext) glyphBounds(glyph truetype.Index, p fixed.Point26_6) (image.
 		Min: image.Point{X: xmin, Y: ymin},
 		Max: image.Point{X: xmax, Y: ymax}}
 
-	return bounds, nil
+	return c.glyphBuf.AdvanceWidth, bounds, nil
+}
+
+func (c *frContext) glyphBounds(glyph truetype.Index, p fixed.Point26_6) (image.Rectangle, error) {
+	_, bounds, err := c.glyphMeasure(glyph, p)
+	return bounds, err
 }
 
 const maxInt = int(^uint(0) >> 1)
