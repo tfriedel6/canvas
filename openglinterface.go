@@ -801,12 +801,14 @@ type GL interface {
 	BlendFunc(sfactor uint32, dfactor uint32)
 	BufferData(target uint32, size int, data unsafe.Pointer, usage uint32)
 	Clear(mask uint32)
+	ClearColor(red float32, green float32, blue float32, alpha float32)
 	ColorMask(red bool, green bool, blue bool, alpha bool)
 	CompileShader(shader uint32)
 	CreateProgram() uint32
 	CreateShader(xtype uint32) uint32
 	DeleteShader(shader uint32)
 	DeleteTextures(n int32, textures *uint32)
+	Disable(cap uint32)
 	DisableVertexAttribArray(index uint32)
 	DrawArrays(mode uint32, first int32, count int32)
 	Enable(cap uint32)

@@ -112,6 +112,7 @@ These features *should* work just like their HTML5 counterparts, but there are l
 - drawImage
 - getImageData
 - putImageData
+- clearRect
 
 # Missing features
 
@@ -120,7 +121,6 @@ These features *should* work just like their HTML5 counterparts, but there are l
 - miterLimit
 - shadows
 - textBaseline
-- clearRect
 - getLineDash
 - isPointInPath
 - isPointInStroke

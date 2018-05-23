@@ -36,6 +36,9 @@ func (_ GLImpl) BufferData(target uint32, size int, data unsafe.Pointer, usage u
 func (_ GLImpl) Clear(mask uint32) {
 	gl.Clear(mask)
 }
+func (_ GLImpl) ClearColor(red float32, green float32, blue float32, alpha float32) {
+	gl.ClearColor(red, green, blue, alpha)
+}
 func (_ GLImpl) ColorMask(red bool, green bool, blue bool, alpha bool) {
 	gl.ColorMask(red, green, blue, alpha)
 }
@@ -53,6 +56,9 @@ func (_ GLImpl) DeleteShader(shader uint32) {
 }
 func (_ GLImpl) DeleteTextures(n int32, textures *uint32) {
 	gl.DeleteTextures(n, textures)
+}
+func (_ GLImpl) Disable(cap uint32) {
+	gl.Disable(cap)
 }
 func (_ GLImpl) DisableVertexAttribArray(index uint32) {
 	gl.DisableVertexAttribArray(index)
