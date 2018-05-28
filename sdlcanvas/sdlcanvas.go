@@ -21,6 +21,7 @@ type Window struct {
 	Window     *sdl.Window
 	WindowID   uint32
 	GLContext  sdl.GLContext
+	canvas     *canvas.Canvas
 	frameTimes [10]time.Time
 	frameIndex int
 	frameCount int
@@ -97,6 +98,7 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 		Window:    window,
 		WindowID:  windowID,
 		GLContext: glContext,
+		canvas:    cv,
 		events:    make([]sdl.Event, 0, 100),
 	}
 
@@ -176,6 +178,8 @@ func (wnd *Window) StartFrame() error {
 					if wnd.SizeChange != nil {
 						wnd.SizeChange(int(e.Data1), int(e.Data2))
 						handled = true
+					} else {
+						wnd.canvas.SetBounds(0, 0, int(e.Data1), int(e.Data2))
 					}
 				}
 			}
