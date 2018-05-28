@@ -343,7 +343,7 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 	if lg := style.linearGradient; lg != nil {
 		lg.load()
 		gli.ActiveTexture(gl_TEXTURE0)
-		gli.BindTexture(gl_TEXTURE_1D, lg.tex)
+		gli.BindTexture(gl_TEXTURE_2D, lg.tex)
 		gli.UseProgram(lgr.id)
 		from := cv.tf(lg.from)
 		to := cv.tf(lg.to)
@@ -363,7 +363,7 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 	if rg := style.radialGradient; rg != nil {
 		rg.load()
 		gli.ActiveTexture(gl_TEXTURE0)
-		gli.BindTexture(gl_TEXTURE_1D, rg.tex)
+		gli.BindTexture(gl_TEXTURE_2D, rg.tex)
 		gli.UseProgram(rgr.id)
 		from := cv.tf(rg.from)
 		to := cv.tf(rg.to)
@@ -408,7 +408,7 @@ func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLo
 	if lg := style.linearGradient; lg != nil {
 		lg.load()
 		gli.ActiveTexture(gl_TEXTURE0)
-		gli.BindTexture(gl_TEXTURE_1D, lg.tex)
+		gli.BindTexture(gl_TEXTURE_2D, lg.tex)
 		gli.UseProgram(lgar.id)
 		from := cv.tf(lg.from)
 		to := cv.tf(lg.to)
@@ -429,7 +429,7 @@ func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLo
 	if rg := style.radialGradient; rg != nil {
 		rg.load()
 		gli.ActiveTexture(gl_TEXTURE0)
-		gli.BindTexture(gl_TEXTURE_1D, rg.tex)
+		gli.BindTexture(gl_TEXTURE_2D, rg.tex)
 		gli.UseProgram(rgar.id)
 		from := cv.tf(rg.from)
 		to := cv.tf(rg.to)
