@@ -28,7 +28,7 @@ func main() {
 	rg.AddColorStop(0.5, "#0000ff")
 
 	wnd.SizeChange = func(w, h int) {
-		cv.SetSize(w, h)
+		cv.SetBounds(0, 0, w, h)
 	}
 
 	wnd.MainLoop(func() {

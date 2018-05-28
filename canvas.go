@@ -96,12 +96,8 @@ const (
 // the origin, since GL uses the bottom left coordinate, the
 // coordinates given here also use the bottom left as origin
 func New(x, y, w, h int) *Canvas {
-	cv := &Canvas{
-		x: x, y: y, w: w, h: h,
-		fx: float64(x), fy: float64(y),
-		fw: float64(w), fh: float64(h),
-		stateStack: make([]drawState, 0, 20),
-	}
+	cv := &Canvas{stateStack: make([]drawState, 0, 20)}
+	cv.SetBounds(x, y, w, h)
 	cv.state.lineWidth = 1
 	cv.state.globalAlpha = 1
 	cv.state.fill.color = glColor{a: 1}
@@ -112,8 +108,20 @@ func New(x, y, w, h int) *Canvas {
 
 // SetSize changes the internal size of the canvas. This would
 // usually be called for example when the window is resized
+//
+// Deprecated: Use SetBounds instead
 func (cv *Canvas) SetSize(w, h int) {
 	cv.w, cv.h = w, h
+	cv.fw, cv.fh = float64(w), float64(h)
+	activeCanvas = nil
+}
+
+// SetBounds updates the bounds of the canvas. This would
+// usually be called for example when the window is resized
+func (cv *Canvas) SetBounds(x, y, w, h int) {
+	cv.x, cv.y = x, y
+	cv.w, cv.h = w, h
+	cv.fx, cv.fy = float64(x), float64(y)
 	cv.fw, cv.fh = float64(w), float64(h)
 	activeCanvas = nil
 }

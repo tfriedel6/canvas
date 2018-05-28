@@ -101,7 +101,7 @@ func main() {
 
 		// set canvas size
 		ww, wh := window.GetSize()
-		cv.SetSize(int(ww), int(wh))
+		cv.SetBounds(0, 0, int(ww), int(wh))
 
 		// call the run function to do all the drawing
 		run(cv, float64(ww), float64(wh))

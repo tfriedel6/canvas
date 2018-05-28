@@ -24,8 +24,7 @@ func OnSurfaceChanged(w, h int) {
 		time.Sleep(100 * time.Millisecond)
 		panic(err)
 	}
-	cv = canvas.New(0, 0, 0, 0)
-	cv.SetSize(w, h)
+	cv = canvas.New(0, 0, w, h)
 }
 
 func OnDrawFrame() {

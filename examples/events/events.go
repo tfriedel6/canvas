@@ -44,7 +44,7 @@ func main() {
 		}
 	}
 	wnd.SizeChange = func(w, h int) {
-		cv.SetSize(w, h)
+		cv.SetBounds(0, 0, w, h)
 	}
 
 	lastTime := time.Now()
