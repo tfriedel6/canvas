@@ -83,6 +83,7 @@ func getImage(image interface{}) *Image {
 			return nil
 		}
 		images[v] = img
+		return img
 	}
 	return nil
 }
