@@ -797,9 +797,12 @@ type GL interface {
 	ActiveTexture(texture uint32)
 	AttachShader(program uint32, shader uint32)
 	BindBuffer(target uint32, buffer uint32)
+	BindFramebuffer(target uint32, framebuffer uint32)
+	BindRenderbuffer(target uint32, renderbuffer uint32)
 	BindTexture(target uint32, texture uint32)
 	BlendFunc(sfactor uint32, dfactor uint32)
 	BufferData(target uint32, size int, data unsafe.Pointer, usage uint32)
+	CheckFramebufferStatus(target uint32) uint32
 	Clear(mask uint32)
 	ClearColor(red float32, green float32, blue float32, alpha float32)
 	ColorMask(red bool, green bool, blue bool, alpha bool)
@@ -807,13 +810,19 @@ type GL interface {
 	CreateProgram() uint32
 	CreateShader(xtype uint32) uint32
 	DeleteShader(shader uint32)
+	DeleteFramebuffers(n int32, framebuffers *uint32)
+	DeleteRenderbuffers(n int32, renderbuffers *uint32)
 	DeleteTextures(n int32, textures *uint32)
 	Disable(cap uint32)
 	DisableVertexAttribArray(index uint32)
 	DrawArrays(mode uint32, first int32, count int32)
 	Enable(cap uint32)
 	EnableVertexAttribArray(index uint32)
+	FramebufferRenderbuffer(target uint32, attachment uint32, renderbuffertarget uint32, renderbuffer uint32)
+	FramebufferTexture(target uint32, attachment uint32, texture uint32, level int32)
 	GenBuffers(n int32, buffers *uint32)
+	GenFramebuffers(n int32, framebuffers *uint32)
+	GenRenderbuffers(n int32, renderbuffers *uint32)
 	GenTextures(n int32, textures *uint32)
 	GenerateMipmap(target uint32)
 	GetAttribLocation(program uint32, name string) int32
@@ -825,6 +834,7 @@ type GL interface {
 	GetUniformLocation(program uint32, name string) int32
 	LinkProgram(program uint32)
 	ReadPixels(x int32, y int32, width int32, height int32, format uint32, xtype uint32, pixels unsafe.Pointer)
+	RenderbufferStorage(target uint32, internalformat uint32, width int32, height int32)
 	Scissor(x int32, y int32, width int32, height int32)
 	ShaderSource(shader uint32, source string)
 	StencilFunc(xfunc uint32, ref int32, mask uint32)

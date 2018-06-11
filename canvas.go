@@ -177,20 +177,25 @@ loop:
 const alphaTexSize = 2048
 
 var (
-	gli       GL
-	buf       uint32
-	shadowBuf uint32
-	alphaTex  uint32
-	sr        *solidShader
-	lgr       *linearGradientShader
-	rgr       *radialGradientShader
-	ipr       *imagePatternShader
-	sar       *solidAlphaShader
-	rgar      *radialGradientAlphaShader
-	lgar      *linearGradientAlphaShader
-	ipar      *imagePatternAlphaShader
-	ir        *imageShader
-	glChan    = make(chan func())
+	gli              GL
+	buf              uint32
+	shadowBuf        uint32
+	alphaTex         uint32
+	sr               *solidShader
+	lgr              *linearGradientShader
+	rgr              *radialGradientShader
+	ipr              *imagePatternShader
+	sar              *solidAlphaShader
+	rgar             *radialGradientAlphaShader
+	lgar             *linearGradientAlphaShader
+	ipar             *imagePatternAlphaShader
+	ir               *imageShader
+	offScrTex        uint32
+	offScrW          int
+	offScrH          int
+	renderStencilBuf uint32
+	frameBuf         uint32
+	glChan           = make(chan func())
 )
 
 // LoadGL needs to be called once per GL context to load the GL assets
@@ -507,6 +512,53 @@ func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLo
 	gli.Uniform1i(sar.alphaTex, alphaTexSlot)
 	gli.Uniform1f(sar.globalAlpha, float32(cv.state.globalAlpha))
 	return sar.vertex, sar.alphaTexCoord
+}
+
+func (cv *Canvas) enableTextureRenderTarget() {
+	if offScrW != cv.w || offScrH != cv.h {
+		if offScrW != 0 && offScrH != 0 {
+			gli.DeleteTextures(1, &offScrTex)
+			gli.DeleteFramebuffers(1, &frameBuf)
+			gli.DeleteRenderbuffers(1, &renderStencilBuf)
+		}
+		offScrW = cv.w
+		offScrH = cv.h
+
+		gli.GenTextures(1, &offScrTex)
+		gli.BindTexture(gl_TEXTURE_2D, offScrTex)
+		// todo do non-power-of-two textures work everywhere?
+		gli.TexImage2D(gl_TEXTURE_2D, 0, gl_RGB, int32(cv.w), int32(cv.h), 0, gl_RGB, gl_UNSIGNED_BYTE, nil)
+		gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MAG_FILTER, gl_NEAREST)
+		gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MIN_FILTER, gl_NEAREST)
+
+		gli.GenFramebuffers(1, &frameBuf)
+		gli.BindFramebuffer(gl_FRAMEBUFFER, frameBuf)
+
+		gli.GenRenderbuffers(1, &renderStencilBuf)
+		gli.BindRenderbuffer(gl_RENDERBUFFER, renderStencilBuf)
+		gli.RenderbufferStorage(gl_RENDERBUFFER, gl_DEPTH_STENCIL, int32(cv.w), int32(cv.h))
+		gli.FramebufferRenderbuffer(gl_FRAMEBUFFER, gl_DEPTH_STENCIL_ATTACHMENT, gl_RENDERBUFFER, renderStencilBuf)
+
+		gli.FramebufferTexture(gl_FRAMEBUFFER, gl_COLOR_ATTACHMENT0, offScrTex, 0)
+
+		if gli.CheckFramebufferStatus(gl_FRAMEBUFFER) != gl_FRAMEBUFFER_COMPLETE {
+			// todo this should maybe not panic
+			panic("Failed to set up framebuffer for offscreen texture")
+		}
+
+		gli.Clear(gl_COLOR_BUFFER_BIT | gl_STENCIL_BUFFER_BIT)
+	} else {
+		gli.BindFramebuffer(gl_FRAMEBUFFER, frameBuf)
+	}
+}
+
+func (cv *Canvas) disableTextureRenderTarget() {
+	gli.BindFramebuffer(gl_FRAMEBUFFER, 0)
+}
+
+func (cv *Canvas) renderOffscreenTexture() {
+	img := Image{w: cv.w, h: cv.h, tex: offScrTex}
+	cv.DrawImage(&img, 0, 0, cv.fw, cv.fh)
 }
 
 // SetLineWidth sets the line width for any line drawing calls

@@ -24,6 +24,12 @@ func (_ GLImpl) AttachShader(program uint32, shader uint32) {
 func (_ GLImpl) BindBuffer(target uint32, buffer uint32) {
 	gl.BindBuffer(target, buffer)
 }
+func (_ GLImpl) BindFramebuffer(target uint32, framebuffer uint32) {
+	gl.BindFramebuffer(target, framebuffer)
+}
+func (_ GLImpl) BindRenderbuffer(target uint32, renderbuffer uint32) {
+	gl.BindRenderbuffer(target, renderbuffer)
+}
 func (_ GLImpl) BindTexture(target uint32, texture uint32) {
 	gl.BindTexture(target, texture)
 }
@@ -32,6 +38,9 @@ func (_ GLImpl) BlendFunc(sfactor uint32, dfactor uint32) {
 }
 func (_ GLImpl) BufferData(target uint32, size int, data unsafe.Pointer, usage uint32) {
 	gl.BufferData(target, size, data, usage)
+}
+func (_ GLImpl) CheckFramebufferStatus(target uint32) uint32 {
+	return gl.CheckFramebufferStatus(target)
 }
 func (_ GLImpl) Clear(mask uint32) {
 	gl.Clear(mask)
@@ -54,6 +63,12 @@ func (_ GLImpl) CreateShader(xtype uint32) uint32 {
 func (_ GLImpl) DeleteShader(shader uint32) {
 	gl.DeleteShader(shader)
 }
+func (_ GLImpl) DeleteFramebuffers(n int32, framebuffers *uint32) {
+	gl.DeleteFramebuffers(n, framebuffers)
+}
+func (_ GLImpl) DeleteRenderbuffers(n int32, renderbuffers *uint32) {
+	gl.DeleteRenderbuffers(n, renderbuffers)
+}
 func (_ GLImpl) DeleteTextures(n int32, textures *uint32) {
 	gl.DeleteTextures(n, textures)
 }
@@ -72,8 +87,20 @@ func (_ GLImpl) Enable(cap uint32) {
 func (_ GLImpl) EnableVertexAttribArray(index uint32) {
 	gl.EnableVertexAttribArray(index)
 }
+func (_ GLImpl) FramebufferRenderbuffer(target uint32, attachment uint32, renderbuffertarget uint32, renderbuffer uint32) {
+	gl.FramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer)
+}
+func (_ GLImpl) FramebufferTexture(target uint32, attachment uint32, texture uint32, level int32) {
+	gl.FramebufferTexture(target, attachment, texture, level)
+}
 func (_ GLImpl) GenBuffers(n int32, buffers *uint32) {
 	gl.GenBuffers(n, buffers)
+}
+func (_ GLImpl) GenFramebuffers(n int32, framebuffers *uint32) {
+	gl.GenFramebuffers(n, framebuffers)
+}
+func (_ GLImpl) GenRenderbuffers(n int32, renderbuffers *uint32) {
+	gl.GenRenderbuffers(n, renderbuffers)
 }
 func (_ GLImpl) GenTextures(n int32, textures *uint32) {
 	gl.GenTextures(n, textures)
@@ -118,6 +145,9 @@ func (_ GLImpl) GetUniformLocation(program uint32, name string) int32 {
 }
 func (_ GLImpl) LinkProgram(program uint32) {
 	gl.LinkProgram(program)
+}
+func (_ GLImpl) RenderbufferStorage(target uint32, internalformat uint32, width int32, height int32) {
+	gl.RenderbufferStorage(target, internalformat, width, height)
 }
 func (_ GLImpl) ReadPixels(x int32, y int32, width int32, height int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
 	gl.ReadPixels(x, y, width, height, format, xtype, pixels)
