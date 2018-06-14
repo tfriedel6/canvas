@@ -45,6 +45,11 @@ type drawState struct {
 
 	scissor scissor
 	clip    []pathPoint
+
+	shadowColor   glColor
+	shadowOffsetX float64
+	shadowOffsetY float64
+
 	/*
 		The current transformation matrix.
 		The current clipping region.
@@ -99,6 +104,7 @@ func New(x, y, w, h int) *Canvas {
 	cv := &Canvas{stateStack: make([]drawState, 0, 20)}
 	cv.SetBounds(x, y, w, h)
 	cv.state.lineWidth = 1
+	cv.state.lineAlpha = 1
 	cv.state.globalAlpha = 1
 	cv.state.fill.color = glColor{a: 1}
 	cv.state.stroke.color = glColor{a: 1}
@@ -169,19 +175,20 @@ loop:
 const alphaTexSize = 2048
 
 var (
-	gli      GL
-	buf      uint32
-	alphaTex uint32
-	sr       *solidShader
-	lgr      *linearGradientShader
-	rgr      *radialGradientShader
-	ipr      *imagePatternShader
-	sar      *solidAlphaShader
-	rgar     *radialGradientAlphaShader
-	lgar     *linearGradientAlphaShader
-	ipar     *imagePatternAlphaShader
-	ir       *imageShader
-	glChan   = make(chan func())
+	gli       GL
+	buf       uint32
+	shadowBuf uint32
+	alphaTex  uint32
+	sr        *solidShader
+	lgr       *linearGradientShader
+	rgr       *radialGradientShader
+	ipr       *imagePatternShader
+	sar       *solidAlphaShader
+	rgar      *radialGradientAlphaShader
+	lgar      *linearGradientAlphaShader
+	ipar      *imagePatternAlphaShader
+	ir        *imageShader
+	glChan    = make(chan func())
 )
 
 // LoadGL needs to be called once per GL context to load the GL assets
@@ -275,6 +282,12 @@ func LoadGL(glimpl GL) (err error) {
 	}
 
 	gli.GenBuffers(1, &buf)
+	err = glError()
+	if err != nil {
+		return
+	}
+
+	gli.GenBuffers(1, &shadowBuf)
 	err = glError()
 	if err != nil {
 		return
@@ -609,4 +622,28 @@ func (cv *Canvas) Transform(a, b, c, d, e, f float64) {
 // SetTransform replaces the current transformation with the given matrix
 func (cv *Canvas) SetTransform(a, b, c, d, e, f float64) {
 	cv.state.transform = mat{a, b, 0, c, d, 0, e, f, 1}
+}
+
+// SetShadowColor sets the color of the shadow. If it is fully transparent (default)
+// then no shadow is drawn
+func (cv *Canvas) SetShadowColor(color ...interface{}) {
+	if c, ok := parseColor(color...); ok {
+		cv.state.shadowColor = c
+	}
+}
+
+// SetShadowOffsetX sets the x offset of the shadow
+func (cv *Canvas) SetShadowOffsetX(offset float64) {
+	cv.state.shadowOffsetX = offset
+}
+
+// SetShadowOffsetY sets the y offset of the shadow
+func (cv *Canvas) SetShadowOffsetY(offset float64) {
+	cv.state.shadowOffsetY = offset
+}
+
+// SetShadowOffset sets the offset of the shadow
+func (cv *Canvas) SetShadowOffset(x, y float64) {
+	cv.state.shadowOffsetX = x
+	cv.state.shadowOffsetY = y
 }

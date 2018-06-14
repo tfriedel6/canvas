@@ -250,6 +250,24 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 	p2 := cv.tf(vec{dx + dw, dy + dh})
 	p3 := cv.tf(vec{dx + dw, dy})
 
+	if cv.state.shadowColor.a != 0 {
+		tris := [24]float32{
+			0, 0,
+			float32(cv.fw), 0,
+			float32(cv.fw), float32(cv.fh),
+			0, 0,
+			float32(cv.fw), float32(cv.fh),
+			0, float32(cv.fh),
+			float32(p0[0]), float32(p0[1]),
+			float32(p3[0]), float32(p3[1]),
+			float32(p2[0]), float32(p2[1]),
+			float32(p0[0]), float32(p0[1]),
+			float32(p2[0]), float32(p2[1]),
+			float32(p1[0]), float32(p1[1]),
+		}
+		cv.drawShadow(tris[:])
+	}
+
 	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)

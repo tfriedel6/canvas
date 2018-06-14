@@ -360,6 +360,10 @@ func (cv *Canvas) stroke(path []pathPoint) {
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
 
+	cv.drawShadow(tris)
+
+	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
+
 	gli.ColorMask(false, false, false, false)
 	gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
 	gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
@@ -512,6 +516,10 @@ func (cv *Canvas) Fill() {
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
+
+	cv.drawShadow(tris)
+
+	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 
 	gli.ColorMask(false, false, false, false)
 	gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
@@ -699,6 +707,24 @@ func (cv *Canvas) FillRect(x, y, w, h float64) {
 	p1 := cv.tf(vec{x, y + h})
 	p2 := cv.tf(vec{x + w, y + h})
 	p3 := cv.tf(vec{x + w, y})
+
+	if cv.state.shadowColor.a != 0 {
+		tris := [24]float32{
+			0, 0,
+			float32(cv.fw), 0,
+			float32(cv.fw), float32(cv.fh),
+			0, 0,
+			float32(cv.fw), float32(cv.fh),
+			0, float32(cv.fh),
+			float32(p0[0]), float32(p0[1]),
+			float32(p3[0]), float32(p3[1]),
+			float32(p2[0]), float32(p2[1]),
+			float32(p0[0]), float32(p0[1]),
+			float32(p2[0]), float32(p2[1]),
+			float32(p1[0]), float32(p1[1]),
+		}
+		cv.drawShadow(tris[:])
+	}
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 	data := [8]float32{float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]), float32(p2[0]), float32(p2[1]), float32(p3[0]), float32(p3[1])}

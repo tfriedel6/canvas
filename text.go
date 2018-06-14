@@ -183,22 +183,23 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		x -= float64(strWidth)
 	}
 
+	gli.ActiveTexture(gl_TEXTURE1)
+	gli.BindTexture(gl_TEXTURE_2D, alphaTex)
+	for y := 0; y < strHeight; y++ {
+		off := y * textImage.Stride
+		gli.TexSubImage2D(gl_TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(strWidth), 1, gl_ALPHA, gl_UNSIGNED_BYTE, gli.Ptr(&textImage.Pix[off]))
+	}
+
+	cv.drawTextShadow(textOffset, strWidth, strHeight, x, y)
+
 	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 
 	vertex, alphaTexCoord := cv.useAlphaShader(&cv.state.fill, 1)
 
-	gli.ActiveTexture(gl_TEXTURE1)
-	gli.BindTexture(gl_TEXTURE_2D, alphaTex)
-
 	gli.EnableVertexAttribArray(vertex)
 	gli.EnableVertexAttribArray(alphaTexCoord)
-
-	for y := 0; y < strHeight; y++ {
-		off := y * textImage.Stride
-		gli.TexSubImage2D(gl_TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(strWidth), 1, gl_ALPHA, gl_UNSIGNED_BYTE, gli.Ptr(&textImage.Pix[off]))
-	}
 
 	p0 := cv.tf(vec{float64(textOffset.X) + x, float64(textOffset.Y) + y})
 	p1 := cv.tf(vec{float64(textOffset.X) + x, float64(textOffset.Y+strHeight) + y})
@@ -215,16 +216,16 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 	gli.VertexAttribPointer(alphaTexCoord, 2, gl_FLOAT, false, 0, 8*4)
 	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
 
-	for y := 0; y < strHeight; y++ {
-		gli.TexSubImage2D(gl_TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(strWidth), 1, gl_ALPHA, gl_UNSIGNED_BYTE, gli.Ptr(&zeroes[0]))
-	}
-
 	gli.DisableVertexAttribArray(vertex)
 	gli.DisableVertexAttribArray(alphaTexCoord)
 
 	gli.ActiveTexture(gl_TEXTURE0)
 
 	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
+
+	for y := 0; y < strHeight; y++ {
+		gli.TexSubImage2D(gl_TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(strWidth), 1, gl_ALPHA, gl_UNSIGNED_BYTE, gli.Ptr(&zeroes[0]))
+	}
 }
 
 // TextMetrics is the result of a MeasureText call

@@ -113,13 +113,15 @@ These features *should* work just like their HTML5 counterparts, but there are l
 - getImageData
 - putImageData
 - clearRect
+- shadowColor
+- shadowOffset(X/Y)
 
 # Missing features
 
 - globalCompositeOperation
 - lineDashOffset
 - miterLimit
-- shadows
+- shadowBlur
 - textBaseline
 - getLineDash
 - isPointInPath
