@@ -80,7 +80,7 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 	curInside := false
 
 	var textOffset image.Point
-	var strWidth, strHeight int
+	var strWidth, strMaxY int
 	for i, rn := range str {
 		idx := fnt.Index(rn)
 		if idx == 0 {
@@ -114,12 +114,13 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		if bounds.Min.Y < textOffset.Y {
 			textOffset.Y = bounds.Min.Y
 		}
-		if h := bounds.Dy(); h > strHeight {
-			strHeight = h
+		if bounds.Max.Y > strMaxY {
+			strMaxY = bounds.Max.Y
 		}
 		p.X += advance
 	}
 	strWidth = p.X.Ceil() - textOffset.X
+	strHeight := strMaxY - textOffset.Y
 
 	if strFrom == strTo || strWidth == 0 || strHeight == 0 {
 		return
