@@ -360,6 +360,19 @@ func parseStyle(value ...interface{}) drawStyle {
 	return style
 }
 
+func (s *drawStyle) isOpaque() bool {
+	if lg := s.linearGradient; lg != nil {
+		return lg.opaque
+	}
+	if rg := s.radialGradient; rg != nil {
+		return rg.opaque
+	}
+	if img := s.image; img != nil {
+		return img.opaque
+	}
+	return s.color.a >= 1
+}
+
 func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 	if lg := style.linearGradient; lg != nil {
 		lg.load()

@@ -28,6 +28,7 @@ type gradient struct {
 	tex      uint32
 	loaded   bool
 	deleted  bool
+	opaque   bool
 }
 
 type gradientStop struct {
@@ -39,7 +40,7 @@ type gradientStop struct {
 // the coordinates from where to where the gradient
 // will apply on the canvas
 func NewLinearGradient(x0, y0, x1, y1 float64) *LinearGradient {
-	lg := &LinearGradient{gradient: gradient{from: vec{x0, y0}, to: vec{x1, y1}}}
+	lg := &LinearGradient{gradient: gradient{from: vec{x0, y0}, to: vec{x1, y1}, opaque: true}}
 	gli.GenTextures(1, &lg.tex)
 	gli.ActiveTexture(gl_TEXTURE0)
 	gli.BindTexture(gl_TEXTURE_2D, lg.tex)
@@ -60,7 +61,7 @@ func NewLinearGradient(x0, y0, x1, y1 float64) *LinearGradient {
 // gradient will apply from the first to the second
 // circle
 func NewRadialGradient(x0, y0, r0, x1, y1, r1 float64) *RadialGradient {
-	rg := &RadialGradient{gradient: gradient{from: vec{x0, y0}, to: vec{x1, y1}}, radFrom: r0, radTo: r1}
+	rg := &RadialGradient{gradient: gradient{from: vec{x0, y0}, to: vec{x1, y1}, opaque: true}, radFrom: r0, radTo: r1}
 	gli.GenTextures(1, &rg.tex)
 	gli.ActiveTexture(gl_TEXTURE0)
 	gli.BindTexture(gl_TEXTURE_2D, rg.tex)
@@ -137,6 +138,9 @@ func (g *gradient) colorAt(pos float64) glColor {
 // right place
 func (g *gradient) AddColorStop(pos float64, color ...interface{}) {
 	c, _ := parseColor(color...)
+	if c.a < 1 {
+		g.opaque = false
+	}
 	insert := len(g.stops)
 	for i, stop := range g.stops {
 		if stop.pos > pos {

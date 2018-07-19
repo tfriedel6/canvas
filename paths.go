@@ -364,41 +364,50 @@ func (cv *Canvas) stroke(path []pathPoint) {
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 
-	gli.ColorMask(false, false, false, false)
-	gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
-	gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
-	gli.StencilMask(0x01)
+	if cv.state.globalAlpha >= 1 && cv.state.lineAlpha >= 1 && cv.state.stroke.isOpaque() {
+		vertex := cv.useShader(&cv.state.stroke)
 
-	gli.UseProgram(sr.id)
-	gli.Uniform4f(sr.color, 0, 0, 0, 0)
-	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
+		gli.EnableVertexAttribArray(vertex)
+		gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
+		gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
+		gli.DisableVertexAttribArray(vertex)
+	} else {
+		gli.ColorMask(false, false, false, false)
+		gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
+		gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
+		gli.StencilMask(0x01)
 
-	gli.EnableVertexAttribArray(sr.vertex)
-	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
-	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
-	gli.DisableVertexAttribArray(sr.vertex)
+		gli.UseProgram(sr.id)
+		gli.Uniform4f(sr.color, 0, 0, 0, 0)
+		gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
 
-	gli.ColorMask(true, true, true, true)
+		gli.EnableVertexAttribArray(sr.vertex)
+		gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
+		gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
+		gli.DisableVertexAttribArray(sr.vertex)
 
-	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
+		gli.ColorMask(true, true, true, true)
 
-	origAlpha := cv.state.globalAlpha
-	if cv.state.lineAlpha < 1 {
-		cv.state.globalAlpha *= cv.state.lineAlpha
+		gli.StencilFunc(gl_EQUAL, 1, 0xFF)
+
+		origAlpha := cv.state.globalAlpha
+		if cv.state.lineAlpha < 1 {
+			cv.state.globalAlpha *= cv.state.lineAlpha
+		}
+		vertex := cv.useShader(&cv.state.stroke)
+		cv.state.globalAlpha = origAlpha
+
+		gli.EnableVertexAttribArray(vertex)
+		gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
+		gli.DrawArrays(gl_TRIANGLES, 0, 6)
+		gli.DisableVertexAttribArray(vertex)
+
+		gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
+		gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
+
+		gli.Clear(gl_STENCIL_BUFFER_BIT)
+		gli.StencilMask(0xFF)
 	}
-	vertex := cv.useShader(&cv.state.stroke)
-	cv.state.globalAlpha = origAlpha
-
-	gli.EnableVertexAttribArray(vertex)
-	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
-	gli.DrawArrays(gl_TRIANGLES, 0, 6)
-	gli.DisableVertexAttribArray(vertex)
-
-	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
-	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
-
-	gli.Clear(gl_STENCIL_BUFFER_BIT)
-	gli.StencilMask(0xFF)
 }
 
 func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec, tris []float32) []float32 {
@@ -521,35 +530,44 @@ func (cv *Canvas) Fill() {
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 
-	gli.ColorMask(false, false, false, false)
-	gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
-	gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
-	gli.StencilMask(0x01)
+	if cv.state.globalAlpha >= 1 && cv.state.lineAlpha >= 1 && cv.state.fill.isOpaque() {
+		vertex := cv.useShader(&cv.state.fill)
 
-	gli.UseProgram(sr.id)
-	gli.Uniform4f(sr.color, 0, 0, 0, 0)
-	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
+		gli.EnableVertexAttribArray(vertex)
+		gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
+		gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
+		gli.DisableVertexAttribArray(vertex)
+	} else {
+		gli.ColorMask(false, false, false, false)
+		gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
+		gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
+		gli.StencilMask(0x01)
 
-	gli.EnableVertexAttribArray(sr.vertex)
-	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
-	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
-	gli.DisableVertexAttribArray(sr.vertex)
+		gli.UseProgram(sr.id)
+		gli.Uniform4f(sr.color, 0, 0, 0, 0)
+		gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
 
-	gli.ColorMask(true, true, true, true)
+		gli.EnableVertexAttribArray(sr.vertex)
+		gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
+		gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
+		gli.DisableVertexAttribArray(sr.vertex)
 
-	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
+		gli.ColorMask(true, true, true, true)
 
-	vertex := cv.useShader(&cv.state.fill)
-	gli.EnableVertexAttribArray(vertex)
-	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
-	gli.DrawArrays(gl_TRIANGLES, 0, 6)
-	gli.DisableVertexAttribArray(vertex)
+		gli.StencilFunc(gl_EQUAL, 1, 0xFF)
 
-	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
-	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
+		vertex := cv.useShader(&cv.state.fill)
+		gli.EnableVertexAttribArray(vertex)
+		gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
+		gli.DrawArrays(gl_TRIANGLES, 0, 6)
+		gli.DisableVertexAttribArray(vertex)
 
-	gli.Clear(gl_STENCIL_BUFFER_BIT)
-	gli.StencilMask(0xFF)
+		gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
+		gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
+
+		gli.Clear(gl_STENCIL_BUFFER_BIT)
+		gli.StencilMask(0xFF)
+	}
 }
 
 func (cv *Canvas) appendSubPathTriangles(tris []float32, path []pathPoint) []float32 {

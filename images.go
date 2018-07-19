@@ -14,6 +14,7 @@ type Image struct {
 	w, h    int
 	tex     uint32
 	deleted bool
+	opaque  bool
 }
 
 var images = make(map[string]*Image)
@@ -89,7 +90,20 @@ func getImage(image interface{}) *Image {
 }
 
 func loadImageRGBA(src *image.RGBA) (*Image, error) {
-	img := &Image{w: src.Bounds().Dx(), h: src.Bounds().Dy()}
+	img := &Image{w: src.Bounds().Dx(), h: src.Bounds().Dy(), opaque: true}
+
+checkOpaque:
+	for y := 0; y < img.h; y++ {
+		off := src.PixOffset(0, y) + 3
+		for x := 0; x < img.w; x++ {
+			if src.Pix[off] < 255 {
+				img.opaque = false
+				break checkOpaque
+			}
+			off += 4
+		}
+	}
+
 	gli.GenTextures(1, &img.tex)
 	gli.ActiveTexture(gl_TEXTURE0)
 	gli.BindTexture(gl_TEXTURE_2D, img.tex)
@@ -155,7 +169,7 @@ func loadImageGray(src *image.Gray) (*Image, error) {
 }
 
 func loadImageConverted(src image.Image) (*Image, error) {
-	img := &Image{w: src.Bounds().Dx(), h: src.Bounds().Dy()}
+	img := &Image{w: src.Bounds().Dx(), h: src.Bounds().Dy(), opaque: true}
 	gli.GenTextures(1, &img.tex)
 	gli.ActiveTexture(gl_TEXTURE0)
 	gli.BindTexture(gl_TEXTURE_2D, img.tex)
@@ -172,6 +186,9 @@ func loadImageConverted(src image.Image) (*Image, error) {
 			ir, ig, ib, ia := src.At(x, y).RGBA()
 			r, g, b, a := uint8(ir>>8), uint8(ig>>8), uint8(ib>>8), uint8(ia>>8)
 			data = append(data, r, g, b, a)
+			if a < 255 {
+				img.opaque = false
+			}
 		}
 	}
 	gli.TexImage2D(gl_TEXTURE_2D, 0, gl_RGBA, int32(img.w), int32(img.h), 0, gl_RGBA, gl_UNSIGNED_BYTE, gli.Ptr(&data[0]))
