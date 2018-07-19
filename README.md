@@ -115,12 +115,12 @@ These features *should* work just like their HTML5 counterparts, but there are l
 - clearRect
 - shadowColor
 - shadowOffset(X/Y)
+- miterLimit
 
 # Missing features
 
 - globalCompositeOperation
 - lineDashOffset
-- miterLimit
 - shadowBlur
 - textBaseline
 - getLineDash

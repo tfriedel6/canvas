@@ -27,17 +27,18 @@ type Canvas struct {
 }
 
 type drawState struct {
-	transform   mat
-	fill        drawStyle
-	stroke      drawStyle
-	font        *Font
-	fontSize    float64
-	textAlign   textAlign
-	lineAlpha   float64
-	lineWidth   float64
-	lineJoin    lineJoin
-	lineEnd     lineEnd
-	globalAlpha float64
+	transform     mat
+	fill          drawStyle
+	stroke        drawStyle
+	font          *Font
+	fontSize      float64
+	textAlign     textAlign
+	lineAlpha     float64
+	lineWidth     float64
+	lineJoin      lineJoin
+	lineEnd       lineEnd
+	miterLimitSqr float64
+	globalAlpha   float64
 
 	lineDash       []float64
 	lineDashPoint  int
@@ -105,6 +106,7 @@ func New(x, y, w, h int) *Canvas {
 	cv.SetBounds(x, y, w, h)
 	cv.state.lineWidth = 1
 	cv.state.lineAlpha = 1
+	cv.state.miterLimitSqr = 100
 	cv.state.globalAlpha = 1
 	cv.state.fill.color = glColor{a: 1}
 	cv.state.stroke.color = glColor{a: 1}
@@ -581,6 +583,12 @@ func (cv *Canvas) SetLineDash(dash []float64) {
 	}
 	cv.state.lineDashPoint = 0
 	cv.state.lineDashOffset = 0
+}
+
+// SetMiterLimit sets the limit for how far a miter line join can be extend.
+// The fallback is a bevel join
+func (cv *Canvas) SetMiterLimit(limit float64) {
+	cv.state.miterLimitSqr = limit * limit
 }
 
 // SetGlobalAlpha sets the global alpha value

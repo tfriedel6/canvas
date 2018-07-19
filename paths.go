@@ -431,6 +431,17 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec,
 				ip0 = l0p1.add(l1p1).mulf(0.5)
 			}
 		}
+
+		if dist := ip0.sub(l0p1).lenSqr(); dist > cv.state.miterLimitSqr {
+			l1p1 := p1.sub(v3)
+			l1p3 := p1.add(v3)
+
+			tris = append(tris,
+				float32(p1[0]), float32(p1[1]), float32(l0p1[0]), float32(l0p1[1]), float32(l1p1[0]), float32(l1p1[1]),
+				float32(p1[0]), float32(p1[1]), float32(l1p3[0]), float32(l1p3[1]), float32(l0p3[0]), float32(l0p3[1]))
+			return tris
+		}
+
 		if l0p3.sub(l1p3).lenSqr() < 0.000000001 {
 			ip1 = l0p3.sub(l1p3).mulf(0.5).add(l1p3)
 		} else {
@@ -439,6 +450,16 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec,
 			if q >= 1 {
 				ip1 = l0p3.add(l1p3).mulf(0.5)
 			}
+		}
+
+		if dist := ip1.sub(l1p1).lenSqr(); dist > cv.state.miterLimitSqr {
+			l1p1 := p1.sub(v3)
+			l1p3 := p1.add(v3)
+
+			tris = append(tris,
+				float32(p1[0]), float32(p1[1]), float32(l0p1[0]), float32(l0p1[1]), float32(l1p1[0]), float32(l1p1[1]),
+				float32(p1[0]), float32(p1[1]), float32(l1p3[0]), float32(l1p3[1]), float32(l0p3[0]), float32(l0p3[1]))
+			return tris
 		}
 
 		tris = append(tris,
