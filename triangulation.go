@@ -73,14 +73,16 @@ func triangulatePath(path []pathPoint, target []float32) []float32 {
 		var i int
 	triangles:
 		for i = range polygon {
+			ib := (i + 1) % len(polygon)
+			ic := (i + 2) % len(polygon)
 			a := polygon[i]
-			b := polygon[(i+1)%len(polygon)]
-			c := polygon[(i+2)%len(polygon)]
+			b := polygon[ib]
+			c := polygon[ic]
 			if isSamePoint(a, c, math.SmallestNonzeroFloat64) {
 				break
 			}
 			for i2, p := range polygon {
-				if i2 >= i && i2 <= i+2 {
+				if i2 == i || i2 == ib || i2 == ic {
 					continue
 				}
 				if triangleContainsPoint(a, b, c, p) {
@@ -90,7 +92,6 @@ func triangulatePath(path []pathPoint, target []float32) []float32 {
 				if !polygonContainsPoint(polygon, center) {
 					continue triangles
 				}
-				break
 			}
 			target = append(target, float32(a[0]), float32(a[1]), float32(b[0]), float32(b[1]), float32(c[0]), float32(c[1]))
 			break
