@@ -131,3 +131,78 @@ func TestFillConcavePath(t *testing.T) {
 		cv.Fill()
 	})
 }
+
+func TestDrawPath(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		cv.SetStrokeStyle("#00F")
+		cv.SetLineJoin(canvas.Miter)
+		cv.SetLineWidth(4)
+		cv.BeginPath()
+		cv.MoveTo(10, 10)
+		cv.LineTo(30, 10)
+		cv.LineTo(30, 30)
+		cv.LineTo(10, 30)
+		cv.ClosePath()
+		cv.Stroke()
+
+		cv.SetLineJoin(canvas.Round)
+		cv.BeginPath()
+		cv.MoveTo(40, 10)
+		cv.LineTo(60, 10)
+		cv.LineTo(60, 30)
+		cv.LineTo(40, 30)
+		cv.ClosePath()
+		cv.Stroke()
+
+		cv.SetLineJoin(canvas.Bevel)
+		cv.BeginPath()
+		cv.MoveTo(70, 10)
+		cv.LineTo(90, 10)
+		cv.LineTo(90, 30)
+		cv.LineTo(70, 30)
+		cv.ClosePath()
+		cv.Stroke()
+
+		cv.SetLineEnd(canvas.Butt)
+		cv.BeginPath()
+		cv.MoveTo(10, 40)
+		cv.LineTo(30, 40)
+		cv.LineTo(30, 60)
+		cv.LineTo(10, 60)
+		cv.Stroke()
+
+		cv.SetLineEnd(canvas.Round)
+		cv.BeginPath()
+		cv.MoveTo(40, 40)
+		cv.LineTo(60, 40)
+		cv.LineTo(60, 60)
+		cv.LineTo(40, 60)
+		cv.Stroke()
+
+		cv.SetLineEnd(canvas.Square)
+		cv.BeginPath()
+		cv.MoveTo(70, 40)
+		cv.LineTo(90, 40)
+		cv.LineTo(90, 60)
+		cv.LineTo(70, 60)
+		cv.Stroke()
+	})
+}
+
+func TestMiterLimit(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		cv.SetStrokeStyle("#0F0")
+		cv.SetLineJoin(canvas.Miter)
+		cv.SetLineWidth(2.5)
+		cv.SetMiterLimit(30)
+		y, step := 20.0, 4.0
+		for i := 0; i < 20; i++ {
+			cv.LineTo(20, y)
+			y += step
+			cv.LineTo(80, y)
+			y += step
+			step *= 0.9
+		}
+		cv.Stroke()
+	})
+}
