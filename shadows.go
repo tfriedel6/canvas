@@ -118,8 +118,21 @@ func (cv *Canvas) drawTextShadow(offset image.Point, strWidth, strHeight int, x,
 func (cv *Canvas) drawBlurredShadow() {
 	gli.BlendFunc(gl_ONE, gl_ONE_MINUS_SRC_ALPHA)
 
-	var kernel [255]float32
-	gaussianKernel(cv.state.shadowBlur, kernel[:])
+	var kernel []float32
+	var kernelBuf [255]float32
+	var gs *gaussianShader
+	if cv.state.shadowBlur < 3 {
+		gs = gauss15r
+		kernel = kernelBuf[:15]
+	} else if cv.state.shadowBlur < 12 {
+		gs = gauss63r
+		kernel = kernelBuf[:63]
+	} else {
+		gs = gauss255r
+		kernel = kernelBuf[:255]
+	}
+
+	gaussianKernel(cv.state.shadowBlur, kernel)
 
 	cv.enableTextureRenderTarget(&offscr2)
 	gli.ClearColor(0, 0, 0, 0)
@@ -134,18 +147,18 @@ func (cv *Canvas) drawBlurredShadow() {
 	gli.ActiveTexture(gl_TEXTURE0)
 	gli.BindTexture(gl_TEXTURE_2D, offscr1.tex)
 
-	gli.UseProgram(gauss255r.id)
-	gli.Uniform1i(gauss255r.image, 0)
-	gli.Uniform2f(gauss255r.canvasSize, float32(cv.fw), float32(cv.fh))
-	gli.Uniform2f(gauss255r.kernelScale, 1.0/float32(cv.fw), 0.0)
-	gli.Uniform1fv(gauss255r.kernel, int32(len(kernel)), &kernel[0])
-	gli.VertexAttribPointer(gauss255r.vertex, 2, gl_FLOAT, false, 0, 0)
-	gli.VertexAttribPointer(gauss255r.texCoord, 2, gl_FLOAT, false, 0, 8*4)
-	gli.EnableVertexAttribArray(gauss255r.vertex)
-	gli.EnableVertexAttribArray(gauss255r.texCoord)
+	gli.UseProgram(gs.id)
+	gli.Uniform1i(gs.image, 0)
+	gli.Uniform2f(gs.canvasSize, float32(cv.fw), float32(cv.fh))
+	gli.Uniform2f(gs.kernelScale, 1.0/float32(cv.fw), 0.0)
+	gli.Uniform1fv(gs.kernel, int32(len(kernel)), &kernel[0])
+	gli.VertexAttribPointer(gs.vertex, 2, gl_FLOAT, false, 0, 0)
+	gli.VertexAttribPointer(gs.texCoord, 2, gl_FLOAT, false, 0, 8*4)
+	gli.EnableVertexAttribArray(gs.vertex)
+	gli.EnableVertexAttribArray(gs.texCoord)
 	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
-	gli.DisableVertexAttribArray(gauss255r.vertex)
-	gli.DisableVertexAttribArray(gauss255r.texCoord)
+	gli.DisableVertexAttribArray(gs.vertex)
+	gli.DisableVertexAttribArray(gs.texCoord)
 
 	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
 
@@ -160,18 +173,18 @@ func (cv *Canvas) drawBlurredShadow() {
 	gli.ActiveTexture(gl_TEXTURE0)
 	gli.BindTexture(gl_TEXTURE_2D, offscr2.tex)
 
-	gli.UseProgram(gauss255r.id)
-	gli.Uniform1i(gauss255r.image, 0)
-	gli.Uniform2f(gauss255r.canvasSize, float32(cv.fw), float32(cv.fh))
-	gli.Uniform2f(gauss255r.kernelScale, 0.0, 1.0/float32(cv.fh))
-	gli.Uniform1fv(gauss255r.kernel, int32(len(kernel)), &kernel[0])
-	gli.VertexAttribPointer(gauss255r.vertex, 2, gl_FLOAT, false, 0, 0)
-	gli.VertexAttribPointer(gauss255r.texCoord, 2, gl_FLOAT, false, 0, 8*4)
-	gli.EnableVertexAttribArray(gauss255r.vertex)
-	gli.EnableVertexAttribArray(gauss255r.texCoord)
+	gli.UseProgram(gs.id)
+	gli.Uniform1i(gs.image, 0)
+	gli.Uniform2f(gs.canvasSize, float32(cv.fw), float32(cv.fh))
+	gli.Uniform2f(gs.kernelScale, 0.0, 1.0/float32(cv.fh))
+	gli.Uniform1fv(gs.kernel, int32(len(kernel)), &kernel[0])
+	gli.VertexAttribPointer(gs.vertex, 2, gl_FLOAT, false, 0, 0)
+	gli.VertexAttribPointer(gs.texCoord, 2, gl_FLOAT, false, 0, 8*4)
+	gli.EnableVertexAttribArray(gs.vertex)
+	gli.EnableVertexAttribArray(gs.texCoord)
 	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
-	gli.DisableVertexAttribArray(gauss255r.vertex)
-	gli.DisableVertexAttribArray(gauss255r.texCoord)
+	gli.DisableVertexAttribArray(gs.vertex)
+	gli.DisableVertexAttribArray(gs.texCoord)
 
 	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
 
@@ -186,7 +199,7 @@ func gaussianKernel(stddev float64, target []float32) {
 		x := float64(i) - center
 		target[i] = float32(factor * math.Pow(math.E, -x*x/(2*stddevSqr)))
 	}
-	normalizeKernel(target)
+	// normalizeKernel(target)
 }
 
 func normalizeKernel(kernel []float32) {

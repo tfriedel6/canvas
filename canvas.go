@@ -191,9 +191,9 @@ var (
 	lgar      *linearGradientAlphaShader
 	ipar      *imagePatternAlphaShader
 	ir        *imageShader
-	gauss15r  *gaussian15Shader
-	gauss63r  *gaussian63Shader
-	gauss255r *gaussian255Shader
+	gauss15r  *gaussianShader
+	gauss63r  *gaussianShader
+	gauss255r *gaussianShader
 	offscr1   offscreenBuffer
 	offscr2   offscreenBuffer
 	glChan    = make(chan func())
@@ -205,6 +205,16 @@ type offscreenBuffer struct {
 	h                int
 	renderStencilBuf uint32
 	frameBuf         uint32
+}
+
+type gaussianShader struct {
+	id          uint32
+	vertex      uint32
+	texCoord    uint32
+	canvasSize  int32
+	kernelScale int32
+	image       int32
+	kernel      int32
 }
 
 // LoadGL needs to be called once per GL context to load the GL assets
@@ -297,7 +307,7 @@ func LoadGL(glimpl GL) (err error) {
 		return
 	}
 
-	gauss15r, err = loadGaussian15Shader()
+	gauss15s, err := loadGaussian15Shader()
 	if err != nil {
 		return
 	}
@@ -305,8 +315,9 @@ func LoadGL(glimpl GL) (err error) {
 	if err != nil {
 		return
 	}
+	gauss15r = (*gaussianShader)(gauss15s)
 
-	gauss63r, err = loadGaussian63Shader()
+	gauss63s, err := loadGaussian63Shader()
 	if err != nil {
 		return
 	}
@@ -314,8 +325,9 @@ func LoadGL(glimpl GL) (err error) {
 	if err != nil {
 		return
 	}
+	gauss63r = (*gaussianShader)(gauss63s)
 
-	gauss255r, err = loadGaussian255Shader()
+	gauss255s, err := loadGaussian255Shader()
 	if err != nil {
 		return
 	}
@@ -323,6 +335,7 @@ func LoadGL(glimpl GL) (err error) {
 	if err != nil {
 		return
 	}
+	gauss255r = (*gaussianShader)(gauss255s)
 
 	gli.GenBuffers(1, &buf)
 	err = glError()
