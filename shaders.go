@@ -1,5 +1,11 @@
 package canvas
 
+import (
+	"bytes"
+	"fmt"
+	"strings"
+)
+
 var imageVS = `
 attribute vec2 vertex, texCoord;
 uniform vec2 canvasSize;
@@ -274,3 +280,94 @@ void main() {
     col.a *= texture2D(alphaTex, v_atc).a * globalAlpha;
 	gl_FragColor = col;
 }`
+
+var gaussian15VS = `
+attribute vec2 vertex, texCoord;
+uniform vec2 canvasSize;
+varying vec2 v_texCoord;
+void main() {
+	v_texCoord = texCoord;
+	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
+    gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
+}`
+var gaussian15FS = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+varying vec2 v_texCoord;
+uniform vec2 kernelScale;
+uniform sampler2D image;
+uniform float kernel[15];
+void main() {
+	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
+_SUM_
+    gl_FragColor = color;
+}`
+
+var gaussian63VS = `
+attribute vec2 vertex, texCoord;
+uniform vec2 canvasSize;
+varying vec2 v_texCoord;
+void main() {
+	v_texCoord = texCoord;
+	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
+    gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
+}`
+var gaussian63FS = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+varying vec2 v_texCoord;
+uniform vec2 kernelScale;
+uniform sampler2D image;
+uniform float kernel[63];
+void main() {
+	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
+_SUM_
+    gl_FragColor = color;
+}`
+
+var gaussian255VS = `
+attribute vec2 vertex, texCoord;
+uniform vec2 canvasSize;
+varying vec2 v_texCoord;
+void main() {
+	v_texCoord = texCoord;
+	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
+    gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
+}`
+var gaussian255FS = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+varying vec2 v_texCoord;
+uniform vec2 kernelScale;
+uniform sampler2D image;
+uniform float kernel[255];
+void main() {
+	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
+_SUM_
+    gl_FragColor = color;
+}`
+
+func init() {
+	fstr := "\tcolor += texture2D(image, v_texCoord + vec2(%.1f * kernelScale.x, %.1f * kernelScale.y)) * kernel[%d];\n"
+	bb := bytes.Buffer{}
+	for i := 0; i < 255; i++ {
+		off := float64(i) - 127
+		fmt.Fprintf(&bb, fstr, off, off, i)
+	}
+	gaussian255FS = strings.Replace(gaussian255FS, "_SUM_", bb.String(), -1)
+	bb.Reset()
+	for i := 0; i < 63; i++ {
+		off := float64(i) - 31
+		fmt.Fprintf(&bb, fstr, off, off, i)
+	}
+	gaussian63FS = strings.Replace(gaussian63FS, "_SUM_", bb.String(), -1)
+	bb.Reset()
+	for i := 0; i < 15; i++ {
+		off := float64(i) - 7
+		fmt.Fprintf(&bb, fstr, off, off, i)
+	}
+	gaussian15FS = strings.Replace(gaussian15FS, "_SUM_", bb.String(), -1)
+}

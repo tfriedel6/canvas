@@ -181,6 +181,9 @@ func (_ GLImpl) TexSubImage2D(target uint32, level int32, xoffset int32, yoffset
 func (_ GLImpl) Uniform1f(location int32, v0 float32) {
 	gl.Uniform1f(location, v0)
 }
+func (_ GLImpl) Uniform1fv(location int32, count int32, v *float32) {
+	gl.Uniform1fv(location, count, v)
+}
 func (_ GLImpl) Uniform1i(location int32, v0 int32) {
 	gl.Uniform1i(location, v0)
 }

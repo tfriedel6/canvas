@@ -220,13 +220,16 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 	gli.DisableVertexAttribArray(vertex)
 	gli.DisableVertexAttribArray(alphaTexCoord)
 
-	gli.ActiveTexture(gl_TEXTURE0)
+	gli.ActiveTexture(gl_TEXTURE1)
+	gli.BindTexture(gl_TEXTURE_2D, alphaTex)
 
 	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
 
 	for y := 0; y < strHeight; y++ {
 		gli.TexSubImage2D(gl_TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(strWidth), 1, gl_ALPHA, gl_UNSIGNED_BYTE, gli.Ptr(&zeroes[0]))
 	}
+
+	gli.ActiveTexture(gl_TEXTURE0)
 }
 
 // TextMetrics is the result of a MeasureText call

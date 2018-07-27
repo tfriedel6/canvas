@@ -844,6 +844,7 @@ type GL interface {
 	TexParameteri(target uint32, pname uint32, param int32)
 	TexSubImage2D(target uint32, level int32, xoffset int32, yoffset int32, width int32, height int32, format uint32, xtype uint32, pixels unsafe.Pointer)
 	Uniform1f(location int32, v0 float32)
+	Uniform1fv(location int32, count int32, v *float32)
 	Uniform1i(location int32, v0 int32)
 	Uniform2f(location int32, v0 float32, v1 float32)
 	Uniform4f(location int32, v0 float32, v1 float32, v2 float32, v3 float32)

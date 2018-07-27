@@ -116,9 +116,12 @@ func shaderFindInputVariables(source string) []ShaderInput {
 		if !isAttrib && !isUniform {
 			continue
 		}
-		for i := 2; i < len(parts); i++ {
+		for _, part := range parts[2:] {
+			if idx := strings.IndexByte(part, '['); idx >= 0 {
+				part = part[:idx]
+			}
 			inputs = append(inputs, ShaderInput{
-				Name:      parts[i],
+				Name:      part,
 				IsAttrib:  isAttrib,
 				IsUniform: isUniform})
 		}

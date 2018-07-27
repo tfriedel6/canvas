@@ -50,6 +50,7 @@ type drawState struct {
 	shadowColor   glColor
 	shadowOffsetX float64
 	shadowOffsetY float64
+	shadowBlur    float64
 
 	/*
 		The current transformation matrix.
@@ -177,26 +178,34 @@ loop:
 const alphaTexSize = 2048
 
 var (
-	gli              GL
-	buf              uint32
-	shadowBuf        uint32
-	alphaTex         uint32
-	sr               *solidShader
-	lgr              *linearGradientShader
-	rgr              *radialGradientShader
-	ipr              *imagePatternShader
-	sar              *solidAlphaShader
-	rgar             *radialGradientAlphaShader
-	lgar             *linearGradientAlphaShader
-	ipar             *imagePatternAlphaShader
-	ir               *imageShader
-	offScrTex        uint32
-	offScrW          int
-	offScrH          int
+	gli       GL
+	buf       uint32
+	shadowBuf uint32
+	alphaTex  uint32
+	sr        *solidShader
+	lgr       *linearGradientShader
+	rgr       *radialGradientShader
+	ipr       *imagePatternShader
+	sar       *solidAlphaShader
+	rgar      *radialGradientAlphaShader
+	lgar      *linearGradientAlphaShader
+	ipar      *imagePatternAlphaShader
+	ir        *imageShader
+	gauss15r  *gaussian15Shader
+	gauss63r  *gaussian63Shader
+	gauss255r *gaussian255Shader
+	offscr1   offscreenBuffer
+	offscr2   offscreenBuffer
+	glChan    = make(chan func())
+)
+
+type offscreenBuffer struct {
+	tex              uint32
+	w                int
+	h                int
 	renderStencilBuf uint32
 	frameBuf         uint32
-	glChan           = make(chan func())
-)
+}
 
 // LoadGL needs to be called once per GL context to load the GL assets
 // that canvas needs. The parameter is an implementation of the GL interface
@@ -280,6 +289,33 @@ func LoadGL(glimpl GL) (err error) {
 	}
 
 	ir, err = loadImageShader()
+	if err != nil {
+		return
+	}
+	err = glError()
+	if err != nil {
+		return
+	}
+
+	gauss15r, err = loadGaussian15Shader()
+	if err != nil {
+		return
+	}
+	err = glError()
+	if err != nil {
+		return
+	}
+
+	gauss63r, err = loadGaussian63Shader()
+	if err != nil {
+		return
+	}
+	err = glError()
+	if err != nil {
+		return
+	}
+
+	gauss255r, err = loadGaussian255Shader()
 	if err != nil {
 		return
 	}
@@ -514,32 +550,33 @@ func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLo
 	return sar.vertex, sar.alphaTexCoord
 }
 
-func (cv *Canvas) enableTextureRenderTarget() {
-	if offScrW != cv.w || offScrH != cv.h {
-		if offScrW != 0 && offScrH != 0 {
-			gli.DeleteTextures(1, &offScrTex)
-			gli.DeleteFramebuffers(1, &frameBuf)
-			gli.DeleteRenderbuffers(1, &renderStencilBuf)
+func (cv *Canvas) enableTextureRenderTarget(offscr *offscreenBuffer) {
+	if offscr.w != cv.w || offscr.h != cv.h {
+		if offscr.w != 0 && offscr.h != 0 {
+			gli.DeleteTextures(1, &offscr.tex)
+			gli.DeleteFramebuffers(1, &offscr.frameBuf)
+			gli.DeleteRenderbuffers(1, &offscr.renderStencilBuf)
 		}
-		offScrW = cv.w
-		offScrH = cv.h
+		offscr.w = cv.w
+		offscr.h = cv.h
 
-		gli.GenTextures(1, &offScrTex)
-		gli.BindTexture(gl_TEXTURE_2D, offScrTex)
+		gli.ActiveTexture(gl_TEXTURE0)
+		gli.GenTextures(1, &offscr.tex)
+		gli.BindTexture(gl_TEXTURE_2D, offscr.tex)
 		// todo do non-power-of-two textures work everywhere?
-		gli.TexImage2D(gl_TEXTURE_2D, 0, gl_RGB, int32(cv.w), int32(cv.h), 0, gl_RGB, gl_UNSIGNED_BYTE, nil)
+		gli.TexImage2D(gl_TEXTURE_2D, 0, gl_RGBA, int32(cv.w), int32(cv.h), 0, gl_RGBA, gl_UNSIGNED_BYTE, nil)
 		gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MAG_FILTER, gl_NEAREST)
 		gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MIN_FILTER, gl_NEAREST)
 
-		gli.GenFramebuffers(1, &frameBuf)
-		gli.BindFramebuffer(gl_FRAMEBUFFER, frameBuf)
+		gli.GenFramebuffers(1, &offscr.frameBuf)
+		gli.BindFramebuffer(gl_FRAMEBUFFER, offscr.frameBuf)
 
-		gli.GenRenderbuffers(1, &renderStencilBuf)
-		gli.BindRenderbuffer(gl_RENDERBUFFER, renderStencilBuf)
+		gli.GenRenderbuffers(1, &offscr.renderStencilBuf)
+		gli.BindRenderbuffer(gl_RENDERBUFFER, offscr.renderStencilBuf)
 		gli.RenderbufferStorage(gl_RENDERBUFFER, gl_DEPTH_STENCIL, int32(cv.w), int32(cv.h))
-		gli.FramebufferRenderbuffer(gl_FRAMEBUFFER, gl_DEPTH_STENCIL_ATTACHMENT, gl_RENDERBUFFER, renderStencilBuf)
+		gli.FramebufferRenderbuffer(gl_FRAMEBUFFER, gl_DEPTH_STENCIL_ATTACHMENT, gl_RENDERBUFFER, offscr.renderStencilBuf)
 
-		gli.FramebufferTexture(gl_FRAMEBUFFER, gl_COLOR_ATTACHMENT0, offScrTex, 0)
+		gli.FramebufferTexture(gl_FRAMEBUFFER, gl_COLOR_ATTACHMENT0, offscr.tex, 0)
 
 		if gli.CheckFramebufferStatus(gl_FRAMEBUFFER) != gl_FRAMEBUFFER_COMPLETE {
 			// todo this should maybe not panic
@@ -548,17 +585,12 @@ func (cv *Canvas) enableTextureRenderTarget() {
 
 		gli.Clear(gl_COLOR_BUFFER_BIT | gl_STENCIL_BUFFER_BIT)
 	} else {
-		gli.BindFramebuffer(gl_FRAMEBUFFER, frameBuf)
+		gli.BindFramebuffer(gl_FRAMEBUFFER, offscr.frameBuf)
 	}
 }
 
 func (cv *Canvas) disableTextureRenderTarget() {
 	gli.BindFramebuffer(gl_FRAMEBUFFER, 0)
-}
-
-func (cv *Canvas) renderOffscreenTexture() {
-	img := Image{w: cv.w, h: cv.h, tex: offScrTex}
-	cv.DrawImage(&img, 0, 0, cv.fw, cv.fh)
 }
 
 // SetLineWidth sets the line width for any line drawing calls
@@ -719,4 +751,10 @@ func (cv *Canvas) SetShadowOffsetY(offset float64) {
 func (cv *Canvas) SetShadowOffset(x, y float64) {
 	cv.state.shadowOffsetX = x
 	cv.state.shadowOffsetY = y
+}
+
+// SetShadowBlur sets the gaussian blur radius of the shadow
+// (0 for no blur)
+func (cv *Canvas) SetShadowBlur(r float64) {
+	cv.state.shadowBlur = r
 }

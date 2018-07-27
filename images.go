@@ -309,3 +309,66 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 
 	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
 }
+
+func (cv *Canvas) drawImageTemp(image interface{}, coords ...float64) {
+	img := getImage(image)
+
+	if img == nil {
+		return
+	}
+
+	if img.deleted {
+		return
+	}
+
+	cv.activate()
+
+	var sx, sy, sw, sh, dx, dy, dw, dh float64
+	sw, sh = float64(img.w), float64(img.h)
+	dw, dh = float64(img.w), float64(img.h)
+	if len(coords) == 2 {
+		dx, dy = coords[0], coords[1]
+	} else if len(coords) == 4 {
+		dx, dy = coords[0], coords[1]
+		dw, dh = coords[2], coords[3]
+	} else if len(coords) == 8 {
+		sx, sy = coords[0], coords[1]
+		sw, sh = coords[2], coords[3]
+		dx, dy = coords[4], coords[5]
+		dw, dh = coords[6], coords[7]
+	}
+
+	sx /= float64(img.w)
+	sy /= float64(img.h)
+	sw /= float64(img.w)
+	sh /= float64(img.h)
+
+	p0 := vec{dx, dy}
+	p1 := vec{dx, dy + dh}
+	p2 := vec{dx + dw, dy + dh}
+	p3 := vec{dx + dw, dy}
+
+	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
+
+	gli.BindBuffer(gl_ARRAY_BUFFER, shadowBuf)
+	data := [16]float32{float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]), float32(p2[0]), float32(p2[1]), float32(p3[0]), float32(p3[1]),
+		float32(sx), float32(sy), float32(sx), float32(sy + sh), float32(sx + sw), float32(sy + sh), float32(sx + sw), float32(sy)}
+	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
+
+	gli.ActiveTexture(gl_TEXTURE0)
+	gli.BindTexture(gl_TEXTURE_2D, img.tex)
+
+	gli.UseProgram(ir.id)
+	gli.Uniform1i(ir.image, 0)
+	gli.Uniform2f(ir.canvasSize, float32(cv.fw), float32(cv.fh))
+	gli.Uniform1f(ir.globalAlpha, float32(cv.state.globalAlpha))
+	gli.VertexAttribPointer(ir.vertex, 2, gl_FLOAT, false, 0, 0)
+	gli.VertexAttribPointer(ir.texCoord, 2, gl_FLOAT, false, 0, 8*4)
+	gli.EnableVertexAttribArray(ir.vertex)
+	gli.EnableVertexAttribArray(ir.texCoord)
+	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
+	gli.DisableVertexAttribArray(ir.vertex)
+	gli.DisableVertexAttribArray(ir.texCoord)
+
+	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
+}
