@@ -104,3 +104,30 @@ func TestFillRect(t *testing.T) {
 		cv.FillRect(70, 10, 10, 10)
 	})
 }
+
+func TestFillConvexPath(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		cv.SetFillStyle("#0F0")
+		cv.BeginPath()
+		cv.MoveTo(20, 20)
+		cv.LineTo(60, 20)
+		cv.LineTo(80, 80)
+		cv.LineTo(40, 80)
+		cv.ClosePath()
+		cv.Fill()
+	})
+}
+func TestFillConcavePath(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		cv.SetFillStyle("#0F0")
+		cv.BeginPath()
+		cv.MoveTo(20, 20)
+		cv.LineTo(60, 20)
+		cv.LineTo(60, 60)
+		cv.LineTo(50, 60)
+		cv.LineTo(50, 40)
+		cv.LineTo(20, 40)
+		cv.ClosePath()
+		cv.Fill()
+	})
+}
