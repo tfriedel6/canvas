@@ -19,6 +19,7 @@ const (
 	pathAttach
 	pathIsRect
 	pathIsConvex
+	pathExplicitMove
 )
 
 // BeginPath clears the current path and starts a new one
@@ -43,8 +44,8 @@ func (cv *Canvas) MoveTo(x, y float64) {
 	if len(cv.linePath) > 0 && isSamePoint(cv.linePath[len(cv.linePath)-1].tf, tf, 0.1) {
 		return
 	}
-	cv.linePath = append(cv.linePath, pathPoint{pos: vec{x, y}, tf: tf, flags: pathMove})
-	cv.polyPath = append(cv.polyPath, pathPoint{pos: vec{x, y}, tf: tf, flags: pathMove})
+	cv.linePath = append(cv.linePath, pathPoint{pos: vec{x, y}, tf: tf, flags: pathMove | pathExplicitMove})
+	cv.polyPath = append(cv.polyPath, pathPoint{pos: vec{x, y}, tf: tf, flags: pathMove | pathExplicitMove})
 }
 
 // LineTo adds a line to the end of the path
@@ -273,17 +274,24 @@ func (cv *Canvas) ClosePath() {
 	if isSamePoint(cv.linePath[len(cv.linePath)-1].tf, cv.linePath[0].tf, 0.1) {
 		return
 	}
-	closeIdx := 0
+	lineCloseIdx := 0
 	for i := len(cv.linePath) - 1; i >= 0; i-- {
-		if cv.linePath[i].flags&pathMove != 0 {
-			closeIdx = i
+		if cv.linePath[i].flags&pathExplicitMove != 0 {
+			lineCloseIdx = i
 			break
 		}
 	}
-	cv.LineTo(cv.linePath[closeIdx].pos[0], cv.linePath[closeIdx].pos[1])
-	cv.linePath[len(cv.linePath)-1].next = cv.linePath[closeIdx].next
+	polyCloseIdx := 0
+	for i := len(cv.polyPath) - 1; i >= 0; i-- {
+		if cv.polyPath[i].flags&pathExplicitMove != 0 {
+			polyCloseIdx = i
+			break
+		}
+	}
+	cv.LineTo(cv.linePath[lineCloseIdx].pos[0], cv.linePath[lineCloseIdx].pos[1])
+	cv.linePath[len(cv.linePath)-1].next = cv.linePath[lineCloseIdx].next
 	cv.linePath[len(cv.linePath)-1].flags |= pathAttach
-	cv.polyPath[len(cv.polyPath)-1].next = cv.polyPath[closeIdx].next
+	cv.polyPath[len(cv.polyPath)-1].next = cv.polyPath[polyCloseIdx].next
 }
 
 // Stroke uses the current StrokeStyle to draw the path

@@ -682,6 +682,13 @@ func (cv *Canvas) SetLineDash(dash []float64) {
 	cv.state.lineDashOffset = 0
 }
 
+// GetLineDash gets the line dash style
+func (cv *Canvas) GetLineDash() []float64 {
+	result := make([]float64, len(cv.state.lineDash))
+	copy(result, cv.state.lineDash)
+	return result
+}
+
 // SetMiterLimit sets the limit for how far a miter line join can be extend.
 // The fallback is a bevel join
 func (cv *Canvas) SetMiterLimit(limit float64) {

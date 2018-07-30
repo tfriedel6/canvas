@@ -107,7 +107,9 @@ These features *should* work just like their HTML5 counterparts, but there are l
 - lineWidth
 - lineEnd (square, butt, round)
 - lineJoin (bevel, miter, round)
+- miterLimit
 - lineDash
+- getLineDash
 - global alpha
 - drawImage
 - getImageData
@@ -115,7 +117,6 @@ These features *should* work just like their HTML5 counterparts, but there are l
 - clearRect
 - shadowColor
 - shadowOffset(X/Y)
-- miterLimit
 - shadowBlur
 
 # Missing features
@@ -123,7 +124,6 @@ These features *should* work just like their HTML5 counterparts, but there are l
 - globalCompositeOperation
 - lineDashOffset
 - textBaseline
-- getLineDash
 - isPointInPath
 - isPointInStroke
 - strokeText
