@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/tfriedel6/canvas"
 	"github.com/tfriedel6/canvas/sdlcanvas"
 )
@@ -19,6 +20,8 @@ func run(t *testing.T, fn func(cv *canvas.Canvas)) {
 		return
 	}
 	defer wnd.Destroy()
+
+	gl.Disable(gl.MULTISAMPLE)
 
 	wnd.StartFrame()
 	cv.ClearRect(0, 0, 100, 100)
@@ -136,7 +139,7 @@ func TestDrawPath(t *testing.T) {
 	run(t, func(cv *canvas.Canvas) {
 		cv.SetStrokeStyle("#00F")
 		cv.SetLineJoin(canvas.Miter)
-		cv.SetLineWidth(4)
+		cv.SetLineWidth(8)
 		cv.BeginPath()
 		cv.MoveTo(10, 10)
 		cv.LineTo(30, 10)
