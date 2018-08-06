@@ -237,3 +237,55 @@ func TestLineDash(t *testing.T) {
 		}
 	})
 }
+
+func TestCurves(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		cv.SetStrokeStyle("#00F")
+		cv.SetLineWidth(2.5)
+		cv.BeginPath()
+		cv.Arc(30, 30, 15, 0, 4, false)
+		cv.ClosePath()
+		cv.MoveTo(30, 70)
+		cv.LineTo(40, 70)
+		cv.ArcTo(50, 70, 50, 55, 5)
+		cv.ArcTo(50, 40, 55, 40, 5)
+		cv.QuadraticCurveTo(70, 40, 80, 60)
+		cv.BezierCurveTo(70, 80, 60, 80, 50, 90)
+		cv.Stroke()
+	})
+}
+
+func TestAlpha(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		cv.SetStrokeStyle("#F00")
+		cv.SetLineWidth(2.5)
+		cv.BeginPath()
+		cv.Arc(30, 30, 15, 0, 4, false)
+		cv.ClosePath()
+		cv.MoveTo(30, 70)
+		cv.LineTo(40, 70)
+		cv.ArcTo(50, 70, 50, 55, 5)
+		cv.ArcTo(50, 40, 55, 40, 5)
+		cv.QuadraticCurveTo(70, 40, 80, 60)
+		cv.BezierCurveTo(70, 80, 60, 80, 50, 90)
+		cv.Stroke()
+
+		cv.SetStrokeStyle("#0F08")
+		cv.SetLineWidth(5)
+		cv.BeginPath()
+		cv.MoveTo(10, 10)
+		cv.LineTo(90, 90)
+		cv.LineTo(90, 10)
+		cv.LineTo(10, 90)
+		cv.ClosePath()
+		cv.Stroke()
+
+		cv.SetGlobalAlpha(0.5)
+		cv.SetStrokeStyle("#FFF8")
+		cv.SetLineWidth(8)
+		cv.BeginPath()
+		cv.MoveTo(50, 10)
+		cv.LineTo(50, 90)
+		cv.Stroke()
+	})
+}
