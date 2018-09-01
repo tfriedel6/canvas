@@ -19,19 +19,14 @@ const (
 	pathAttach
 	pathIsRect
 	pathIsConvex
-	pathExplicitMove
 )
 
 // BeginPath clears the current path and starts a new one
 func (cv *Canvas) BeginPath() {
-	if cv.linePath == nil {
-		cv.linePath = make([]pathPoint, 0, 100)
+	if cv.path == nil {
+		cv.path = make([]pathPoint, 0, 100)
 	}
-	if cv.polyPath == nil {
-		cv.polyPath = make([]pathPoint, 0, 100)
-	}
-	cv.linePath = cv.linePath[:0]
-	cv.polyPath = cv.polyPath[:0]
+	cv.path = cv.path[:0]
 }
 
 func isSamePoint(a, b vec, maxDist float64) bool {
@@ -41,88 +36,35 @@ func isSamePoint(a, b vec, maxDist float64) bool {
 // MoveTo adds a gap and moves the end of the path to x/y
 func (cv *Canvas) MoveTo(x, y float64) {
 	tf := cv.tf(vec{x, y})
-	if len(cv.linePath) > 0 && isSamePoint(cv.linePath[len(cv.linePath)-1].tf, tf, 0.1) {
+	if len(cv.path) > 0 && isSamePoint(cv.path[len(cv.path)-1].tf, tf, 0.1) {
 		return
 	}
-	cv.linePath = append(cv.linePath, pathPoint{pos: vec{x, y}, tf: tf, flags: pathMove | pathExplicitMove})
-	cv.polyPath = append(cv.polyPath, pathPoint{pos: vec{x, y}, tf: tf, flags: pathMove | pathExplicitMove})
+	cv.path = append(cv.path, pathPoint{pos: vec{x, y}, tf: tf, flags: pathMove})
 }
 
 // LineTo adds a line to the end of the path
 func (cv *Canvas) LineTo(x, y float64) {
-	cv.strokeLineTo(x, y)
-	cv.fillLineTo(x, y)
-}
+	// cv.strokeLineTo(x, y)
+	// cv.fillLineTo(x, y)
 
-func (cv *Canvas) strokeLineTo(x, y float64) {
-	if len(cv.linePath) > 0 && isSamePoint(cv.linePath[len(cv.linePath)-1].tf, cv.tf(vec{x, y}), 0.1) {
+	if len(cv.path) > 0 && isSamePoint(cv.path[len(cv.path)-1].tf, cv.tf(vec{x, y}), 0.1) {
 		return
 	}
-	if len(cv.linePath) == 0 {
-		cv.linePath = append(cv.linePath, pathPoint{pos: vec{x, y}, tf: cv.tf(vec{x, y}), flags: pathMove})
-		return
-	}
-	if len(cv.state.lineDash) > 0 {
-		lp := cv.linePath[len(cv.linePath)-1].pos
-		tp := vec{x, y}
-		v := tp.sub(lp)
-		vl := v.len()
-		prev := cv.state.lineDashOffset
-		for vl > 0 {
-			draw := cv.state.lineDashPoint%2 == 0
-			p := tp
-			cv.state.lineDashOffset += vl
-			if cv.state.lineDashOffset > cv.state.lineDash[cv.state.lineDashPoint] {
-				cv.state.lineDashOffset = 0
-				dl := cv.state.lineDash[cv.state.lineDashPoint] - prev
-				p = lp.add(v.mulf(dl / vl))
-				vl -= dl
-				cv.state.lineDashPoint++
-				cv.state.lineDashPoint %= len(cv.state.lineDash)
-				prev = 0
-			} else {
-				vl = 0
-			}
-
-			if draw {
-				cv.linePath[len(cv.linePath)-1].next = cv.tf(p)
-				cv.linePath[len(cv.linePath)-1].flags |= pathAttach
-				cv.linePath = append(cv.linePath, pathPoint{pos: p, tf: cv.tf(p)})
-			} else {
-				cv.linePath = append(cv.linePath, pathPoint{pos: p, tf: cv.tf(p), flags: pathMove})
-			}
-
-			lp = p
-			v = tp.sub(lp)
-		}
-	} else {
-		tf := cv.tf(vec{x, y})
-		cv.linePath[len(cv.linePath)-1].next = tf
-		cv.linePath[len(cv.linePath)-1].flags |= pathAttach
-		cv.linePath = append(cv.linePath, pathPoint{pos: vec{x, y}, tf: tf})
-	}
-}
-
-func (cv *Canvas) fillLineTo(x, y float64) {
-	if len(cv.polyPath) > 0 && isSamePoint(cv.polyPath[len(cv.polyPath)-1].tf, cv.tf(vec{x, y}), 0.1) {
-		return
-	}
-	if len(cv.polyPath) == 0 {
-		cv.polyPath = append(cv.polyPath, pathPoint{pos: vec{x, y}, tf: cv.tf(vec{x, y}), flags: pathMove})
+	if len(cv.path) == 0 {
+		cv.path = append(cv.path, pathPoint{pos: vec{x, y}, tf: cv.tf(vec{x, y}), flags: pathMove})
 		return
 	}
 	tf := cv.tf(vec{x, y})
-	cv.polyPath[len(cv.polyPath)-1].next = tf
-	cv.polyPath[len(cv.polyPath)-1].flags |= pathAttach
-	cv.polyPath = append(cv.polyPath, pathPoint{pos: vec{x, y}, tf: tf})
+	cv.path[len(cv.path)-1].next = tf
+	cv.path[len(cv.path)-1].flags |= pathAttach
+	cv.path = append(cv.path, pathPoint{pos: vec{x, y}, tf: tf})
 }
 
 // Arc adds a circle segment to the end of the path. x/y is the center, radius
 // is the radius, startAngle and endAngle are angles in radians, anticlockwise
 // means that the line is added anticlockwise
 func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise bool) {
-	lastLineWasMove := len(cv.linePath) == 0 || cv.linePath[len(cv.linePath)-1].flags&pathMove != 0
-	lastPolyWasMove := len(cv.polyPath) == 0 || cv.polyPath[len(cv.polyPath)-1].flags&pathMove != 0
+	lastWasMove := len(cv.path) == 0 || cv.path[len(cv.path)-1].flags&pathMove != 0
 
 	startAngle = math.Mod(startAngle, math.Pi*2)
 	if startAngle < 0 {
@@ -158,11 +100,8 @@ func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise 
 	s, c := math.Sincos(endAngle)
 	cv.LineTo(x+radius*c, y+radius*s)
 
-	if lastLineWasMove {
-		cv.linePath[len(cv.linePath)-1].flags |= pathIsConvex
-	}
-	if lastPolyWasMove {
-		cv.polyPath[len(cv.polyPath)-1].flags |= pathIsConvex
+	if lastWasMove {
+		cv.path[len(cv.path)-1].flags |= pathIsConvex
 	}
 }
 
@@ -171,10 +110,10 @@ func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise 
 // lines from the end of the path to x1/y1, and from x1/y1 to x2/y2. The line
 // will only go to where the circle segment would touch the latter line
 func (cv *Canvas) ArcTo(x1, y1, x2, y2, radius float64) {
-	if len(cv.linePath) == 0 {
+	if len(cv.path) == 0 {
 		return
 	}
-	p0, p1, p2 := cv.linePath[len(cv.linePath)-1].pos, vec{x1, y1}, vec{x2, y2}
+	p0, p1, p2 := cv.path[len(cv.path)-1].pos, vec{x1, y1}, vec{x2, y2}
 	v0, v1 := p0.sub(p1).norm(), p2.sub(p1).norm()
 	angle := math.Acos(v0.dot(v1))
 	// should be in the range [0-pi]. if parallel, use a straight line
@@ -198,10 +137,10 @@ func (cv *Canvas) ArcTo(x1, y1, x2, y2, radius float64) {
 // QuadraticCurveTo adds a quadratic curve to the path. It uses the current end
 // point of the path, x1/y1 defines the curve, and x2/y2 is the end point
 func (cv *Canvas) QuadraticCurveTo(x1, y1, x2, y2 float64) {
-	if len(cv.linePath) == 0 {
+	if len(cv.path) == 0 {
 		return
 	}
-	p0 := cv.linePath[len(cv.linePath)-1].pos
+	p0 := cv.path[len(cv.path)-1].pos
 	p1 := vec{x1, y1}
 	p2 := vec{x2, y2}
 	v0 := p1.sub(p0)
@@ -229,10 +168,10 @@ func (cv *Canvas) QuadraticCurveTo(x1, y1, x2, y2 float64) {
 // BezierCurveTo adds a bezier curve to the path. It uses the current end point
 // of the path, x1/y1 and x2/y2 define the curve, and x3/y3 is the end point
 func (cv *Canvas) BezierCurveTo(x1, y1, x2, y2, x3, y3 float64) {
-	if len(cv.linePath) == 0 {
+	if len(cv.path) == 0 {
 		return
 	}
-	p0 := cv.linePath[len(cv.linePath)-1].pos
+	p0 := cv.path[len(cv.path)-1].pos
 	p1 := vec{x1, y1}
 	p2 := vec{x2, y2}
 	p3 := vec{x3, y3}
@@ -268,35 +207,27 @@ func (cv *Canvas) BezierCurveTo(x1, y1, x2, y2, x3, y3 float64) {
 // ClosePath closes the path to the beginning of the path or the last point
 // from a MoveTo call
 func (cv *Canvas) ClosePath() {
-	if len(cv.linePath) < 2 {
+	if len(cv.path) < 2 {
 		return
 	}
-	if isSamePoint(cv.linePath[len(cv.linePath)-1].tf, cv.linePath[0].tf, 0.1) {
+	if isSamePoint(cv.path[len(cv.path)-1].tf, cv.path[0].tf, 0.1) {
 		return
 	}
-	lineCloseIdx := 0
-	for i := len(cv.linePath) - 1; i >= 0; i-- {
-		if cv.linePath[i].flags&pathExplicitMove != 0 {
-			lineCloseIdx = i
+	closeIdx := 0
+	for i := len(cv.path) - 1; i >= 0; i-- {
+		if cv.path[i].flags&pathMove != 0 {
+			closeIdx = i
 			break
 		}
 	}
-	polyCloseIdx := 0
-	for i := len(cv.polyPath) - 1; i >= 0; i-- {
-		if cv.polyPath[i].flags&pathExplicitMove != 0 {
-			polyCloseIdx = i
-			break
-		}
-	}
-	cv.LineTo(cv.linePath[lineCloseIdx].pos[0], cv.linePath[lineCloseIdx].pos[1])
-	cv.linePath[len(cv.linePath)-1].next = cv.linePath[lineCloseIdx].next
-	cv.linePath[len(cv.linePath)-1].flags |= pathAttach
-	cv.polyPath[len(cv.polyPath)-1].next = cv.polyPath[polyCloseIdx].next
+	cv.LineTo(cv.path[closeIdx].pos[0], cv.path[closeIdx].pos[1])
+	cv.path[len(cv.path)-1].next = cv.path[closeIdx].next
+	cv.path[len(cv.path)-1].flags |= pathAttach
 }
 
 // Stroke uses the current StrokeStyle to draw the path
 func (cv *Canvas) Stroke() {
-	cv.stroke(cv.linePath)
+	cv.stroke(cv.path)
 }
 
 func (cv *Canvas) stroke(path []pathPoint) {
@@ -305,6 +236,8 @@ func (cv *Canvas) stroke(path []pathPoint) {
 	}
 
 	cv.activate()
+
+	path = cv.applyLineDash(path)
 
 	var triBuf [1000]float32
 	tris := triBuf[:0]
@@ -418,6 +351,61 @@ func (cv *Canvas) stroke(path []pathPoint) {
 	}
 }
 
+func (cv *Canvas) applyLineDash(path []pathPoint) []pathPoint {
+	if len(cv.state.lineDash) < 2 || len(path) < 2 {
+		return path
+	}
+
+	ldo := cv.state.lineDashOffset
+	ldp := cv.state.lineDashPoint
+
+	path2 := make([]pathPoint, 0, len(path)*2)
+
+	var lp vec
+	for i, pp := range path {
+		if i == 0 || pp.flags&pathMove != 0 {
+			path2 = append(path2, pp)
+			lp = pp.tf
+			continue
+		}
+
+		tp := pp.tf
+		v := tp.sub(lp)
+		vl := v.len()
+		prev := ldo
+		for vl > 0 {
+			draw := ldp%2 == 0
+			p := tp
+			ldo += vl
+			if ldo > cv.state.lineDash[ldp] {
+				ldo = 0
+				dl := cv.state.lineDash[ldp] - prev
+				p = lp.add(v.mulf(dl / vl))
+				vl -= dl
+				ldp++
+				ldp %= len(cv.state.lineDash)
+				prev = 0
+			} else {
+				vl = 0
+			}
+
+			if draw {
+				path2[len(path2)-1].next = cv.tf(p)
+				path2[len(path2)-1].flags |= pathAttach
+				path2 = append(path2, pathPoint{pos: p, tf: cv.tf(p)})
+			} else {
+				path2 = append(path2, pathPoint{pos: p, tf: cv.tf(p), flags: pathMove})
+			}
+
+			lp = p
+			v = tp.sub(lp)
+		}
+		lp = tp
+	}
+
+	return path2
+}
+
 func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec, tris []float32) []float32 {
 	v2 := p1.sub(p2).norm()
 	v3 := vec{v2[1], -v2[0]}.mulf(cv.state.lineWidth * 0.5)
@@ -526,7 +514,7 @@ func lineIntersection(a0, a1, b0, b1 vec) (vec, float64, float64) {
 
 // Fill fills the current path with the given FillStyle
 func (cv *Canvas) Fill() {
-	if len(cv.polyPath) < 3 {
+	if len(cv.path) < 3 {
 		return
 	}
 	cv.activate()
@@ -536,17 +524,17 @@ func (cv *Canvas) Fill() {
 	tris = append(tris, 0, 0, float32(cv.fw), 0, float32(cv.fw), float32(cv.fh), 0, 0, float32(cv.fw), float32(cv.fh), 0, float32(cv.fh))
 
 	start := 0
-	for i, p := range cv.polyPath {
+	for i, p := range cv.path {
 		if p.flags&pathMove == 0 {
 			continue
 		}
 		if i >= start+3 {
-			tris = cv.appendSubPathTriangles(tris, cv.polyPath[start:i])
+			tris = cv.appendSubPathTriangles(tris, cv.path[start:i])
 		}
 		start = i
 	}
-	if len(cv.polyPath) >= start+3 {
-		tris = cv.appendSubPathTriangles(tris, cv.polyPath[start:])
+	if len(cv.path) >= start+3 {
+		tris = cv.appendSubPathTriangles(tris, cv.path[start:])
 	}
 	if len(tris) == 0 {
 		return
@@ -618,11 +606,11 @@ func (cv *Canvas) appendSubPathTriangles(tris []float32, path []pathPoint) []flo
 // Clip uses the current path to clip any further drawing. Use Save/Restore to
 // remove the clipping again
 func (cv *Canvas) Clip() {
-	if len(cv.polyPath) < 3 {
+	if len(cv.path) < 3 {
 		return
 	}
 
-	path := cv.polyPath
+	path := cv.path
 	for i := len(path) - 1; i >= 0; i-- {
 		if path[i].flags&pathMove != 0 {
 			path = path[i:]
@@ -686,8 +674,8 @@ func (cv *Canvas) clip(path []pathPoint) {
 	gli.StencilMask(0xFF)
 	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
 
-	cv.state.clip = make([]pathPoint, len(cv.polyPath))
-	copy(cv.state.clip, cv.polyPath)
+	cv.state.clip = make([]pathPoint, len(cv.path))
+	copy(cv.state.clip, cv.path)
 }
 
 func (cv *Canvas) scissor(path []pathPoint) {
@@ -726,8 +714,7 @@ func (cv *Canvas) Rect(x, y, w, h float64) {
 	cv.LineTo(x+w, y+h)
 	cv.LineTo(x, y+h)
 	cv.ClosePath()
-	cv.linePath[len(cv.linePath)-1].flags |= pathIsRect
-	cv.polyPath[len(cv.polyPath)-1].flags |= pathIsRect
+	cv.path[len(cv.path)-1].flags |= pathIsRect
 }
 
 // StrokeRect draws a rectangle using the current stroke style

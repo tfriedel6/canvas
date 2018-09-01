@@ -17,10 +17,9 @@ type Canvas struct {
 	x, y, w, h     int
 	fx, fy, fw, fh float64
 
-	polyPath []pathPoint
-	linePath []pathPoint
-	convex   bool
-	rect     bool
+	path   []pathPoint
+	convex bool
+	rect   bool
 
 	state      drawState
 	stateStack []drawState

@@ -322,3 +322,33 @@ func TestClosePath(t *testing.T) {
 		cv.Fill()
 	})
 }
+
+func TestLineDash2(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		cv.SetStrokeStyle("#0F0")
+		cv.SetLineWidth(2.5)
+		cv.BeginPath()
+		cv.MoveTo(20, 20)
+		cv.LineTo(40, 20)
+		cv.LineTo(40, 40)
+		cv.LineTo(20, 40)
+		cv.ClosePath()
+		cv.MoveTo(60, 20)
+		cv.LineTo(80, 20)
+		cv.LineTo(80, 40)
+		cv.LineTo(60, 40)
+		cv.ClosePath()
+		cv.SetLineDash([]float64{4, 4})
+		cv.MoveTo(20, 60)
+		cv.LineTo(40, 60)
+		cv.LineTo(40, 80)
+		cv.LineTo(20, 80)
+		cv.ClosePath()
+		cv.MoveTo(60, 60)
+		cv.LineTo(80, 60)
+		cv.LineTo(80, 80)
+		cv.LineTo(60, 80)
+		cv.ClosePath()
+		cv.Stroke()
+	})
+}
