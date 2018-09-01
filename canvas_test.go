@@ -42,7 +42,7 @@ func run(t *testing.T, fn func(cv *canvas.Canvas)) {
 	callerFuncName := callerFunc.Name()
 	callerFuncName = callerFuncName[strings.Index(callerFuncName, prefix)+len(prefix):]
 
-	fileName := fmt.Sprintf("testimages/%s.png", callerFuncName)
+	fileName := fmt.Sprintf("testdata/%s.png", callerFuncName)
 
 	_, err = os.Stat(fileName)
 	if err != nil && !os.IsNotExist(err) {
@@ -350,5 +350,15 @@ func TestLineDash2(t *testing.T) {
 		cv.LineTo(60, 80)
 		cv.ClosePath()
 		cv.Stroke()
+	})
+}
+func TestText(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		cv.SetFont("testdata/Roboto-Light.ttf", 48)
+		cv.SetFillStyle("#F00")
+		cv.FillText("A BC", 0, 46)
+		cv.SetStrokeStyle("#0F0")
+		cv.SetLineWidth(1)
+		cv.StrokeText("D EF", 0, 90)
 	})
 }

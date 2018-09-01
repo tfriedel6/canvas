@@ -232,6 +232,110 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 	gli.ActiveTexture(gl_TEXTURE0)
 }
 
+// StrokeText draws the given string at the given coordinates
+// using the currently set font and font height and using the
+// current stroke style
+func (cv *Canvas) StrokeText(str string, x, y float64) {
+	cv.activate()
+
+	if cv.state.font == nil {
+		return
+	}
+
+	frc := fontRenderingContext
+	frc.setFont(cv.state.font.font)
+	frc.setFontSize(float64(cv.state.fontSize))
+	fnt := cv.state.font.font
+
+	for _, rn := range str {
+		idx := fnt.Index(rn)
+		if idx == 0 {
+			idx = fnt.Index(' ')
+		}
+		advance, _, err := frc.glyphMeasure(idx, fixed.Point26_6{})
+		if err != nil {
+			continue
+		}
+
+		cv.strokeRune(rn, vec{x, y})
+
+		x += float64(advance) / 64
+	}
+}
+
+func (cv *Canvas) strokeRune(rn rune, pos vec) {
+	gb := &truetype.GlyphBuf{}
+	gb.Load(cv.state.font.font, fixed.Int26_6(cv.state.fontSize*64), cv.state.font.font.Index(rn), font.HintingNone)
+
+	prevPath := cv.path
+	defer func() {
+		cv.path = prevPath
+	}()
+
+	from := 0
+	for _, to := range gb.Ends {
+		ps := gb.Points[from:to]
+
+		start := fixed.Point26_6{
+			X: ps[0].X,
+			Y: ps[0].Y,
+		}
+		others := []truetype.Point(nil)
+		if ps[0].Flags&0x01 != 0 {
+			others = ps[1:]
+		} else {
+			last := fixed.Point26_6{
+				X: ps[len(ps)-1].X,
+				Y: ps[len(ps)-1].Y,
+			}
+			if ps[len(ps)-1].Flags&0x01 != 0 {
+				start = last
+				others = ps[:len(ps)-1]
+			} else {
+				start = fixed.Point26_6{
+					X: (start.X + last.X) / 2,
+					Y: (start.Y + last.Y) / 2,
+				}
+				others = ps
+			}
+		}
+
+		p0, on0 := gb.Points[from], false
+		cv.MoveTo(float64(p0.X)/64+pos[0], pos[1]-float64(p0.Y)/64)
+		for _, p := range others {
+			on := p.Flags&0x01 != 0
+			if on {
+				if on0 {
+					cv.LineTo(float64(p.X)/64+pos[0], pos[1]-float64(p.Y)/64)
+				} else {
+					cv.QuadraticCurveTo(float64(p0.X)/64+pos[0], pos[1]-float64(p0.Y)/64, float64(p.X)/64+pos[0], pos[1]-float64(p.Y)/64)
+				}
+			} else {
+				if on0 {
+					// No-op.
+				} else {
+					mid := fixed.Point26_6{
+						X: (p0.X + p.X) / 2,
+						Y: (p0.Y + p.Y) / 2,
+					}
+					cv.QuadraticCurveTo(float64(p0.X)/64+pos[0], pos[1]-float64(p0.Y)/64, float64(mid.X)/64+pos[0], pos[1]-float64(mid.Y)/64)
+				}
+			}
+			p0, on0 = p, on
+		}
+
+		if on0 {
+			cv.LineTo(float64(start.X)/64+pos[0], pos[1]-float64(start.Y)/64)
+		} else {
+			cv.QuadraticCurveTo(float64(p0.X)/64+pos[0], pos[1]-float64(p0.Y)/64, float64(start.X)/64+pos[0], pos[1]-float64(start.Y)/64)
+		}
+		cv.ClosePath()
+		cv.Stroke()
+
+		from = to
+	}
+}
+
 // TextMetrics is the result of a MeasureText call
 type TextMetrics struct {
 	Width                    float64

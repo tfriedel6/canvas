@@ -100,6 +100,7 @@ These features *should* work just like their HTML5 counterparts, but there are l
 - measureText
 - textAlign
 - fillStyle
+- strokeText
 - strokeStyle
 - linear gradients
 - radial gradients
@@ -126,4 +127,3 @@ These features *should* work just like their HTML5 counterparts, but there are l
 - textBaseline
 - isPointInPath
 - isPointInStroke
-- strokeText
