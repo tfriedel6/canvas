@@ -32,6 +32,7 @@ type Window struct {
 	MouseDown  func(button, x, y int)
 	MouseMove  func(x, y int)
 	MouseUp    func(button, x, y int)
+	MouseWheel func(x, y int)
 	KeyDown    func(scancode int, rn rune, name string)
 	KeyUp      func(scancode int, rn rune, name string)
 	KeyChar    func(rn rune)
@@ -152,6 +153,11 @@ func (wnd *Window) StartFrame() error {
 		case *sdl.MouseMotionEvent:
 			if wnd.MouseMove != nil {
 				wnd.MouseMove(int(e.X), int(e.Y))
+				handled = true
+			}
+		case *sdl.MouseWheelEvent:
+			if wnd.MouseWheel != nil {
+				wnd.MouseWheel(int(e.X), int(e.Y))
 				handled = true
 			}
 		case *sdl.KeyboardEvent:
