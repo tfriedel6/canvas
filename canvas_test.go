@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/tfriedel6/canvas"
+	_ "github.com/tfriedel6/canvas/glimpl/xmobile"
 	"github.com/tfriedel6/canvas/sdlcanvas"
 )
 

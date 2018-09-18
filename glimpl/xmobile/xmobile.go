@@ -257,7 +257,7 @@ func (gli GLImpl) TexImage2D(target uint32, level int32, internalformat int32, w
 	sh.Cap = int(width * height * 4)
 	sh.Len = int(width * height * 4)
 	sh.Data = uintptr(pixels)
-	gli.gl.TexImage2D(gl.Enum(target), int(level), int(width), int(height), gl.Enum(format), gl.Enum(xtype), buf)
+	gli.gl.TexImage2D(gl.Enum(target), int(level), int(internalformat), int(width), int(height), gl.Enum(format), gl.Enum(xtype), buf)
 }
 func (gli GLImpl) TexParameteri(target uint32, pname uint32, param int32) {
 	gli.gl.TexParameteri(gl.Enum(target), gl.Enum(pname), int(param))
