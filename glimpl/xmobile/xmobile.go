@@ -59,6 +59,12 @@ func (gli GLImpl) AttachShader(program uint32, shader uint32) {
 func (gli GLImpl) BindBuffer(target uint32, buffer uint32) {
 	gli.gl.BindBuffer(gl.Enum(target), gl.Buffer{Value: buffer})
 }
+func (gli GLImpl) BindFramebuffer(target uint32, framebuffer uint32) {
+	gli.gl.BindFramebuffer(gl.Enum(target), gl.Framebuffer{Value: framebuffer})
+}
+func (gli GLImpl) BindRenderbuffer(target uint32, renderbuffer uint32) {
+	gli.gl.BindRenderbuffer(gl.Enum(target), gl.Renderbuffer{Value: renderbuffer})
+}
 func (gli GLImpl) BindTexture(target uint32, texture uint32) {
 	gli.gl.BindTexture(gl.Enum(target), gl.Texture{Value: texture})
 }
@@ -72,6 +78,9 @@ func (gli GLImpl) BufferData(target uint32, size int, data unsafe.Pointer, usage
 	sh.Len = size
 	sh.Data = uintptr(data)
 	gli.gl.BufferData(gl.Enum(target), buf, gl.Enum(usage))
+}
+func (gli GLImpl) CheckFramebufferStatus(target uint32) uint32 {
+	return uint32(gli.gl.CheckFramebufferStatus(gl.Enum(target)))
 }
 func (gli GLImpl) Clear(mask uint32) {
 	gli.gl.Clear(gl.Enum(mask))
@@ -95,6 +104,26 @@ func (gli GLImpl) CreateShader(xtype uint32) uint32 {
 }
 func (gli GLImpl) DeleteShader(shader uint32) {
 	gli.gl.DeleteShader(gl.Shader{Value: shader})
+}
+func (gli GLImpl) DeleteFramebuffers(n int32, framebuffers *uint32) {
+	var buf []uint32
+	sh := (*reflect.SliceHeader)(unsafe.Pointer(&buf))
+	sh.Cap = int(n)
+	sh.Len = int(n)
+	sh.Data = uintptr(unsafe.Pointer(framebuffers))
+	for i := 0; i < int(n); i++ {
+		gli.gl.DeleteFramebuffer(gl.Framebuffer{Value: buf[i]})
+	}
+}
+func (gli GLImpl) DeleteRenderbuffers(n int32, renderbuffers *uint32) {
+	var buf []uint32
+	sh := (*reflect.SliceHeader)(unsafe.Pointer(&buf))
+	sh.Cap = int(n)
+	sh.Len = int(n)
+	sh.Data = uintptr(unsafe.Pointer(renderbuffers))
+	for i := 0; i < int(n); i++ {
+		gli.gl.DeleteRenderbuffer(gl.Renderbuffer{Value: buf[i]})
+	}
 }
 func (gli GLImpl) DeleteTextures(n int32, textures *uint32) {
 	var buf []uint32
@@ -121,6 +150,12 @@ func (gli GLImpl) Enable(cap uint32) {
 func (gli GLImpl) EnableVertexAttribArray(index uint32) {
 	gli.gl.EnableVertexAttribArray(gl.Attrib{Value: uint(index)})
 }
+func (gli GLImpl) FramebufferRenderbuffer(target uint32, attachment uint32, renderbuffertarget uint32, renderbuffer uint32) {
+	gli.gl.FramebufferRenderbuffer(gl.Enum(target), gl.Enum(attachment), gl.Enum(renderbuffertarget), gl.Renderbuffer{Value: renderbuffer})
+}
+func (gli GLImpl) FramebufferTexture(target uint32, attachment uint32, texture uint32, level int32) {
+	gli.gl.FramebufferTexture2D(gl.Enum(target), gl.Enum(attachment), gl.TEXTURE_2D, gl.Texture{Value: texture}, int(level))
+}
 func (gli GLImpl) GenBuffers(n int32, buffers *uint32) {
 	var buf []uint32
 	sh := (*reflect.SliceHeader)(unsafe.Pointer(&buf))
@@ -129,6 +164,26 @@ func (gli GLImpl) GenBuffers(n int32, buffers *uint32) {
 	sh.Data = uintptr(unsafe.Pointer(buffers))
 	for i := 0; i < int(n); i++ {
 		buf[i] = gli.gl.CreateBuffer().Value
+	}
+}
+func (gli GLImpl) GenFramebuffers(n int32, framebuffers *uint32) {
+	var buf []uint32
+	sh := (*reflect.SliceHeader)(unsafe.Pointer(&buf))
+	sh.Cap = int(n)
+	sh.Len = int(n)
+	sh.Data = uintptr(unsafe.Pointer(framebuffers))
+	for i := 0; i < int(n); i++ {
+		buf[i] = gli.gl.CreateFramebuffer().Value
+	}
+}
+func (gli GLImpl) GenRenderbuffers(n int32, renderbuffers *uint32) {
+	var buf []uint32
+	sh := (*reflect.SliceHeader)(unsafe.Pointer(&buf))
+	sh.Cap = int(n)
+	sh.Len = int(n)
+	sh.Data = uintptr(unsafe.Pointer(renderbuffers))
+	for i := 0; i < int(n); i++ {
+		buf[i] = gli.gl.CreateRenderbuffer().Value
 	}
 }
 func (gli GLImpl) GenTextures(n int32, textures *uint32) {
@@ -178,6 +233,9 @@ func (gli GLImpl) ReadPixels(x int32, y int32, width int32, height int32, format
 	sh.Data = uintptr(pixels)
 	gli.gl.ReadPixels(buf, int(x), int(y), int(width), int(height), gl.Enum(format), gl.Enum(xtype))
 }
+func (gli GLImpl) RenderbufferStorage(target uint32, internalformat uint32, width int32, height int32) {
+	gli.gl.RenderbufferStorage(gl.Enum(target), gl.Enum(internalformat), int(width), int(height))
+}
 func (gli GLImpl) Scissor(x int32, y int32, width int32, height int32) {
 	gli.gl.Scissor(x, y, width, height)
 }
@@ -214,6 +272,14 @@ func (gli GLImpl) TexSubImage2D(target uint32, level int32, xoffset int32, yoffs
 }
 func (gli GLImpl) Uniform1f(location int32, v0 float32) {
 	gli.gl.Uniform1f(gl.Uniform{Value: location}, v0)
+}
+func (gli GLImpl) Uniform1fv(location int32, count int32, v *float32) {
+	var buf []float32
+	sh := (*reflect.SliceHeader)(unsafe.Pointer(&buf))
+	sh.Cap = int(count)
+	sh.Len = int(count)
+	sh.Data = uintptr(unsafe.Pointer(v))
+	gli.gl.Uniform1fv(gl.Uniform{Value: location}, buf)
 }
 func (gli GLImpl) Uniform1i(location int32, v0 int32) {
 	gli.gl.Uniform1i(gl.Uniform{Value: location}, int(v0))

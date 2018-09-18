@@ -52,6 +52,12 @@ func (_ GLImpl) AttachShader(program uint32, shader uint32) {
 func (_ GLImpl) BindBuffer(target uint32, buffer uint32) {
 	C.glBindBuffer(C.uint(target), C.uint(buffer))
 }
+func (_ GLImpl) BindFramebuffer(target uint32, framebuffer uint32) {
+	C.glBindFramebuffer(C.uint(target), C.uint(framebuffer))
+}
+func (_ GLImpl) BindRenderbuffer(target uint32, renderbuffer uint32) {
+	C.glBindRenderbuffer(C.uint(target), C.uint(renderbuffer))
+}
 func (_ GLImpl) BindTexture(target uint32, texture uint32) {
 	C.glBindTexture(C.uint(target), C.uint(texture))
 }
@@ -60,6 +66,9 @@ func (_ GLImpl) BlendFunc(sfactor uint32, dfactor uint32) {
 }
 func (_ GLImpl) BufferData(target uint32, size int, data unsafe.Pointer, usage uint32) {
 	C.glBufferData(C.uint(target), C.long(size), data, C.uint(usage))
+}
+func (_ GLImpl) CheckFramebufferStatus(target uint32) uint32 {
+	return uint32(C.glCheckFramebufferStatus(C.uint(target)))
 }
 func (_ GLImpl) Clear(mask uint32) {
 	C.glClear(C.uint(mask))
@@ -95,6 +104,12 @@ func (_ GLImpl) CreateShader(xtype uint32) uint32 {
 func (_ GLImpl) DeleteShader(shader uint32) {
 	C.glDeleteShader(C.uint(shader))
 }
+func (_ GLImpl) DeleteFramebuffers(n int32, framebuffers *uint32) {
+	C.glDeleteFramebuffers(C.int(n), (*C.uint)(framebuffers))
+}
+func (_ GLImpl) DeleteRenderbuffers(n int32, renderbuffers *uint32) {
+	C.glDeleteRenderbuffers(C.int(n), (*C.uint)(renderbuffers))
+}
 func (_ GLImpl) DeleteTextures(n int32, textures *uint32) {
 	C.glDeleteTextures(C.int(n), (*C.uint)(textures))
 }
@@ -113,8 +128,20 @@ func (_ GLImpl) Enable(cap uint32) {
 func (_ GLImpl) EnableVertexAttribArray(index uint32) {
 	C.glEnableVertexAttribArray(C.uint(index))
 }
+func (_ GLImpl) FramebufferRenderbuffer(target uint32, attachment uint32, renderbuffertarget uint32, renderbuffer uint32) {
+	C.glFramebufferRenderbuffer(C.uint(target), C.uint(attachment), C.uint(renderbuffertarget), C.uint(renderbuffer))
+}
+func (_ GLImpl) FramebufferTexture(target uint32, attachment uint32, texture uint32, level int32) {
+	C.glFramebufferTexture2D(C.uint(target), C.uint(attachment), C.GL_TEXTURE_2D, C.uint(texture), C.int(level))
+}
 func (_ GLImpl) GenBuffers(n int32, buffers *uint32) {
 	C.glGenBuffers(C.int(n), (*C.uint)(buffers))
+}
+func (_ GLImpl) GenFramebuffers(n int32, framebuffers *uint32) {
+	C.glGenFramebuffers(C.int(n), (*C.uint)(framebuffers))
+}
+func (_ GLImpl) GenRenderbuffers(n int32, renderbuffers *uint32) {
+	C.glGenRenderbuffers(C.int(n), (*C.uint)(renderbuffers))
 }
 func (_ GLImpl) GenTextures(n int32, textures *uint32) {
 	C.glGenTextures(C.int(n), (*C.uint)(textures))
@@ -170,6 +197,9 @@ func (_ GLImpl) LinkProgram(program uint32) {
 func (_ GLImpl) ReadPixels(x int32, y int32, width int32, height int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
 	C.glReadPixels(C.int(x), C.int(y), C.int(width), C.int(height), C.uint(format), C.uint(xtype), pixels)
 }
+func (_ GLImpl) RenderbufferStorage(target uint32, internalformat uint32, width int32, height int32) {
+	C.glRenderbufferStorage(C.uint(target), C.uint(internalformat), C.int(width), C.int(height))
+}
 func (_ GLImpl) Scissor(x int32, y int32, width int32, height int32) {
 	C.glScissor(C.int(x), C.int(y), C.int(width), C.int(height))
 }
@@ -198,6 +228,9 @@ func (_ GLImpl) TexSubImage2D(target uint32, level int32, xoffset int32, yoffset
 }
 func (_ GLImpl) Uniform1f(location int32, v0 float32) {
 	C.glUniform1f(C.int(location), C.float(v0))
+}
+func (_ GLImpl) Uniform1fv(location int32, count int32, v *float32) {
+	C.glUniform1fv(C.int(location), C.int(count), (*C.float)(v))
 }
 func (_ GLImpl) Uniform1i(location int32, v0 int32) {
 	C.glUniform1i(C.int(location), C.int(v0))

@@ -588,14 +588,14 @@ func (cv *Canvas) enableTextureRenderTarget(offscr *offscreenBuffer) {
 
 		gli.GenRenderbuffers(1, &offscr.renderStencilBuf)
 		gli.BindRenderbuffer(gl_RENDERBUFFER, offscr.renderStencilBuf)
-		gli.RenderbufferStorage(gl_RENDERBUFFER, gl_DEPTH_STENCIL, int32(cv.w), int32(cv.h))
+		gli.RenderbufferStorage(gl_RENDERBUFFER, gl_DEPTH24_STENCIL8, int32(cv.w), int32(cv.h))
 		gli.FramebufferRenderbuffer(gl_FRAMEBUFFER, gl_DEPTH_STENCIL_ATTACHMENT, gl_RENDERBUFFER, offscr.renderStencilBuf)
 
 		gli.FramebufferTexture(gl_FRAMEBUFFER, gl_COLOR_ATTACHMENT0, offscr.tex, 0)
 
-		if gli.CheckFramebufferStatus(gl_FRAMEBUFFER) != gl_FRAMEBUFFER_COMPLETE {
+		if err := gli.CheckFramebufferStatus(gl_FRAMEBUFFER); err != gl_FRAMEBUFFER_COMPLETE {
 			// todo this should maybe not panic
-			panic("Failed to set up framebuffer for offscreen texture")
+			panic(fmt.Sprintf("Failed to set up framebuffer for offscreen texture: %x", err))
 		}
 
 		gli.Clear(gl_COLOR_BUFFER_BIT | gl_STENCIL_BUFFER_BIT)
