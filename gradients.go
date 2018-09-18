@@ -40,6 +40,9 @@ type gradientStop struct {
 // the coordinates from where to where the gradient
 // will apply on the canvas
 func NewLinearGradient(x0, y0, x1, y1 float64) *LinearGradient {
+	if gli == nil {
+		panic("LoadGL must be called before gradients can be created")
+	}
 	lg := &LinearGradient{gradient: gradient{from: vec{x0, y0}, to: vec{x1, y1}, opaque: true}}
 	gli.GenTextures(1, &lg.tex)
 	gli.ActiveTexture(gl_TEXTURE0)
@@ -61,6 +64,9 @@ func NewLinearGradient(x0, y0, x1, y1 float64) *LinearGradient {
 // gradient will apply from the first to the second
 // circle
 func NewRadialGradient(x0, y0, r0, x1, y1, r1 float64) *RadialGradient {
+	if gli == nil {
+		panic("LoadGL must be called before gradients can be created")
+	}
 	rg := &RadialGradient{gradient: gradient{from: vec{x0, y0}, to: vec{x1, y1}, opaque: true}, radFrom: r0, radTo: r1}
 	gli.GenTextures(1, &rg.tex)
 	gli.ActiveTexture(gl_TEXTURE0)

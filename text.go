@@ -30,6 +30,9 @@ var defaultFont *Font
 // LoadFont loads a font and returns the result. The font
 // can be a file name or a byte slice in TTF format
 func LoadFont(src interface{}) (*Font, error) {
+	if gli == nil {
+		panic("LoadGL must be called before fonts can be loaded")
+	}
 	var f *Font
 	switch v := src.(type) {
 	case *truetype.Font:
@@ -392,7 +395,7 @@ func (cv *Canvas) MeasureText(str string) TextMetrics {
 	}
 
 	return TextMetrics{
-		Width: x,
+		Width:                    x,
 		ActualBoundingBoxAscent:  -minY,
 		ActualBoundingBoxDescent: +maxY,
 	}

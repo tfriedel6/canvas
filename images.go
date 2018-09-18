@@ -24,6 +24,9 @@ var images = make(map[string]*Image)
 // string. If you want the canvas package to load the image, make sure you
 // import the required format packages
 func LoadImage(src interface{}) (*Image, error) {
+	if gli == nil {
+		panic("LoadGL must be called before images can be loaded")
+	}
 	var img *Image
 	var err error
 	switch v := src.(type) {

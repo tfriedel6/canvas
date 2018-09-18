@@ -102,6 +102,9 @@ const (
 // the origin, since GL uses the bottom left coordinate, the
 // coordinates given here also use the bottom left as origin
 func New(x, y, w, h int) *Canvas {
+	if gli == nil {
+		panic("LoadGL must be called before a canvas can be created")
+	}
 	cv := &Canvas{stateStack: make([]drawState, 0, 20)}
 	cv.SetBounds(x, y, w, h)
 	cv.state.lineWidth = 1
