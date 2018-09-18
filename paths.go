@@ -501,7 +501,11 @@ func lineIntersection(a0, a1, b0, b1 vec) (vec, float64, float64) {
 	if (va[0] == 0 && vb[0] == 0) || (va[1] == 0 && vb[1] == 0) || (va[0] == 0 && va[1] == 0) || (vb[0] == 0 && vb[1] == 0) {
 		return vec{}, float64(math.Inf(1)), float64(math.Inf(1))
 	}
-	p := (vb[1]*(a0[0]-b0[0]) - a0[1]*vb[0] + b0[1]*vb[0]) / (va[1]*vb[0] - va[0]*vb[1])
+	d := va[1]*vb[0] - va[0]*vb[1]
+	if d == 0 {
+		return vec{}, float64(math.Inf(1)), float64(math.Inf(1))
+	}
+	p := (vb[1]*(a0[0]-b0[0]) - a0[1]*vb[0] + b0[1]*vb[0]) / d
 	var q float64
 	if vb[0] == 0 {
 		q = (a0[1] + p*va[1] - b0[1]) / vb[1]
