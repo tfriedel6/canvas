@@ -684,6 +684,10 @@ func (cv *Canvas) SetLineDash(dash []float64) {
 	cv.state.lineDashOffset = 0
 }
 
+func (cv *Canvas) SetLineDashOffset(offset float64) {
+	cv.state.lineDashOffset = offset
+}
+
 // GetLineDash gets the line dash style
 func (cv *Canvas) GetLineDash() []float64 {
 	result := make([]float64, len(cv.state.lineDash))

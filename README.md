@@ -111,6 +111,7 @@ These features *should* work just like their HTML5 counterparts, but there are l
 - miterLimit
 - lineDash
 - getLineDash
+- lineDashOffset
 - global alpha
 - drawImage
 - getImageData
@@ -123,7 +124,6 @@ These features *should* work just like their HTML5 counterparts, but there are l
 # Missing features
 
 - globalCompositeOperation
-- lineDashOffset
 - textBaseline
 - isPointInPath
 - isPointInStroke

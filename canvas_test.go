@@ -239,6 +239,35 @@ func TestLineDash(t *testing.T) {
 	})
 }
 
+func TestLineDashOffset(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		cv.SetStrokeStyle("#0F0")
+		cv.SetLineWidth(2.5)
+		cv.SetLineDash([]float64{4, 6, 8})
+		cv.SetLineDashOffset(5)
+		cv.BeginPath()
+		cv.MoveTo(20, 20)
+		cv.LineTo(80, 20)
+		cv.LineTo(80, 80)
+		cv.LineTo(50, 80)
+		cv.LineTo(50, 50)
+		cv.LineTo(20, 50)
+		cv.ClosePath()
+		cv.MoveTo(30, 30)
+		cv.LineTo(70, 30)
+		cv.LineTo(70, 70)
+		cv.LineTo(60, 70)
+		cv.LineTo(60, 40)
+		cv.LineTo(30, 40)
+		cv.ClosePath()
+		cv.Stroke()
+		ld := cv.GetLineDash()
+		if ld[0] != 4 || ld[1] != 6 || ld[2] != 8 || ld[3] != 4 || ld[4] != 6 || ld[5] != 8 {
+			t.Fail()
+		}
+	})
+}
+
 func TestCurves(t *testing.T) {
 	run(t, func(cv *canvas.Canvas) {
 		cv.SetStrokeStyle("#00F")
