@@ -78,6 +78,7 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 
 	curX := x
 	var p fixed.Point26_6
+	prev, hasPrev := truetype.Index(0), false
 
 	strFrom, strTo := 0, len(str)
 	curInside := false
@@ -93,6 +94,13 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		if err != nil {
 			continue
 		}
+		if hasPrev {
+			kern := fnt.Kern(frc.scale, prev, idx)
+			if frc.hinting != font.HintingNone {
+				kern = (kern + 32) &^ 63
+			}
+			curX += float64(kern) / 64
+		}
 
 		p0 := cv.tf(vec{float64(bounds.Min.X) + curX, float64(bounds.Min.Y) + y})
 		p1 := cv.tf(vec{float64(bounds.Min.X) + curX, float64(bounds.Max.Y) + y})
@@ -106,6 +114,7 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		if !curInside && inside {
 			curInside = true
 			strFrom = i
+			x = curX
 		} else if curInside && !inside {
 			strTo = i
 			break
@@ -121,6 +130,7 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 			strMaxY = bounds.Max.Y
 		}
 		p.X += advance
+		curX += float64(advance) / 64
 	}
 	strWidth = p.X.Ceil() - textOffset.X
 	strHeight := strMaxY - textOffset.Y
@@ -153,7 +163,7 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		}
 	}
 
-	prev, hasPrev := truetype.Index(0), false
+	prev, hasPrev = truetype.Index(0), false
 	for _, rn := range str[strFrom:strTo] {
 		idx := fnt.Index(rn)
 		if idx == 0 {
@@ -395,7 +405,7 @@ func (cv *Canvas) MeasureText(str string) TextMetrics {
 	}
 
 	return TextMetrics{
-		Width:                    x,
+		Width: x,
 		ActualBoundingBoxAscent:  -minY,
 		ActualBoundingBoxDescent: +maxY,
 	}
