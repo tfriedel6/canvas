@@ -4,6 +4,7 @@ package canvas
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/golang/freetype/truetype"
 )
@@ -407,13 +408,16 @@ func parseStyle(value ...interface{}) drawStyle {
 		case *RadialGradient:
 			style.radialGradient = v
 			return style
-		case *Image, string:
-			style.image = getImage(v)
 		}
 	}
 	c, ok := parseColor(value...)
 	if ok {
 		style.color = c
+	} else if len(value) == 1 {
+		switch v := value[0].(type) {
+		case *Image, string:
+			style.image = getImage(v)
+		}
 	}
 	return style
 }
@@ -625,11 +629,11 @@ func (cv *Canvas) SetLineWidth(width float64) {
 // SetFont sets the font and font size. The font parameter can be a font loaded
 // with the LoadFont function, a filename for a font to load (which will be
 // cached), or nil, in which case the first loaded font will be used
-func (cv *Canvas) SetFont(font interface{}, size float64) {
-	if font == nil {
+func (cv *Canvas) SetFont(src interface{}, size float64) {
+	if src == nil {
 		cv.state.font = defaultFont
 	} else {
-		switch v := font.(type) {
+		switch v := src.(type) {
 		case *Font:
 			cv.state.font = v
 		case *truetype.Font:
@@ -639,7 +643,10 @@ func (cv *Canvas) SetFont(font interface{}, size float64) {
 				cv.state.font = f
 			} else {
 				f, err := LoadFont(v)
-				if err == nil {
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error loading font %s: %v\n", v, err)
+					fonts[v] = nil
+				} else {
 					fonts[v] = f
 					cv.state.font = f
 				}

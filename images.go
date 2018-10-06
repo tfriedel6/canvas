@@ -3,9 +3,12 @@ package canvas
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"image"
 	"io/ioutil"
+	"os"
 	"runtime"
+	"strings"
 	"unsafe"
 )
 
@@ -17,7 +20,7 @@ type Image struct {
 	opaque  bool
 }
 
-var images = make(map[string]*Image)
+var images = make(map[interface{}]*Image)
 
 // LoadImage loads an image. The src parameter can be either an image from the
 // standard image package, a byte slice that will be loaded, or a file name
@@ -74,21 +77,38 @@ func LoadImage(src interface{}) (*Image, error) {
 	return img, nil
 }
 
-func getImage(image interface{}) *Image {
-	switch v := image.(type) {
+func getImage(src interface{}) *Image {
+	if img, ok := images[src]; ok {
+		return img
+	}
+	switch v := src.(type) {
 	case *Image:
 		return v
-	case string:
-		if img, ok := images[v]; ok {
-			return img
-		}
+	case image.Image:
 		img, err := LoadImage(v)
 		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error loading image: %v\n", err)
+			images[src] = nil
+			return nil
+		}
+		images[v] = img
+		return img
+	case string:
+		img, err := LoadImage(v)
+		if err != nil {
+			if strings.Contains(strings.ToLower(err.Error()), "format") {
+				fmt.Fprintf(os.Stderr, "Error loading image %s: %v\nIt may be necessary to import the appropriate decoder, e.g.\nimport _ \"image/jpeg\"\n", v, err)
+			} else {
+				fmt.Fprintf(os.Stderr, "Error loading image %s: %v\n", v, err)
+			}
+			images[src] = nil
 			return nil
 		}
 		images[v] = img
 		return img
 	}
+	fmt.Fprintf(os.Stderr, "Unknown image type: %T\n", src)
+	images[src] = nil
 	return nil
 }
 
