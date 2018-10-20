@@ -13,7 +13,7 @@ import (
 func main() {
 	runtime.LockOSThread()
 
-	// init SDL
+	// init GLFW
 	err := glfw.Init()
 	if err != nil {
 		log.Fatalf("Error initializing GLFW: %v", err)

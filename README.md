@@ -10,15 +10,15 @@ Whereas the Javascript API uses a context that all draw calls go to, here all dr
 
 The library is intended to provide decent performance. Obviously it will not be able to rival hand coded OpenGL for a given purpose, but for many purposes it will be enough. It can also be combined with hand coded OpenGL.
 
-# SDL convenience package
+# SDL/GLFW convenience packages
 
-The sdlcanvas subpackage provides a very simple way to get started with just a few lines of code. As the name implies it is based on the SDL library. It creates a window for you and gives you a canvas to draw with.
+The sdlcanvas and glfwcanvas subpackages provide a very simple way to get started with just a few lines of code. As the names imply they are based on the SDL library and the GLFW library respectively. They create a window for you and give you a canvas to draw with.
 
 # OS support
 
 - Linux
 - Windows
-- OSX
+- macOS
 - Android
 - iOS
 
