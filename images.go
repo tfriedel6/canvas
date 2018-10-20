@@ -30,21 +30,47 @@ func LoadImage(src interface{}) (*Image, error) {
 	if gli == nil {
 		panic("LoadGL must be called before images can be loaded")
 	}
+
+	var tex uint32
+	gli.GenTextures(1, &tex)
+	gli.ActiveTexture(gl_TEXTURE0)
+	gli.BindTexture(gl_TEXTURE_2D, tex)
+	if src == nil {
+		return &Image{tex: tex}, nil
+	}
+
+	img, err := loadImage(src, tex)
+	if err != nil {
+		return nil, err
+	}
+
+	runtime.SetFinalizer(img, func(img *Image) {
+		if !img.deleted {
+			glChan <- func() {
+				gli.DeleteTextures(1, &img.tex)
+			}
+		}
+	})
+
+	return img, nil
+}
+
+func loadImage(src interface{}, tex uint32) (*Image, error) {
 	var img *Image
 	var err error
 	switch v := src.(type) {
 	case *image.RGBA:
-		img, err = loadImageRGBA(v)
+		img, err = loadImageRGBA(v, tex)
 		if err != nil {
 			return nil, err
 		}
 	case *image.Gray:
-		img, err = loadImageGray(v)
+		img, err = loadImageGray(v, tex)
 		if err != nil {
 			return nil, err
 		}
 	case image.Image:
-		img, err = loadImageConverted(v)
+		img, err = loadImageConverted(v, tex)
 		if err != nil {
 			return nil, err
 		}
@@ -57,23 +83,16 @@ func LoadImage(src interface{}) (*Image, error) {
 		if err != nil {
 			return nil, err
 		}
-		return LoadImage(srcImg)
+		return loadImage(srcImg, tex)
 	case []byte:
 		srcImg, _, err := image.Decode(bytes.NewReader(v))
 		if err != nil {
 			return nil, err
 		}
-		return LoadImage(srcImg)
+		return loadImage(srcImg, tex)
 	default:
 		return nil, errors.New("Unsupported source type")
 	}
-	runtime.SetFinalizer(img, func(img *Image) {
-		if !img.deleted {
-			glChan <- func() {
-				gli.DeleteTextures(1, &img.tex)
-			}
-		}
-	})
 	return img, nil
 }
 
@@ -112,8 +131,8 @@ func getImage(src interface{}) *Image {
 	return nil
 }
 
-func loadImageRGBA(src *image.RGBA) (*Image, error) {
-	img := &Image{w: src.Bounds().Dx(), h: src.Bounds().Dy(), opaque: true}
+func loadImageRGBA(src *image.RGBA, tex uint32) (*Image, error) {
+	img := &Image{tex: tex, w: src.Bounds().Dx(), h: src.Bounds().Dy(), opaque: true}
 
 checkOpaque:
 	for y := 0; y < img.h; y++ {
@@ -127,9 +146,6 @@ checkOpaque:
 		}
 	}
 
-	gli.GenTextures(1, &img.tex)
-	gli.ActiveTexture(gl_TEXTURE0)
-	gli.BindTexture(gl_TEXTURE_2D, img.tex)
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MIN_FILTER, gl_LINEAR_MIPMAP_LINEAR)
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MAG_FILTER, gl_LINEAR)
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_WRAP_S, gl_CLAMP_TO_EDGE)
@@ -158,11 +174,8 @@ checkOpaque:
 	return img, nil
 }
 
-func loadImageGray(src *image.Gray) (*Image, error) {
-	img := &Image{w: src.Bounds().Dx(), h: src.Bounds().Dy()}
-	gli.GenTextures(1, &img.tex)
-	gli.ActiveTexture(gl_TEXTURE0)
-	gli.BindTexture(gl_TEXTURE_2D, img.tex)
+func loadImageGray(src *image.Gray, tex uint32) (*Image, error) {
+	img := &Image{tex: tex, w: src.Bounds().Dx(), h: src.Bounds().Dy()}
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MIN_FILTER, gl_LINEAR_MIPMAP_LINEAR)
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MAG_FILTER, gl_LINEAR)
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_WRAP_S, gl_CLAMP_TO_EDGE)
@@ -191,11 +204,8 @@ func loadImageGray(src *image.Gray) (*Image, error) {
 	return img, nil
 }
 
-func loadImageConverted(src image.Image) (*Image, error) {
-	img := &Image{w: src.Bounds().Dx(), h: src.Bounds().Dy(), opaque: true}
-	gli.GenTextures(1, &img.tex)
-	gli.ActiveTexture(gl_TEXTURE0)
-	gli.BindTexture(gl_TEXTURE_2D, img.tex)
+func loadImageConverted(src image.Image, tex uint32) (*Image, error) {
+	img := &Image{tex: tex, w: src.Bounds().Dx(), h: src.Bounds().Dy(), opaque: true}
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MIN_FILTER, gl_LINEAR_MIPMAP_LINEAR)
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MAG_FILTER, gl_LINEAR)
 	gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_WRAP_S, gl_CLAMP_TO_EDGE)
@@ -239,6 +249,18 @@ func (img *Image) Size() (int, int) { return img.w, img.h }
 func (img *Image) Delete() {
 	gli.DeleteTextures(1, &img.tex)
 	img.deleted = true
+}
+
+// Replace replaces the image with the new one
+func (img *Image) Replace(src interface{}) {
+	gli.ActiveTexture(gl_TEXTURE0)
+	gli.BindTexture(gl_TEXTURE_2D, img.tex)
+	newImg, err := loadImage(src, img.tex)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error replacing image: %v\n", err)
+		return
+	}
+	*img = *newImg
 }
 
 // DrawImage draws the given image to the given coordinates. The image
