@@ -724,9 +724,10 @@ func (cv *Canvas) Restore() {
 	if l <= 0 {
 		return
 	}
-	gli.StencilMask(0x02)
-	gli.Clear(gl_STENCIL_BUFFER_BIT)
+	cv.state.scissor = scissor{}
+	cv.applyScissor()
 	gli.StencilMask(0xFF)
+	gli.Clear(gl_STENCIL_BUFFER_BIT)
 	for _, st := range cv.stateStack {
 		if len(st.clip) > 0 {
 			cv.clip(st.clip)
