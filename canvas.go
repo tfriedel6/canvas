@@ -220,7 +220,7 @@ var (
 	ir        *imageShader
 	gauss15r  *gaussianShader
 	gauss63r  *gaussianShader
-	gauss255r *gaussianShader
+	gauss127r *gaussianShader
 	offscr1   offscreenBuffer
 	offscr2   offscreenBuffer
 	glChan    = make(chan func())
@@ -354,7 +354,7 @@ func LoadGL(glimpl GL) (err error) {
 	}
 	gauss63r = (*gaussianShader)(gauss63s)
 
-	gauss255s, err := loadGaussian255Shader()
+	gauss127s, err := loadGaussian127Shader()
 	if err != nil {
 		return
 	}
@@ -362,7 +362,7 @@ func LoadGL(glimpl GL) (err error) {
 	if err != nil {
 		return
 	}
-	gauss255r = (*gaussianShader)(gauss255s)
+	gauss127r = (*gaussianShader)(gauss127s)
 
 	gli.GenBuffers(1, &buf)
 	err = glError()

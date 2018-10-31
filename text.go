@@ -405,7 +405,7 @@ func (cv *Canvas) MeasureText(str string) TextMetrics {
 	}
 
 	return TextMetrics{
-		Width: x,
+		Width:                    x,
 		ActualBoundingBoxAscent:  -minY,
 		ActualBoundingBoxDescent: +maxY,
 	}

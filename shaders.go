@@ -327,7 +327,7 @@ _SUM_
     gl_FragColor = color;
 }`
 
-var gaussian255VS = `
+var gaussian127VS = `
 attribute vec2 vertex, texCoord;
 uniform vec2 canvasSize;
 varying vec2 v_texCoord;
@@ -336,14 +336,14 @@ void main() {
 	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
     gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
 }`
-var gaussian255FS = `
+var gaussian127FS = `
 #ifdef GL_ES
 precision mediump float;
 #endif
 varying vec2 v_texCoord;
 uniform vec2 kernelScale;
 uniform sampler2D image;
-uniform float kernel[255];
+uniform float kernel[127];
 void main() {
 	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
 _SUM_
@@ -353,11 +353,11 @@ _SUM_
 func init() {
 	fstr := "\tcolor += texture2D(image, v_texCoord + vec2(%.1f * kernelScale.x, %.1f * kernelScale.y)) * kernel[%d];\n"
 	bb := bytes.Buffer{}
-	for i := 0; i < 255; i++ {
-		off := float64(i) - 127
+	for i := 0; i < 127; i++ {
+		off := float64(i) - 63
 		fmt.Fprintf(&bb, fstr, off, off, i)
 	}
-	gaussian255FS = strings.Replace(gaussian255FS, "_SUM_", bb.String(), -1)
+	gaussian127FS = strings.Replace(gaussian127FS, "_SUM_", bb.String(), -1)
 	bb.Reset()
 	for i := 0; i < 63; i++ {
 		off := float64(i) - 31

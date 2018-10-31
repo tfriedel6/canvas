@@ -128,8 +128,8 @@ func (cv *Canvas) drawBlurredShadow() {
 		gs = gauss63r
 		kernel = kernelBuf[:63]
 	} else {
-		gs = gauss255r
-		kernel = kernelBuf[:255]
+		gs = gauss127r
+		kernel = kernelBuf[:127]
 	}
 
 	gaussianKernel(cv.state.shadowBlur, kernel)
