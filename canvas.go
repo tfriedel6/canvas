@@ -24,6 +24,10 @@ type Canvas struct {
 
 	state      drawState
 	stateStack []drawState
+
+	offscreen bool
+	offscrBuf offscreenBuffer
+	offscrImg Image
 }
 
 type drawState struct {
@@ -118,6 +122,15 @@ func New(x, y, w, h int) *Canvas {
 	return cv
 }
 
+// NewOffscreen creates a new canvas with the given size. It
+// does not render directly to the screen but renders to a
+// texture instead
+func NewOffscreen(w, h int) *Canvas {
+	cv := New(0, 0, w, h)
+	cv.offscreen = true
+	return cv
+}
+
 // SetSize changes the internal size of the canvas. This would
 // usually be called for example when the window is resized
 //
@@ -131,9 +144,11 @@ func (cv *Canvas) SetSize(w, h int) {
 // SetBounds updates the bounds of the canvas. This would
 // usually be called for example when the window is resized
 func (cv *Canvas) SetBounds(x, y, w, h int) {
-	cv.x, cv.y = x, y
+	if !cv.offscreen {
+		cv.x, cv.y = x, y
+		cv.fx, cv.fy = float64(x), float64(y)
+	}
 	cv.w, cv.h = w, h
-	cv.fx, cv.fy = float64(x), float64(y)
 	cv.fw, cv.fh = float64(w), float64(h)
 	activeCanvas = nil
 }
@@ -155,7 +170,16 @@ func (cv *Canvas) tf(v vec) vec {
 // Activate makes the canvas active and sets the viewport. Only needs
 // to be called if any other GL code changes the viewport
 func (cv *Canvas) Activate() {
-	gli.Viewport(int32(cv.x), int32(cv.y), int32(cv.w), int32(cv.h))
+	if cv.offscreen {
+		gli.Viewport(0, 0, int32(cv.w), int32(cv.h))
+		cv.enableTextureRenderTarget(&cv.offscrBuf)
+		cv.offscrImg.w = cv.offscrBuf.w
+		cv.offscrImg.h = cv.offscrBuf.h
+		cv.offscrImg.tex = cv.offscrBuf.tex
+	} else {
+		gli.Viewport(int32(cv.x), int32(cv.y), int32(cv.w), int32(cv.h))
+		cv.disableTextureRenderTarget()
+	}
 	cv.applyScissor()
 	gli.Clear(gl_STENCIL_BUFFER_BIT)
 }
@@ -609,7 +633,11 @@ func (cv *Canvas) enableTextureRenderTarget(offscr *offscreenBuffer) {
 }
 
 func (cv *Canvas) disableTextureRenderTarget() {
-	gli.BindFramebuffer(gl_FRAMEBUFFER, 0)
+	if cv.offscreen {
+		cv.enableTextureRenderTarget(&cv.offscrBuf)
+	} else {
+		gli.BindFramebuffer(gl_FRAMEBUFFER, 0)
+	}
 }
 
 // SetLineWidth sets the line width for any line drawing calls
