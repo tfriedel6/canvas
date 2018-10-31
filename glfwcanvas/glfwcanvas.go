@@ -93,13 +93,13 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 			wnd.MouseUp(int(button), mx, my)
 		}
 	})
-	window.SetCursorPosCallback(func(w *glfw.Window, xpos float64, ypos float64) {
+	window.SetCursorPosCallback(func(w *glfw.Window, xpos, ypos float64) {
 		mx, my = int(math.Round(xpos)), int(math.Round(ypos))
 		if wnd.MouseMove != nil {
 			wnd.MouseMove(mx, my)
 		}
 	})
-	window.SetScrollCallback(func(w *glfw.Window, xoff float64, yoff float64) {
+	window.SetScrollCallback(func(w *glfw.Window, xoff, yoff float64) {
 		if wnd.MouseWheel != nil {
 			wnd.MouseWheel(int(math.Round(xoff)), int(math.Round(yoff)))
 		}
@@ -116,10 +116,15 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 			wnd.KeyChar(char)
 		}
 	})
-	window.SetSizeCallback(func(w *glfw.Window, width int, height int) {
+	window.SetSizeCallback(func(w *glfw.Window, width, height int) {
 		if wnd.SizeChange != nil {
 			wnd.SizeChange(width, height)
+		} else {
+			cv.SetBounds(0, 0, width, height)
 		}
+	})
+	window.SetCloseCallback(func(w *glfw.Window) {
+		wnd.Close()
 	})
 
 	return wnd, cv, nil
