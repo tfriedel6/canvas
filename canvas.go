@@ -232,6 +232,7 @@ type offscreenBuffer struct {
 	h                int
 	renderStencilBuf uint32
 	frameBuf         uint32
+	alpha            bool
 }
 
 type gaussianShader struct {
@@ -607,7 +608,11 @@ func (cv *Canvas) enableTextureRenderTarget(offscr *offscreenBuffer) {
 		gli.GenTextures(1, &offscr.tex)
 		gli.BindTexture(gl_TEXTURE_2D, offscr.tex)
 		// todo do non-power-of-two textures work everywhere?
-		gli.TexImage2D(gl_TEXTURE_2D, 0, gl_RGBA, int32(cv.w), int32(cv.h), 0, gl_RGBA, gl_UNSIGNED_BYTE, nil)
+		if offscr.alpha {
+			gli.TexImage2D(gl_TEXTURE_2D, 0, gl_RGBA, int32(cv.w), int32(cv.h), 0, gl_RGBA, gl_UNSIGNED_BYTE, nil)
+		} else {
+			gli.TexImage2D(gl_TEXTURE_2D, 0, gl_RGB, int32(cv.w), int32(cv.h), 0, gl_RGB, gl_UNSIGNED_BYTE, nil)
+		}
 		gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MAG_FILTER, gl_NEAREST)
 		gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MIN_FILTER, gl_NEAREST)
 

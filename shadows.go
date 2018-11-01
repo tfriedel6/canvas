@@ -12,6 +12,7 @@ func (cv *Canvas) drawShadow(tris []float32) {
 	}
 
 	if cv.state.shadowBlur > 0 {
+		offscr1.alpha = true
 		cv.enableTextureRenderTarget(&offscr1)
 		gli.ClearColor(0, 0, 0, 0)
 		gli.Clear(gl_COLOR_BUFFER_BIT | gl_STENCIL_BUFFER_BIT)
@@ -71,6 +72,7 @@ func (cv *Canvas) drawTextShadow(offset image.Point, strWidth, strHeight int, x,
 	y += cv.state.shadowOffsetY
 
 	if cv.state.shadowBlur > 0 {
+		offscr1.alpha = true
 		cv.enableTextureRenderTarget(&offscr1)
 		gli.ClearColor(0, 0, 0, 0)
 		gli.Clear(gl_COLOR_BUFFER_BIT | gl_STENCIL_BUFFER_BIT)
@@ -134,6 +136,7 @@ func (cv *Canvas) drawBlurredShadow() {
 
 	gaussianKernel(cv.state.shadowBlur, kernel)
 
+	offscr2.alpha = true
 	cv.enableTextureRenderTarget(&offscr2)
 	gli.ClearColor(0, 0, 0, 0)
 	gli.Clear(gl_COLOR_BUFFER_BIT | gl_STENCIL_BUFFER_BIT)
