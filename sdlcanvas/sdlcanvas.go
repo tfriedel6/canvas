@@ -250,3 +250,9 @@ func (wnd *Window) MainLoop(run func()) {
 		wnd.FinishFrame()
 	}
 }
+
+// Size returns the current width and height of the window
+func (wnd *Window) Size() (int, int) {
+	w, h := wnd.Window.GetSize()
+	return int(w), int(h)
+}
