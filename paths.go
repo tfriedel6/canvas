@@ -6,7 +6,9 @@ import (
 )
 
 type path struct {
-	p []pathPoint
+	p     []pathPoint
+	move  vec
+	cwSum float64
 }
 
 type pathPoint struct {
@@ -23,6 +25,7 @@ const (
 	pathAttach
 	pathIsRect
 	pathIsConvex
+	pathIsClockwise
 )
 
 // BeginPath clears the current path and starts a new one
@@ -44,13 +47,12 @@ func (cv *Canvas) MoveTo(x, y float64) {
 		return
 	}
 	cv.path.p = append(cv.path.p, pathPoint{pos: vec{x, y}, tf: tf, flags: pathMove})
+	cv.path.cwSum = 0
+	cv.path.move = vec{x, y}
 }
 
 // LineTo adds a line to the end of the path
 func (cv *Canvas) LineTo(x, y float64) {
-	// cv.strokeLineTo(x, y)
-	// cv.fillLineTo(x, y)
-
 	if len(cv.path.p) > 0 && isSamePoint(cv.path.p[len(cv.path.p)-1].tf, cv.tf(vec{x, y}), 0.1) {
 		return
 	}
@@ -58,10 +60,35 @@ func (cv *Canvas) LineTo(x, y float64) {
 		cv.path.p = append(cv.path.p, pathPoint{pos: vec{x, y}, tf: cv.tf(vec{x, y}), flags: pathMove})
 		return
 	}
+	prev := &cv.path.p[len(cv.path.p)-1]
 	tf := cv.tf(vec{x, y})
-	cv.path.p[len(cv.path.p)-1].next = tf
-	cv.path.p[len(cv.path.p)-1].flags |= pathAttach
+	prev.next = tf
+	prev.flags |= pathAttach
 	cv.path.p = append(cv.path.p, pathPoint{pos: vec{x, y}, tf: tf})
+	newp := &cv.path.p[len(cv.path.p)-1]
+
+	px, py := prev.pos[0], prev.pos[1]
+	cv.path.cwSum += (x - px) * (y + py)
+	cwTotal := cv.path.cwSum
+	cwTotal += (cv.path.move[0] - x) * (cv.path.move[1] + y)
+	if cwTotal <= 0 {
+		newp.flags |= pathIsClockwise
+	}
+
+	if len(cv.path.p) < 4 {
+		newp.flags |= pathIsConvex
+	} else if prev.flags&pathIsConvex > 0 {
+		prev2 := &cv.path.p[len(cv.path.p)-3]
+		cw := (newp.flags & pathIsClockwise) > 0
+
+		ln := prev.pos.sub(prev2.pos)
+		lo := vec{ln[1], -ln[0]}
+		dot := newp.pos.sub(prev2.pos).dot(lo)
+
+		if (cw && dot <= 0) || (!cw && dot >= 0) {
+			newp.flags |= pathIsConvex
+		}
+	}
 }
 
 // Arc adds a circle segment to the end of the path. x/y is the center, radius
