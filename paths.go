@@ -713,12 +713,16 @@ func (cv *Canvas) applyScissor() {
 
 // Rect creates a closed rectangle path for stroking or filling
 func (cv *Canvas) Rect(x, y, w, h float64) {
+	lastWasMove := len(cv.path) == 0 || cv.path[len(cv.path)-1].flags&pathMove != 0
 	cv.MoveTo(x, y)
 	cv.LineTo(x+w, y)
 	cv.LineTo(x+w, y+h)
 	cv.LineTo(x, y+h)
-	cv.ClosePath()
-	cv.path[len(cv.path)-1].flags |= pathIsRect
+	cv.LineTo(x, y)
+	if lastWasMove {
+		cv.path[len(cv.path)-1].flags |= pathIsRect
+		cv.path[len(cv.path)-1].flags |= pathIsConvex
+	}
 }
 
 // StrokeRect draws a rectangle using the current stroke style
