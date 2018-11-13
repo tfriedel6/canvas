@@ -18,7 +18,7 @@ type Canvas struct {
 	x, y, w, h     int
 	fx, fy, fw, fh float64
 
-	path   []pathPoint
+	path   path
 	convex bool
 	rect   bool
 
@@ -49,7 +49,7 @@ type drawState struct {
 	lineDashOffset float64
 
 	scissor scissor
-	clip    []pathPoint
+	clip    path
 
 	shadowColor   glColor
 	shadowOffsetX float64
@@ -762,8 +762,8 @@ func (cv *Canvas) Restore() {
 	gli.StencilMask(0xFF)
 	gli.Clear(gl_STENCIL_BUFFER_BIT)
 	for _, st := range cv.stateStack {
-		if len(st.clip) > 0 {
-			cv.clip(st.clip)
+		if len(st.clip.p) > 0 {
+			cv.clip(st.clip.p)
 		}
 	}
 	cv.state = cv.stateStack[l-1]
