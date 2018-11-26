@@ -421,11 +421,11 @@ func (cv *Canvas) applyLineDash(path []pathPoint) []pathPoint {
 			}
 
 			if draw {
-				path2[len(path2)-1].next = cv.tf(p)
+				path2[len(path2)-1].next = p
 				path2[len(path2)-1].flags |= pathAttach
-				path2 = append(path2, pathPoint{pos: p, tf: cv.tf(p)})
+				path2 = append(path2, pathPoint{pos: p, tf: p})
 			} else {
-				path2 = append(path2, pathPoint{pos: p, tf: cv.tf(p), flags: pathMove})
+				path2 = append(path2, pathPoint{pos: p, tf: p, flags: pathMove})
 			}
 
 			lp = p
