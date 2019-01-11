@@ -99,6 +99,7 @@ These features *should* work just like their HTML5 counterparts, but there are l
 - fillText
 - measureText
 - textAlign
+- textBaseline
 - fillStyle
 - strokeText
 - strokeStyle
@@ -124,6 +125,5 @@ These features *should* work just like their HTML5 counterparts, but there are l
 # Missing features
 
 - globalCompositeOperation
-- textBaseline
 - isPointInPath
 - isPointInStroke

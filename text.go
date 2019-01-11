@@ -73,7 +73,7 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 
 	frc := fontRenderingContext
 	frc.setFont(cv.state.font.font)
-	frc.setFontSize(float64(cv.state.fontSize))
+	frc.setFontSize(cv.state.fontSize)
 	fnt := cv.state.font.font
 
 	curX := x
@@ -197,6 +197,19 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		x -= float64(strWidth)
 	}
 
+	var yOff float64
+	metrics := cv.state.fontMetrics
+	switch cv.state.textBaseline {
+	case Alphabetic:
+		yOff = 0
+	case Middle:
+		yOff = -float64(metrics.Descent)/64 + float64(metrics.Height)*0.5/64
+	case Top, Hanging:
+		yOff = -float64(metrics.Descent)/64 + float64(metrics.Height)/64
+	case Bottom, Ideographic:
+		yOff = -float64(metrics.Descent) / 64
+	}
+
 	gli.ActiveTexture(gl_TEXTURE1)
 	gli.BindTexture(gl_TEXTURE_2D, alphaTex)
 	for y := 0; y < strHeight; y++ {
@@ -215,10 +228,10 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 	gli.EnableVertexAttribArray(vertex)
 	gli.EnableVertexAttribArray(alphaTexCoord)
 
-	p0 := cv.tf(vec{float64(textOffset.X) + x, float64(textOffset.Y) + y})
-	p1 := cv.tf(vec{float64(textOffset.X) + x, float64(textOffset.Y+strHeight) + y})
-	p2 := cv.tf(vec{float64(textOffset.X+strWidth) + x, float64(textOffset.Y+strHeight) + y})
-	p3 := cv.tf(vec{float64(textOffset.X+strWidth) + x, float64(textOffset.Y) + y})
+	p0 := cv.tf(vec{float64(textOffset.X) + x, float64(textOffset.Y) + y + yOff})
+	p1 := cv.tf(vec{float64(textOffset.X) + x, float64(textOffset.Y+strHeight) + y + yOff})
+	p2 := cv.tf(vec{float64(textOffset.X+strWidth) + x, float64(textOffset.Y+strHeight) + y + yOff})
+	p3 := cv.tf(vec{float64(textOffset.X+strWidth) + x, float64(textOffset.Y) + y + yOff})
 
 	tw := float64(strWidth) / alphaTexSize
 	th := float64(strHeight) / alphaTexSize

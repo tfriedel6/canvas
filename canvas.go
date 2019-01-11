@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/golang/freetype/truetype"
+	"golang.org/x/image/font"
 )
 
 //go:generate go run make_shaders.go
@@ -36,7 +37,9 @@ type drawState struct {
 	stroke        drawStyle
 	font          *Font
 	fontSize      float64
+	fontMetrics   font.Metrics
 	textAlign     textAlign
+	textBaseline  textBaseline
 	lineAlpha     float64
 	lineWidth     float64
 	lineJoin      lineJoin
@@ -100,6 +103,18 @@ const (
 	Right
 	Start
 	End
+)
+
+type textBaseline uint8
+
+// Text baseline constants for SetTextBaseline
+const (
+	Alphabetic = iota
+	Top
+	Hanging
+	Middle
+	Ideographic
+	Bottom
 )
 
 // New creates a new canvas with the given viewport coordinates.
@@ -687,12 +702,22 @@ func (cv *Canvas) SetFont(src interface{}, size float64) {
 		}
 	}
 	cv.state.fontSize = size
+
+	fontFace := truetype.NewFace(cv.state.font.font, &truetype.Options{Size: size})
+	cv.state.fontMetrics = fontFace.Metrics()
 }
 
 // SetTextAlign sets the text align for any text drawing calls.
 // The value can be Left, Center, Right, Start, or End
 func (cv *Canvas) SetTextAlign(align textAlign) {
 	cv.state.textAlign = align
+}
+
+// SetTextBaseline sets the text baseline for any text drawing calls.
+// The value can be Alphabetic (default), Top, Hanging, Middle,
+// Ideographic, or Bottom
+func (cv *Canvas) SetTextBaseline(baseline textBaseline) {
+	cv.state.textBaseline = baseline
 }
 
 // SetLineJoin sets the style of line joints for rendering a path with Stroke.
