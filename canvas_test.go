@@ -456,3 +456,16 @@ func TestConvex(t *testing.T) {
 		cv.Fill()
 	})
 }
+
+func TestConvexSelfIntersecting(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		cv.SetFillStyle("#F00")
+		cv.BeginPath()
+		cv.MoveTo(33.7, 31.5)
+		cv.LineTo(35.4, 55.0)
+		cv.LineTo(53.0, 33.5)
+		cv.LineTo(56.4, 62.4)
+		cv.ClosePath()
+		cv.Fill()
+	})
+}

@@ -26,6 +26,7 @@ const (
 	pathIsRect
 	pathIsConvex
 	pathIsClockwise
+	pathSelfIntersects
 )
 
 // BeginPath clears the current path and starts a new one
@@ -53,19 +54,20 @@ func (cv *Canvas) MoveTo(x, y float64) {
 
 // LineTo adds a line to the end of the path
 func (cv *Canvas) LineTo(x, y float64) {
-	if len(cv.path.p) > 0 && isSamePoint(cv.path.p[len(cv.path.p)-1].tf, cv.tf(vec{x, y}), 0.1) {
+	count := len(cv.path.p)
+	if count > 0 && isSamePoint(cv.path.p[len(cv.path.p)-1].tf, cv.tf(vec{x, y}), 0.1) {
 		return
 	}
-	if len(cv.path.p) == 0 {
+	if count == 0 {
 		cv.path.p = append(cv.path.p, pathPoint{pos: vec{x, y}, tf: cv.tf(vec{x, y}), flags: pathMove})
 		return
 	}
-	prev := &cv.path.p[len(cv.path.p)-1]
+	prev := &cv.path.p[count-1]
 	tf := cv.tf(vec{x, y})
 	prev.next = tf
 	prev.flags |= pathAttach
 	cv.path.p = append(cv.path.p, pathPoint{pos: vec{x, y}, tf: tf})
-	newp := &cv.path.p[len(cv.path.p)-1]
+	newp := &cv.path.p[count]
 
 	px, py := prev.pos[0], prev.pos[1]
 	cv.path.cwSum += (x - px) * (y + py)
@@ -75,18 +77,36 @@ func (cv *Canvas) LineTo(x, y float64) {
 		newp.flags |= pathIsClockwise
 	}
 
+	if prev.flags&pathSelfIntersects > 0 {
+		newp.flags |= pathSelfIntersects
+	}
+
 	if len(cv.path.p) < 4 {
 		newp.flags |= pathIsConvex
 	} else if prev.flags&pathIsConvex > 0 {
-		prev2 := &cv.path.p[len(cv.path.p)-3]
-		cw := (newp.flags & pathIsClockwise) > 0
+		cuts := false
+		b0, b1 := prev.pos, vec{x, y}
+		for i := 1; i < count; i++ {
+			a0, a1 := cv.path.p[i-1].pos, cv.path.p[i].pos
+			_, r1, r2 := lineIntersection(a0, a1, b0, b1)
+			if r1 > 0 && r1 < 1 && r2 > 0 && r2 < 1 {
+				cuts = true
+				break
+			}
+		}
+		if cuts {
+			newp.flags |= pathSelfIntersects
+		} else {
+			prev2 := &cv.path.p[len(cv.path.p)-3]
+			cw := (newp.flags & pathIsClockwise) > 0
 
-		ln := prev.pos.sub(prev2.pos)
-		lo := vec{ln[1], -ln[0]}
-		dot := newp.pos.sub(prev2.pos).dot(lo)
+			ln := prev.pos.sub(prev2.pos)
+			lo := vec{ln[1], -ln[0]}
+			dot := newp.pos.sub(prev2.pos).dot(lo)
 
-		if (cw && dot <= 0) || (!cw && dot >= 0) {
-			newp.flags |= pathIsConvex
+			if (cw && dot <= 0) || (!cw && dot >= 0) {
+				newp.flags |= pathIsConvex
+			}
 		}
 	}
 }
@@ -623,7 +643,8 @@ func (cv *Canvas) Fill() {
 }
 
 func (cv *Canvas) appendSubPathTriangles(tris []float32, path []pathPoint) []float32 {
-	if path[len(path)-1].flags&pathIsConvex != 0 {
+	last := path[len(path)-1]
+	if last.flags&pathIsConvex != 0 {
 		p0, p1 := path[0].tf, path[1].tf
 		last := len(path)
 		for i := 2; i < last; i++ {
@@ -631,8 +652,10 @@ func (cv *Canvas) appendSubPathTriangles(tris []float32, path []pathPoint) []flo
 			tris = append(tris, float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]), float32(p2[0]), float32(p2[1]))
 			p1 = p2
 		}
-	} else {
+	} else if last.flags&pathSelfIntersects != 0 {
 		path = cv.cutIntersections(path)
+		tris = triangulatePath(path, tris)
+	} else {
 		tris = triangulatePath(path, tris)
 	}
 	return tris
