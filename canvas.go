@@ -146,16 +146,6 @@ func NewOffscreen(w, h int) *Canvas {
 	return cv
 }
 
-// SetSize changes the internal size of the canvas. This would
-// usually be called for example when the window is resized
-//
-// Deprecated: Use SetBounds instead
-func (cv *Canvas) SetSize(w, h int) {
-	cv.w, cv.h = w, h
-	cv.fw, cv.fh = float64(w), float64(h)
-	activeCanvas = nil
-}
-
 // SetBounds updates the bounds of the canvas. This would
 // usually be called for example when the window is resized
 func (cv *Canvas) SetBounds(x, y, w, h int) {
