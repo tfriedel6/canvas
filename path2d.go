@@ -46,6 +46,10 @@ func (p *Path2D) MoveTo(x, y float64) {
 
 // LineTo (see equivalent function on canvas type)
 func (p *Path2D) LineTo(x, y float64) {
+	p.lineTo(x, y, true)
+}
+
+func (p *Path2D) lineTo(x, y float64, checkSelfIntersection bool) {
 	count := len(p.p)
 	if count > 0 && isSamePoint(p.p[len(p.p)-1].pos, vec{x, y}, 0.1) {
 		return
@@ -72,17 +76,19 @@ func (p *Path2D) LineTo(x, y float64) {
 		newp.flags |= pathSelfIntersects
 	}
 
-	if len(p.p) < 4 {
+	if len(p.p) < 4 || Performance.AssumeConvex {
 		newp.flags |= pathIsConvex
 	} else if prev.flags&pathIsConvex > 0 {
 		cuts := false
-		b0, b1 := prev.pos, vec{x, y}
-		for i := 1; i < count; i++ {
-			a0, a1 := p.p[i-1].pos, p.p[i].pos
-			_, r1, r2 := lineIntersection(a0, a1, b0, b1)
-			if r1 > 0 && r1 < 1 && r2 > 0 && r2 < 1 {
-				cuts = true
-				break
+		if checkSelfIntersection && !Performance.IgnoreSelfIntersections {
+			b0, b1 := prev.pos, vec{x, y}
+			for i := 1; i < count; i++ {
+				a0, a1 := p.p[i-1].pos, p.p[i].pos
+				_, r1, r2 := lineIntersection(a0, a1, b0, b1)
+				if r1 > 0 && r1 < 1 && r2 > 0 && r2 < 1 {
+					cuts = true
+					break
+				}
 			}
 		}
 		if cuts {
@@ -104,6 +110,8 @@ func (p *Path2D) LineTo(x, y float64) {
 
 // Arc (see equivalent function on canvas type)
 func (p *Path2D) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise bool) {
+	checkSelfIntersection := len(p.p) > 0
+
 	lastWasMove := len(p.p) == 0 || p.p[len(p.p)-1].flags&pathMove != 0
 
 	startAngle = math.Mod(startAngle, math.Pi*2)
@@ -123,16 +131,16 @@ func (p *Path2D) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise b
 	if anticlockwise {
 		for a := startAngle; a > endAngle; a -= step {
 			s, c := math.Sincos(a)
-			p.LineTo(x+radius*c, y+radius*s)
+			p.lineTo(x+radius*c, y+radius*s, checkSelfIntersection)
 		}
 	} else {
 		for a := startAngle; a < endAngle; a += step {
 			s, c := math.Sincos(a)
-			p.LineTo(x+radius*c, y+radius*s)
+			p.lineTo(x+radius*c, y+radius*s, checkSelfIntersection)
 		}
 	}
 	s, c := math.Sincos(endAngle)
-	p.LineTo(x+radius*c, y+radius*s)
+	p.lineTo(x+radius*c, y+radius*s, checkSelfIntersection)
 
 	if lastWasMove {
 		p.p[len(p.p)-1].flags |= pathIsConvex

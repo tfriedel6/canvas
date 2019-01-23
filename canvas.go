@@ -117,6 +117,19 @@ const (
 	Bottom
 )
 
+// Performance is a nonstandard setting to improve the
+// performance of the rendering in some circumstances.
+// Disabling self intersections will lead to incorrect
+// rendering of self intersecting polygons, but will
+// yield better performance when not using the polygons
+// are not self intersecting. Assuming convex polygons
+// will break concave polygons, but improve performance
+// even further
+var Performance = struct {
+	IgnoreSelfIntersections bool
+	AssumeConvex            bool
+}{}
+
 // New creates a new canvas with the given viewport coordinates.
 // While all functions on the canvas use the top left point as
 // the origin, since GL uses the bottom left coordinate, the
