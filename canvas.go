@@ -19,7 +19,7 @@ type Canvas struct {
 	x, y, w, h     int
 	fx, fy, fw, fh float64
 
-	path   path
+	path   Path2D
 	convex bool
 	rect   bool
 
@@ -52,7 +52,7 @@ type drawState struct {
 	lineDashOffset float64
 
 	scissor scissor
-	clip    path
+	clip    Path2D
 
 	shadowColor   glColor
 	shadowOffsetX float64

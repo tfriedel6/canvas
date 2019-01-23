@@ -5,30 +5,6 @@ import (
 	"unsafe"
 )
 
-type path struct {
-	p     []pathPoint
-	move  vec
-	cwSum float64
-}
-
-type pathPoint struct {
-	pos   vec
-	tf    vec
-	next  vec
-	flags pathPointFlag
-}
-
-type pathPointFlag uint8
-
-const (
-	pathMove pathPointFlag = 1 << iota
-	pathAttach
-	pathIsRect
-	pathIsConvex
-	pathIsClockwise
-	pathSelfIntersects
-)
-
 // BeginPath clears the current path and starts a new one
 func (cv *Canvas) BeginPath() {
 	if cv.path.p == nil {
@@ -44,116 +20,21 @@ func isSamePoint(a, b vec, maxDist float64) bool {
 // MoveTo adds a gap and moves the end of the path to x/y
 func (cv *Canvas) MoveTo(x, y float64) {
 	tf := cv.tf(vec{x, y})
-	if len(cv.path.p) > 0 && isSamePoint(cv.path.p[len(cv.path.p)-1].tf, tf, 0.1) {
-		return
-	}
-	cv.path.p = append(cv.path.p, pathPoint{pos: vec{x, y}, tf: tf, flags: pathMove})
-	cv.path.cwSum = 0
-	cv.path.move = vec{x, y}
+	cv.path.MoveTo(tf[0], tf[1])
 }
 
 // LineTo adds a line to the end of the path
 func (cv *Canvas) LineTo(x, y float64) {
-	count := len(cv.path.p)
-	if count > 0 && isSamePoint(cv.path.p[len(cv.path.p)-1].tf, cv.tf(vec{x, y}), 0.1) {
-		return
-	}
-	if count == 0 {
-		cv.path.p = append(cv.path.p, pathPoint{pos: vec{x, y}, tf: cv.tf(vec{x, y}), flags: pathMove})
-		return
-	}
-	prev := &cv.path.p[count-1]
 	tf := cv.tf(vec{x, y})
-	prev.next = tf
-	prev.flags |= pathAttach
-	cv.path.p = append(cv.path.p, pathPoint{pos: vec{x, y}, tf: tf})
-	newp := &cv.path.p[count]
-
-	px, py := prev.pos[0], prev.pos[1]
-	cv.path.cwSum += (x - px) * (y + py)
-	cwTotal := cv.path.cwSum
-	cwTotal += (cv.path.move[0] - x) * (cv.path.move[1] + y)
-	if cwTotal <= 0 {
-		newp.flags |= pathIsClockwise
-	}
-
-	if prev.flags&pathSelfIntersects > 0 {
-		newp.flags |= pathSelfIntersects
-	}
-
-	if len(cv.path.p) < 4 {
-		newp.flags |= pathIsConvex
-	} else if prev.flags&pathIsConvex > 0 {
-		cuts := false
-		b0, b1 := prev.pos, vec{x, y}
-		for i := 1; i < count; i++ {
-			a0, a1 := cv.path.p[i-1].pos, cv.path.p[i].pos
-			_, r1, r2 := lineIntersection(a0, a1, b0, b1)
-			if r1 > 0 && r1 < 1 && r2 > 0 && r2 < 1 {
-				cuts = true
-				break
-			}
-		}
-		if cuts {
-			newp.flags |= pathSelfIntersects
-		} else {
-			prev2 := &cv.path.p[len(cv.path.p)-3]
-			cw := (newp.flags & pathIsClockwise) > 0
-
-			ln := prev.pos.sub(prev2.pos)
-			lo := vec{ln[1], -ln[0]}
-			dot := newp.pos.sub(prev2.pos).dot(lo)
-
-			if (cw && dot <= 0) || (!cw && dot >= 0) {
-				newp.flags |= pathIsConvex
-			}
-		}
-	}
+	cv.path.LineTo(tf[0], tf[1])
 }
 
 // Arc adds a circle segment to the end of the path. x/y is the center, radius
 // is the radius, startAngle and endAngle are angles in radians, anticlockwise
 // means that the line is added anticlockwise
 func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise bool) {
-	lastWasMove := len(cv.path.p) == 0 || cv.path.p[len(cv.path.p)-1].flags&pathMove != 0
-
-	startAngle = math.Mod(startAngle, math.Pi*2)
-	if startAngle < 0 {
-		startAngle += math.Pi * 2
-	}
-	endAngle = math.Mod(endAngle, math.Pi*2)
-	if endAngle < 0 {
-		endAngle += math.Pi * 2
-	}
-	if !anticlockwise && endAngle <= startAngle {
-		endAngle += math.Pi * 2
-	} else if anticlockwise && endAngle >= startAngle {
-		endAngle -= math.Pi * 2
-	}
-	tr := cv.tf(vec{radius, radius})
-	step := 6 / math.Max(tr[0], tr[1])
-	if step > 0.8 {
-		step = 0.8
-	} else if step < 0.05 {
-		step = 0.05
-	}
-	if anticlockwise {
-		for a := startAngle; a > endAngle; a -= step {
-			s, c := math.Sincos(a)
-			cv.LineTo(x+radius*c, y+radius*s)
-		}
-	} else {
-		for a := startAngle; a < endAngle; a += step {
-			s, c := math.Sincos(a)
-			cv.LineTo(x+radius*c, y+radius*s)
-		}
-	}
-	s, c := math.Sincos(endAngle)
-	cv.LineTo(x+radius*c, y+radius*s)
-
-	if lastWasMove {
-		cv.path.p[len(cv.path.p)-1].flags |= pathIsConvex
-	}
+	tf := cv.tf(vec{x, y})
+	cv.path.Arc(tf[0], tf[1], radius, startAngle, endAngle, anticlockwise)
 }
 
 // ArcTo adds to the current path by drawing a line toward x1/y1 and a circle
@@ -161,123 +42,45 @@ func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise 
 // lines from the end of the path to x1/y1, and from x1/y1 to x2/y2. The line
 // will only go to where the circle segment would touch the latter line
 func (cv *Canvas) ArcTo(x1, y1, x2, y2, radius float64) {
-	if len(cv.path.p) == 0 {
-		return
-	}
-	p0, p1, p2 := cv.path.p[len(cv.path.p)-1].pos, vec{x1, y1}, vec{x2, y2}
-	v0, v1 := p0.sub(p1).norm(), p2.sub(p1).norm()
-	angle := math.Acos(v0.dot(v1))
-	// should be in the range [0-pi]. if parallel, use a straight line
-	if angle <= 0 || angle >= math.Pi {
-		cv.LineTo(x2, y2)
-		return
-	}
-	// cv are the vectors orthogonal to the lines that point to the center of the circle
-	cv0 := vec{-v0[1], v0[0]}
-	cv1 := vec{v1[1], -v1[0]}
-	x := cv1.sub(cv0).div(v0.sub(v1))[0] * radius
-	if x < 0 {
-		cv0 = cv0.mulf(-1)
-		cv1 = cv1.mulf(-1)
-	}
-	center := p1.add(v0.mulf(math.Abs(x))).add(cv0.mulf(radius))
-	a0, a1 := cv0.mulf(-1).atan2(), cv1.mulf(-1).atan2()
-	cv.Arc(center[0], center[1], radius, a0, a1, x > 0)
+	tf1 := cv.tf(vec{x1, y1})
+	tf2 := cv.tf(vec{x2, y2})
+	cv.path.ArcTo(tf1[0], tf1[1], tf2[0], tf2[1], radius)
 }
 
 // QuadraticCurveTo adds a quadratic curve to the path. It uses the current end
 // point of the path, x1/y1 defines the curve, and x2/y2 is the end point
 func (cv *Canvas) QuadraticCurveTo(x1, y1, x2, y2 float64) {
-	if len(cv.path.p) == 0 {
-		return
-	}
-	p0 := cv.path.p[len(cv.path.p)-1].pos
-	p1 := vec{x1, y1}
-	p2 := vec{x2, y2}
-	v0 := p1.sub(p0)
-	v1 := p2.sub(p1)
-
-	tp0, tp1, tp2 := cv.tf(p0), cv.tf(p1), cv.tf(p2)
-	tv0 := tp1.sub(tp0)
-	tv1 := tp2.sub(tp1)
-
-	step := 1 / math.Max(math.Max(tv0[0], tv0[1]), math.Max(tv1[0], tv1[1]))
-	if step > 0.1 {
-		step = 0.1
-	} else if step < 0.005 {
-		step = 0.005
-	}
-
-	for r := 0.0; r < 1; r += step {
-		i0 := v0.mulf(r).add(p0)
-		i1 := v1.mulf(r).add(p1)
-		p := i1.sub(i0).mulf(r).add(i0)
-		cv.LineTo(p[0], p[1])
-	}
+	tf1 := cv.tf(vec{x1, y1})
+	tf2 := cv.tf(vec{x2, y2})
+	cv.path.QuadraticCurveTo(tf1[0], tf1[1], tf2[0], tf2[1])
 }
 
 // BezierCurveTo adds a bezier curve to the path. It uses the current end point
 // of the path, x1/y1 and x2/y2 define the curve, and x3/y3 is the end point
 func (cv *Canvas) BezierCurveTo(x1, y1, x2, y2, x3, y3 float64) {
-	if len(cv.path.p) == 0 {
-		return
-	}
-	p0 := cv.path.p[len(cv.path.p)-1].pos
-	p1 := vec{x1, y1}
-	p2 := vec{x2, y2}
-	p3 := vec{x3, y3}
-	v0 := p1.sub(p0)
-	v1 := p2.sub(p1)
-	v2 := p3.sub(p2)
-
-	tp0, tp1, tp2, tp3 := cv.tf(p0), cv.tf(p1), cv.tf(p2), cv.tf(p3)
-	tv0 := tp1.sub(tp0)
-	tv1 := tp2.sub(tp1)
-	tv2 := tp3.sub(tp2)
-
-	step := 1 / math.Max(math.Max(math.Max(tv0[0], tv0[1]), math.Max(tv1[0], tv1[1])), math.Max(tv2[0], tv2[1]))
-	if step > 0.1 {
-		step = 0.1
-	} else if step < 0.005 {
-		step = 0.005
-	}
-
-	for r := 0.0; r < 1; r += step {
-		i0 := v0.mulf(r).add(p0)
-		i1 := v1.mulf(r).add(p1)
-		i2 := v2.mulf(r).add(p2)
-		iv0 := i1.sub(i0)
-		iv1 := i2.sub(i1)
-		j0 := iv0.mulf(r).add(i0)
-		j1 := iv1.mulf(r).add(i1)
-		p := j1.sub(j0).mulf(r).add(j0)
-		cv.LineTo(p[0], p[1])
-	}
+	tf1 := cv.tf(vec{x1, y1})
+	tf2 := cv.tf(vec{x2, y2})
+	tf3 := cv.tf(vec{x3, y3})
+	cv.path.BezierCurveTo(tf1[0], tf1[1], tf2[0], tf2[1], tf3[0], tf3[1])
 }
 
 // ClosePath closes the path to the beginning of the path or the last point
 // from a MoveTo call
 func (cv *Canvas) ClosePath() {
-	if len(cv.path.p) < 2 {
-		return
-	}
-	if isSamePoint(cv.path.p[len(cv.path.p)-1].tf, cv.path.p[0].tf, 0.1) {
-		return
-	}
-	closeIdx := 0
-	for i := len(cv.path.p) - 1; i >= 0; i-- {
-		if cv.path.p[i].flags&pathMove != 0 {
-			closeIdx = i
-			break
-		}
-	}
-	cv.LineTo(cv.path.p[closeIdx].pos[0], cv.path.p[closeIdx].pos[1])
-	cv.path.p[len(cv.path.p)-1].next = cv.path.p[closeIdx].next
-	cv.path.p[len(cv.path.p)-1].flags |= pathAttach
+	cv.path.ClosePath()
 }
 
 // Stroke uses the current StrokeStyle to draw the path
-func (cv *Canvas) Stroke() {
+func (cv *Canvas) Stroke(params ...interface{}) {
+	if len(params) > 0 {
+		if p, ok := params[0].(*Path2D); ok {
+			for i := range p.p {
+				p.p[i].tf = cv.tf(p.p[i].pos)
+			}
+			cv.stroke(p.p)
+			return
+		}
+	}
 	cv.stroke(cv.path.p)
 }
 

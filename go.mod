@@ -10,5 +10,5 @@ require (
 	golang.org/x/exp v0.0.0-20181106170214-d68db9428509
 	golang.org/x/image v0.0.0-20181109002202-aa35264064ba
 	golang.org/x/mobile v0.0.0-20181026062114-a27dd33d354d
-	golang.org/x/sys v0.0.0-20181107165924-66b7b1311ac8 // indirect
+	golang.org/x/sys v0.0.0-20181128092732-4ed8d59d0b35 // indirect
 )
