@@ -215,26 +215,28 @@ func (cv *Canvas) applyLineDash(path []pathPoint) []pathPoint {
 
 	path2 := make([]pathPoint, 0, len(path)*2)
 
-	var lp vec
+	var lp pathPoint
 	for i, pp := range path {
 		if i == 0 || pp.flags&pathMove != 0 {
 			path2 = append(path2, pp)
-			lp = pp.tf
+			lp = pp
 			continue
 		}
 
-		tp := pp.tf
-		v := tp.sub(lp)
+		v := pp.pos.sub(lp.pos)
+		vtf := pp.tf.sub(lp.tf)
 		vl := v.len()
 		prev := ldo
 		for vl > 0 {
 			draw := ldp%2 == 0
-			p := tp
+			newp := pathPoint{pos: pp.pos, tf: pp.tf}
 			ldo += vl
 			if ldo > cv.state.lineDash[ldp] {
 				ldo = 0
 				dl := cv.state.lineDash[ldp] - prev
-				p = lp.add(v.mulf(dl / vl))
+				dist := dl / vl
+				newp.pos = lp.pos.add(v.mulf(dist))
+				newp.tf = lp.tf.add(vtf.mulf(dist))
 				vl -= dl
 				ldp++
 				ldp %= len(cv.state.lineDash)
@@ -244,17 +246,19 @@ func (cv *Canvas) applyLineDash(path []pathPoint) []pathPoint {
 			}
 
 			if draw {
-				path2[len(path2)-1].next = p
+				path2[len(path2)-1].next = newp.tf
 				path2[len(path2)-1].flags |= pathAttach
-				path2 = append(path2, pathPoint{pos: p, tf: p})
+				path2 = append(path2, newp)
 			} else {
-				path2 = append(path2, pathPoint{pos: p, tf: p, flags: pathMove})
+				newp.flags = pathMove
+				path2 = append(path2, newp)
 			}
 
-			lp = p
-			v = tp.sub(lp)
+			lp = newp
+			v = pp.pos.sub(lp.pos)
+			vtf = pp.tf.sub(lp.tf)
 		}
-		lp = tp
+		lp = pp
 	}
 
 	return path2
