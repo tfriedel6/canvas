@@ -70,28 +70,27 @@ func (cv *Canvas) ClosePath() {
 	cv.path.ClosePath()
 }
 
-// Stroke uses the current StrokeStyle to draw the path
-func (cv *Canvas) Stroke(params ...interface{}) {
-	if len(params) > 0 {
-		if p, ok := params[0].(*Path2D); ok {
-			for i := range p.p {
-				p.p[i].tf = cv.tf(p.p[i].pos)
-			}
-			cv.stroke(p.p)
-			return
-		}
-	}
-	cv.stroke(cv.path.p)
+// Stroke uses the current StrokeStyle to draw the current path
+func (cv *Canvas) Stroke() {
+	cv.strokePath(&cv.path)
 }
 
-func (cv *Canvas) stroke(path []pathPoint) {
-	if len(path) == 0 {
+// StrokePath uses the current StrokeStyle to draw the given path
+func (cv *Canvas) StrokePath(path *Path2D) {
+	for i := range path.p {
+		path.p[i].tf = cv.tf(path.p[i].pos)
+	}
+	cv.strokePath(path)
+}
+
+func (cv *Canvas) strokePath(path *Path2D) {
+	if len(path.p) == 0 {
 		return
 	}
 
 	cv.activate()
 
-	path = cv.applyLineDash(path)
+	dashedPath := cv.applyLineDash(path.p)
 
 	var triBuf [1000]float32
 	tris := triBuf[:0]
@@ -99,7 +98,7 @@ func (cv *Canvas) stroke(path []pathPoint) {
 
 	start := true
 	var p0 vec
-	for _, p := range path {
+	for _, p := range dashedPath {
 		if p.flags&pathMove != 0 {
 			p0 = p.tf
 			start = true
@@ -374,9 +373,14 @@ func lineIntersection(a0, a1, b0, b1 vec) (vec, float64, float64) {
 	return a0.add(va.mulf(p)), p, q
 }
 
-// Fill fills the current path with the given FillStyle
+// Fill fills the current path with the current FillStyle
 func (cv *Canvas) Fill() {
-	if len(cv.path.p) < 3 {
+	cv.FillPath(&cv.path)
+}
+
+// FillPath fills the given path with the current FillStyle
+func (cv *Canvas) FillPath(path *Path2D) {
+	if len(path.p) < 3 {
 		return
 	}
 	cv.activate()
@@ -386,17 +390,17 @@ func (cv *Canvas) Fill() {
 	tris = append(tris, 0, 0, float32(cv.fw), 0, float32(cv.fw), float32(cv.fh), 0, 0, float32(cv.fw), float32(cv.fh), 0, float32(cv.fh))
 
 	start := 0
-	for i, p := range cv.path.p {
+	for i, p := range path.p {
 		if p.flags&pathMove == 0 {
 			continue
 		}
 		if i >= start+3 {
-			tris = cv.appendSubPathTriangles(tris, cv.path.p[start:i])
+			tris = cv.appendSubPathTriangles(tris, path.p[start:i])
 		}
 		start = i
 	}
-	if len(cv.path.p) >= start+3 {
-		tris = cv.appendSubPathTriangles(tris, cv.path.p[start:])
+	if len(path.p) >= start+3 {
+		tris = cv.appendSubPathTriangles(tris, path.p[start:])
 	}
 	if len(tris) == 0 {
 		return
@@ -594,13 +598,14 @@ func (cv *Canvas) StrokeRect(x, y, w, h float64) {
 	v2 := vec{x + w, y + h}
 	v3 := vec{x, y + h}
 	v0t, v1t, v2t, v3t := cv.tf(v0), cv.tf(v1), cv.tf(v2), cv.tf(v3)
-	var path [5]pathPoint
-	path[0] = pathPoint{pos: v0, tf: v0t, flags: pathMove | pathAttach, next: v1t}
-	path[1] = pathPoint{pos: v1, tf: v1t, next: v2t, flags: pathAttach}
-	path[2] = pathPoint{pos: v2, tf: v2t, next: v3t, flags: pathAttach}
-	path[3] = pathPoint{pos: v3, tf: v3t, next: v0t, flags: pathAttach}
-	path[4] = pathPoint{pos: v0, tf: v0t, next: v1t, flags: pathAttach}
-	cv.stroke(path[:])
+	var p [5]pathPoint
+	p[0] = pathPoint{pos: v0, tf: v0t, flags: pathMove | pathAttach, next: v1t}
+	p[1] = pathPoint{pos: v1, tf: v1t, next: v2t, flags: pathAttach}
+	p[2] = pathPoint{pos: v2, tf: v2t, next: v3t, flags: pathAttach}
+	p[3] = pathPoint{pos: v3, tf: v3t, next: v0t, flags: pathAttach}
+	p[4] = pathPoint{pos: v0, tf: v0t, next: v1t, flags: pathAttach}
+	path := Path2D{p: p[:]}
+	cv.strokePath(&path)
 }
 
 // FillRect fills a rectangle with the active fill style
