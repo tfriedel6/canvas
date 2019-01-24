@@ -100,11 +100,11 @@ func (cv *Canvas) strokePath(path *Path2D) {
 	var p0 vec
 	for _, p := range dashedPath {
 		if p.flags&pathMove != 0 {
-			p0 = p.tf
+			p0 = p.pos
 			start = true
 			continue
 		}
-		p1 := p.tf
+		p1 := p.pos
 
 		v0 := p1.sub(p0).norm()
 		v1 := vec{v0[1], -v0[0]}.mulf(cv.state.lineWidth * 0.5)
@@ -139,9 +139,14 @@ func (cv *Canvas) strokePath(path *Path2D) {
 			}
 		}
 
+		lp0tf := cv.tf(lp0)
+		lp1tf := cv.tf(lp1)
+		lp2tf := cv.tf(lp2)
+		lp3tf := cv.tf(lp3)
+
 		tris = append(tris,
-			float32(lp0[0]), float32(lp0[1]), float32(lp1[0]), float32(lp1[1]), float32(lp3[0]), float32(lp3[1]),
-			float32(lp0[0]), float32(lp0[1]), float32(lp3[0]), float32(lp3[1]), float32(lp2[0]), float32(lp2[1]))
+			float32(lp0tf[0]), float32(lp0tf[1]), float32(lp1tf[0]), float32(lp1tf[1]), float32(lp3tf[0]), float32(lp3tf[1]),
+			float32(lp0tf[0]), float32(lp0tf[1]), float32(lp3tf[0]), float32(lp3tf[1]), float32(lp2tf[0]), float32(lp2tf[1]))
 
 		if p.flags&pathAttach != 0 && cv.state.lineWidth > 1 {
 			tris = cv.lineJoint(p, p0, p1, p.next, lp0, lp1, lp2, lp3, tris)
@@ -267,12 +272,20 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec,
 	v2 := p1.sub(p2).norm()
 	v3 := vec{v2[1], -v2[0]}.mulf(cv.state.lineWidth * 0.5)
 
+	p1tf := cv.tf(p1)
+
 	switch cv.state.lineJoin {
 	case Miter:
 		l1p0 := p2.sub(v3)
 		l1p1 := p1.sub(v3)
 		l1p2 := p2.add(v3)
 		l1p3 := p1.add(v3)
+		// l0p0tf := cv.tf(l0p0)
+		l0p1tf := cv.tf(l0p1)
+		// l0p2tf := cv.tf(l0p2)
+		l0p3tf := cv.tf(l0p3)
+		// l1p0tf := cv.tf(l1p0)
+		// l1p2tf := cv.tf(l1p2)
 
 		var ip0, ip1 vec
 		if l0p1.sub(l1p1).lenSqr() < 0.000000001 {
@@ -288,10 +301,12 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec,
 		if dist := ip0.sub(l0p1).lenSqr(); dist > cv.state.miterLimitSqr {
 			l1p1 := p1.sub(v3)
 			l1p3 := p1.add(v3)
+			l1p1tf := cv.tf(l1p1)
+			l1p3tf := cv.tf(l1p3)
 
 			tris = append(tris,
-				float32(p1[0]), float32(p1[1]), float32(l0p1[0]), float32(l0p1[1]), float32(l1p1[0]), float32(l1p1[1]),
-				float32(p1[0]), float32(p1[1]), float32(l1p3[0]), float32(l1p3[1]), float32(l0p3[0]), float32(l0p3[1]))
+				float32(p1tf[0]), float32(p1tf[1]), float32(l0p1tf[0]), float32(l0p1tf[1]), float32(l1p1tf[0]), float32(l1p1tf[1]),
+				float32(p1tf[0]), float32(p1tf[1]), float32(l1p3tf[0]), float32(l1p3tf[1]), float32(l0p3tf[0]), float32(l0p3tf[1]))
 			return tris
 		}
 
@@ -308,25 +323,37 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec,
 		if dist := ip1.sub(l1p1).lenSqr(); dist > cv.state.miterLimitSqr {
 			l1p1 := p1.sub(v3)
 			l1p3 := p1.add(v3)
+			l1p1tf := cv.tf(l1p1)
+			l1p3tf := cv.tf(l1p3)
 
 			tris = append(tris,
-				float32(p1[0]), float32(p1[1]), float32(l0p1[0]), float32(l0p1[1]), float32(l1p1[0]), float32(l1p1[1]),
-				float32(p1[0]), float32(p1[1]), float32(l1p3[0]), float32(l1p3[1]), float32(l0p3[0]), float32(l0p3[1]))
+				float32(p1tf[0]), float32(p1tf[1]), float32(l0p1tf[0]), float32(l0p1tf[1]), float32(l1p1tf[0]), float32(l1p1tf[1]),
+				float32(p1tf[0]), float32(p1tf[1]), float32(l1p3tf[0]), float32(l1p3tf[1]), float32(l0p3tf[0]), float32(l0p3tf[1]))
 			return tris
 		}
 
+		ip0tf := cv.tf(ip0)
+		ip1tf := cv.tf(ip1)
+		l1p1tf := cv.tf(l1p1)
+		l1p3tf := cv.tf(l1p3)
+
 		tris = append(tris,
-			float32(p1[0]), float32(p1[1]), float32(l0p1[0]), float32(l0p1[1]), float32(ip0[0]), float32(ip0[1]),
-			float32(p1[0]), float32(p1[1]), float32(ip0[0]), float32(ip0[1]), float32(l1p1[0]), float32(l1p1[1]),
-			float32(p1[0]), float32(p1[1]), float32(l1p3[0]), float32(l1p3[1]), float32(ip1[0]), float32(ip1[1]),
-			float32(p1[0]), float32(p1[1]), float32(ip1[0]), float32(ip1[1]), float32(l0p3[0]), float32(l0p3[1]))
+			float32(p1tf[0]), float32(p1tf[1]), float32(l0p1tf[0]), float32(l0p1tf[1]), float32(ip0tf[0]), float32(ip0tf[1]),
+			float32(p1tf[0]), float32(p1tf[1]), float32(ip0tf[0]), float32(ip0tf[1]), float32(l1p1tf[0]), float32(l1p1tf[1]),
+			float32(p1tf[0]), float32(p1tf[1]), float32(l1p3tf[0]), float32(l1p3tf[1]), float32(ip1tf[0]), float32(ip1tf[1]),
+			float32(p1tf[0]), float32(p1tf[1]), float32(ip1tf[0]), float32(ip1tf[1]), float32(l0p3tf[0]), float32(l0p3tf[1]))
 	case Bevel:
 		l1p1 := p1.sub(v3)
 		l1p3 := p1.add(v3)
 
+		l0p1tf := cv.tf(l0p1)
+		l0p3tf := cv.tf(l0p3)
+		l1p1tf := cv.tf(l1p1)
+		l1p3tf := cv.tf(l1p3)
+
 		tris = append(tris,
-			float32(p1[0]), float32(p1[1]), float32(l0p1[0]), float32(l0p1[1]), float32(l1p1[0]), float32(l1p1[1]),
-			float32(p1[0]), float32(p1[1]), float32(l1p3[0]), float32(l1p3[1]), float32(l0p3[0]), float32(l0p3[1]))
+			float32(p1tf[0]), float32(p1tf[1]), float32(l0p1tf[0]), float32(l0p1tf[1]), float32(l1p1tf[0]), float32(l1p1tf[1]),
+			float32(p1tf[0]), float32(p1tf[1]), float32(l1p3tf[0]), float32(l1p3tf[1]), float32(l0p3tf[0]), float32(l0p3tf[1]))
 	case Round:
 		tris = cv.addCircleTris(p1, cv.state.lineWidth*0.5, tris)
 	}
@@ -335,17 +362,19 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec,
 }
 
 func (cv *Canvas) addCircleTris(center vec, radius float64, tris []float32) []float32 {
-	p0 := vec{center[0], center[1] + radius}
 	step := 6 / radius
 	if step > 0.8 {
 		step = 0.8
 	} else if step < 0.05 {
 		step = 0.05
 	}
+	tfcenter := cv.tf(center)
+	p0 := cv.tf(vec{center[0], center[1] + radius})
 	for angle := step; angle <= math.Pi*2+step; angle += step {
 		s, c := math.Sincos(angle)
-		p1 := vec{center[0] + s*radius, center[1] + c*radius}
-		tris = append(tris, float32(center[0]), float32(center[1]), float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]))
+		p1 := cv.tf(vec{center[0] + s*radius, center[1] + c*radius})
+		tris = append(tris,
+			float32(tfcenter[0]), float32(tfcenter[1]), float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]))
 		p0 = p1
 	}
 	return tris
@@ -600,10 +629,10 @@ func (cv *Canvas) StrokeRect(x, y, w, h float64) {
 	v0t, v1t, v2t, v3t := cv.tf(v0), cv.tf(v1), cv.tf(v2), cv.tf(v3)
 	var p [5]pathPoint
 	p[0] = pathPoint{pos: v0, tf: v0t, flags: pathMove | pathAttach, next: v1t}
-	p[1] = pathPoint{pos: v1, tf: v1t, next: v2t, flags: pathAttach}
-	p[2] = pathPoint{pos: v2, tf: v2t, next: v3t, flags: pathAttach}
-	p[3] = pathPoint{pos: v3, tf: v3t, next: v0t, flags: pathAttach}
-	p[4] = pathPoint{pos: v0, tf: v0t, next: v1t, flags: pathAttach}
+	p[1] = pathPoint{pos: v1, tf: v1t, next: v2, flags: pathAttach}
+	p[2] = pathPoint{pos: v2, tf: v2t, next: v3, flags: pathAttach}
+	p[3] = pathPoint{pos: v3, tf: v3t, next: v0, flags: pathAttach}
+	p[4] = pathPoint{pos: v0, tf: v0t, next: v1, flags: pathAttach}
 	path := Path2D{p: p[:]}
 	cv.strokePath(&path)
 }
