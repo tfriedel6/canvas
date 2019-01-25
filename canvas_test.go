@@ -469,3 +469,53 @@ func TestConvexSelfIntersecting(t *testing.T) {
 		cv.Fill()
 	})
 }
+
+func TestTransform(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		path := canvas.NewPath2D()
+		path.MoveTo(-10, -10)
+		path.LineTo(10, -10)
+		path.LineTo(0, 10)
+		path.ClosePath()
+
+		cv.Translate(40, 20)
+		cv.BeginPath()
+		cv.LineTo(10, 10)
+		cv.LineTo(30, 10)
+		cv.LineTo(20, 30)
+		cv.ClosePath()
+		cv.SetStrokeStyle("#F00")
+		cv.Stroke()
+		cv.SetStrokeStyle("#0F0")
+		cv.StrokePath(path)
+		cv.Translate(20, 0)
+		cv.SetStrokeStyle("#00F")
+		cv.StrokePath(path)
+		cv.Translate(-40, 30)
+		cv.BeginPath()
+		cv.LineTo(10, 10)
+		cv.LineTo(30, 10)
+		cv.LineTo(20, 30)
+		cv.ClosePath()
+		cv.Translate(20, 0)
+		cv.SetStrokeStyle("#FF0")
+		cv.Stroke()
+		cv.Translate(20, 0)
+		cv.SetStrokeStyle("#F0F")
+		cv.StrokePath(path)
+	})
+}
+
+func TestTransform2(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		cv.SetStrokeStyle("#FFF")
+		cv.SetLineWidth(16)
+		cv.MoveTo(20, 20)
+		cv.LineTo(20, 50)
+		cv.Scale(2, 1)
+		cv.LineTo(45, 80)
+		cv.SetLineJoin(canvas.Round)
+		cv.SetLineCap(canvas.Round)
+		cv.Stroke()
+	})
+}

@@ -66,7 +66,7 @@ func triangulatePath(path []pathPoint, target []float32) []float32 {
 	var buf [500]vec
 	polygon := buf[:0]
 	for _, p := range path {
-		polygon = append(polygon, p.tf)
+		polygon = append(polygon, p.pos)
 	}
 
 	for len(polygon) > 2 {
@@ -161,9 +161,8 @@ func (cv *Canvas) cutIntersections(path []pathPoint) []pathPoint {
 
 	for _, cut := range cuts {
 		copy(newPath[cut.to+1:], newPath[cut.to:])
-		newPath[cut.to].next = newPath[cut.to+1].tf
+		newPath[cut.to].next = newPath[cut.to+1].pos
 		newPath[cut.to].pos = cut.point
-		newPath[cut.to].tf = cv.tf(cut.point)
 	}
 
 	return newPath

@@ -43,7 +43,7 @@ type drawState struct {
 	lineAlpha     float64
 	lineWidth     float64
 	lineJoin      lineJoin
-	lineEnd       lineEnd
+	lineCap       lineCap
 	miterLimitSqr float64
 	globalAlpha   float64
 
@@ -83,9 +83,9 @@ type scissor struct {
 }
 
 type lineJoin uint8
-type lineEnd uint8
+type lineCap uint8
 
-// Line join and end constants for SetLineJoin and SetLineEnd
+// Line join and end constants for SetLineJoin and SetLineCap
 const (
 	Miter = iota
 	Bevel
@@ -729,10 +729,15 @@ func (cv *Canvas) SetLineJoin(join lineJoin) {
 	cv.state.lineJoin = join
 }
 
-// SetLineEnd sets the style of line endings for rendering a path with Stroke
+// SetLineEnd is a synonym for SetLineCap that was misnamed by mistake. Deprecated
+func (cv *Canvas) SetLineEnd(cap lineCap) {
+	cv.SetLineCap(cap)
+}
+
+// SetLineCap sets the style of line endings for rendering a path with Stroke
 // The value can be Butt, Square, or Round
-func (cv *Canvas) SetLineEnd(end lineEnd) {
-	cv.state.lineEnd = end
+func (cv *Canvas) SetLineCap(cap lineCap) {
+	cv.state.lineCap = cap
 }
 
 // SetLineDash sets the line dash style

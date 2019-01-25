@@ -10,7 +10,6 @@ type Path2D struct {
 
 type pathPoint struct {
 	pos   vec
-	tf    vec
 	next  vec
 	flags pathPointFlag
 }
@@ -39,7 +38,7 @@ func (p *Path2D) MoveTo(x, y float64) {
 	if len(p.p) > 0 && isSamePoint(p.p[len(p.p)-1].pos, vec{x, y}, 0.1) {
 		return
 	}
-	p.p = append(p.p, pathPoint{pos: vec{x, y}, tf: vec{x, y}, flags: pathMove}) // todo more flags probably
+	p.p = append(p.p, pathPoint{pos: vec{x, y}, flags: pathMove}) // todo more flags probably
 	p.cwSum = 0
 	p.move = vec{x, y}
 }
@@ -61,7 +60,7 @@ func (p *Path2D) lineTo(x, y float64, checkSelfIntersection bool) {
 	prev := &p.p[count-1]
 	prev.next = vec{x, y}
 	prev.flags |= pathAttach
-	p.p = append(p.p, pathPoint{pos: vec{x, y}, tf: vec{x, y}})
+	p.p = append(p.p, pathPoint{pos: vec{x, y}})
 	newp := &p.p[count]
 
 	px, py := prev.pos[0], prev.pos[1]
