@@ -568,6 +568,10 @@ func (cv *Canvas) scissor(path []pathPoint) {
 		br[1] = math.Min(br[1], cv.state.scissor.br[1])
 	}
 
+	if tl[0] >= br[0] || tl[1] >= br[1] {
+		tl, br = vec{}, vec{}
+	}
+
 	cv.state.scissor = scissor{tl: tl, br: br, on: true}
 	cv.applyScissor()
 }
