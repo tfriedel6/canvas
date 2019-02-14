@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/golang/freetype/truetype"
+	"github.com/tfriedel6/canvas/backend/backendbase"
 	"golang.org/x/image/font"
 )
 
@@ -36,8 +37,8 @@ type Canvas struct {
 
 type drawState struct {
 	transform     mat
-	fill          DrawStyle
-	stroke        DrawStyle
+	fill          drawStyle
+	stroke        drawStyle
 	font          *Font
 	fontSize      float64
 	fontMetrics   font.Metrics
@@ -73,11 +74,11 @@ type drawState struct {
 	*/
 }
 
-type DrawStyle struct {
-	Color          color.RGBA
-	RadialGradient *RadialGradient
-	LinearGradient *LinearGradient
-	Image          *Image
+type drawStyle struct {
+	color          color.RGBA
+	radialGradient *RadialGradient
+	linearGradient *LinearGradient
+	image          *Image
 }
 
 type scissor struct {
@@ -147,8 +148,8 @@ func New(backend Backend, x, y, w, h int) *Canvas {
 	cv.state.lineAlpha = 1
 	cv.state.miterLimitSqr = 100
 	cv.state.globalAlpha = 1
-	cv.state.fill.Color = color.RGBA{A: 255}
-	cv.state.stroke.Color = color.RGBA{A: 255}
+	cv.state.fill.color = color.RGBA{A: 255}
+	cv.state.stroke.color = color.RGBA{A: 255}
 	cv.state.transform = matIdentity()
 	return cv
 }
@@ -455,45 +456,52 @@ func (cv *Canvas) SetStrokeStyle(value ...interface{}) {
 	cv.state.stroke = parseStyle(value...)
 }
 
-func parseStyle(value ...interface{}) DrawStyle {
-	var style DrawStyle
+func parseStyle(value ...interface{}) drawStyle {
+	var style drawStyle
 	if len(value) == 1 {
 		switch v := value[0].(type) {
 		case *LinearGradient:
-			style.LinearGradient = v
+			style.linearGradient = v
 			return style
 		case *RadialGradient:
-			style.RadialGradient = v
+			style.radialGradient = v
 			return style
 		}
 	}
 	c, ok := parseColor(value...)
 	if ok {
-		style.Color = c
+		style.color = c
 	} else if len(value) == 1 {
 		switch v := value[0].(type) {
 		case *Image, string:
-			style.Image = getImage(v)
+			style.image = getImage(v)
 		}
 	}
 	return style
 }
 
-func (s *DrawStyle) isOpaque() bool {
-	if lg := s.LinearGradient; lg != nil {
+func (s *drawStyle) isOpaque() bool {
+	if lg := s.linearGradient; lg != nil {
 		return lg.opaque
 	}
-	if rg := s.RadialGradient; rg != nil {
+	if rg := s.radialGradient; rg != nil {
 		return rg.opaque
 	}
-	if img := s.Image; img != nil {
+	if img := s.image; img != nil {
 		return img.opaque
 	}
-	return s.Color.A >= 255
+	return s.color.A >= 255
 }
 
-func (cv *Canvas) useShader(style *DrawStyle) (vertexLoc uint32) {
-	if lg := style.LinearGradient; lg != nil {
+func (cv *Canvas) backendStyle(s *drawStyle) backendbase.Style {
+	return backendbase.Style{
+		Color:       s.color,
+		GlobalAlpha: cv.state.globalAlpha,
+	}
+}
+
+func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
+	if lg := style.linearGradient; lg != nil {
 		lg.load()
 		gli.ActiveTexture(gl_TEXTURE0)
 		gli.BindTexture(gl_TEXTURE_2D, lg.tex)
@@ -511,7 +519,7 @@ func (cv *Canvas) useShader(style *DrawStyle) (vertexLoc uint32) {
 		gli.Uniform1f(lgr.globalAlpha, float32(cv.state.globalAlpha))
 		return lgr.vertex
 	}
-	if rg := style.RadialGradient; rg != nil {
+	if rg := style.radialGradient; rg != nil {
 		rg.load()
 		gli.ActiveTexture(gl_TEXTURE0)
 		gli.BindTexture(gl_TEXTURE_2D, rg.tex)
@@ -532,7 +540,7 @@ func (cv *Canvas) useShader(style *DrawStyle) (vertexLoc uint32) {
 		gli.Uniform1f(rgr.globalAlpha, float32(cv.state.globalAlpha))
 		return rgr.vertex
 	}
-	if img := style.Image; img != nil {
+	if img := style.image; img != nil {
 		gli.UseProgram(ipr.id)
 		gli.ActiveTexture(gl_TEXTURE0)
 		gli.BindTexture(gl_TEXTURE_2D, img.tex)
@@ -545,14 +553,14 @@ func (cv *Canvas) useShader(style *DrawStyle) (vertexLoc uint32) {
 
 	gli.UseProgram(sr.id)
 	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
-	c := colorGoToGL(style.Color)
+	c := colorGoToGL(style.color)
 	gli.Uniform4f(sr.color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
 	gli.Uniform1f(sr.globalAlpha, float32(cv.state.globalAlpha))
 	return sr.vertex
 }
 
-func (cv *Canvas) useAlphaShader(style *DrawStyle, alphaTexSlot int32) (vertexLoc, alphaTexCoordLoc uint32) {
-	if lg := style.LinearGradient; lg != nil {
+func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLoc, alphaTexCoordLoc uint32) {
+	if lg := style.linearGradient; lg != nil {
 		lg.load()
 		gli.ActiveTexture(gl_TEXTURE0)
 		gli.BindTexture(gl_TEXTURE_2D, lg.tex)
@@ -571,7 +579,7 @@ func (cv *Canvas) useAlphaShader(style *DrawStyle, alphaTexSlot int32) (vertexLo
 		gli.Uniform1f(lgar.globalAlpha, float32(cv.state.globalAlpha))
 		return lgar.vertex, lgar.alphaTexCoord
 	}
-	if rg := style.RadialGradient; rg != nil {
+	if rg := style.radialGradient; rg != nil {
 		rg.load()
 		gli.ActiveTexture(gl_TEXTURE0)
 		gli.BindTexture(gl_TEXTURE_2D, rg.tex)
@@ -593,7 +601,7 @@ func (cv *Canvas) useAlphaShader(style *DrawStyle, alphaTexSlot int32) (vertexLo
 		gli.Uniform1f(rgar.globalAlpha, float32(cv.state.globalAlpha))
 		return rgar.vertex, rgar.alphaTexCoord
 	}
-	if img := style.Image; img != nil {
+	if img := style.image; img != nil {
 		gli.UseProgram(ipar.id)
 		gli.ActiveTexture(gl_TEXTURE0)
 		gli.BindTexture(gl_TEXTURE_2D, img.tex)
@@ -607,7 +615,7 @@ func (cv *Canvas) useAlphaShader(style *DrawStyle, alphaTexSlot int32) (vertexLo
 
 	gli.UseProgram(sar.id)
 	gli.Uniform2f(sar.canvasSize, float32(cv.fw), float32(cv.fh))
-	c := colorGoToGL(style.Color)
+	c := colorGoToGL(style.color)
 	gli.Uniform4f(sar.color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
 	gli.Uniform1i(sar.alphaTex, alphaTexSlot)
 	gli.Uniform1f(sar.globalAlpha, float32(cv.state.globalAlpha))

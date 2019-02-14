@@ -646,19 +646,10 @@ func (cv *Canvas) FillRect(x, y, w, h float64) {
 		cv.drawShadow(tris[:])
 	}
 
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	data := [8]float32{float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]), float32(p2[0]), float32(p2[1]), float32(p3[0]), float32(p3[1])}
-	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
+	data := [4][2]float64{{p0[0], p0[1]}, {p1[0], p1[1]}, {p2[0], p2[1]}, {p3[0], p3[1]}}
 
-	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
-
-	vertex := cv.useShader(&cv.state.fill)
-	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
-	gli.EnableVertexAttribArray(vertex)
-	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
-	gli.DisableVertexAttribArray(vertex)
-
-	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
+	stl := cv.backendStyle(&cv.state.fill)
+	cv.b.Fill(&stl, data)
 }
 
 // ClearRect sets the color of the rectangle to transparent black
@@ -671,30 +662,12 @@ func (cv *Canvas) ClearRect(x, y, w, h float64) {
 		return
 	}
 
-	gli.UseProgram(sr.id)
-	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
-	gli.Uniform4f(sr.color, 0, 0, 0, 0)
-	gli.Uniform1f(sr.globalAlpha, 1)
-
-	gli.Disable(gl_BLEND)
-
 	p0 := cv.tf(vec{x, y})
 	p1 := cv.tf(vec{x, y + h})
 	p2 := cv.tf(vec{x + w, y + h})
 	p3 := cv.tf(vec{x + w, y})
 
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	data := [8]float32{float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]), float32(p2[0]), float32(p2[1]), float32(p3[0]), float32(p3[1])}
-	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
+	data := [4][2]float64{{p0[0], p0[1]}, {p1[0], p1[1]}, {p2[0], p2[1]}, {p3[0], p3[1]}}
 
-	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
-
-	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
-	gli.EnableVertexAttribArray(sr.vertex)
-	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
-	gli.DisableVertexAttribArray(sr.vertex)
-
-	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
-
-	gli.Enable(gl_BLEND)
+	cv.b.Clear(data)
 }

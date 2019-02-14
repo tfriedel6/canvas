@@ -2,9 +2,11 @@ package goglbackend
 
 import (
 	"fmt"
+	"image/color"
 
 	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/tfriedel6/canvas"
+	"github.com/tfriedel6/canvas/backend/backendbase"
 )
 
 const alphaTexSize = 2048
@@ -212,4 +214,151 @@ func glError() error {
 		return fmt.Errorf("GL Error: %x", glErr)
 	}
 	return nil
+}
+
+type glColor struct {
+	r, g, b, a float64
+}
+
+func colorGoToGL(c color.RGBA) glColor {
+	var glc glColor
+	glc.r = float64(c.R) / 255
+	glc.g = float64(c.G) / 255
+	glc.b = float64(c.B) / 255
+	glc.a = float64(c.A) / 255
+	return glc
+}
+
+func (b *GoGLBackend) useShader(style *backendbase.Style) (vertexLoc uint32) {
+	// if lg := style.LinearGradient; lg != nil {
+	// 	lg.load()
+	// 	gl.ActiveTexture(gl.TEXTURE0)
+	// 	gl.BindTexture(gl.TEXTURE_2D, lg.tex)
+	// 	gl.UseProgram(lgr.id)
+	// 	from := cv.tf(lg.from)
+	// 	to := cv.tf(lg.to)
+	// 	dir := to.sub(from)
+	// 	length := dir.len()
+	// 	dir = dir.divf(length)
+	// 	gl.Uniform2f(lgr.canvasSize, float32(cv.fw), float32(cv.fh))
+	// 	inv := cv.state.transform.invert().f32()
+	// 	gl.UniformMatrix3fv(lgr.invmat, 1, false, &inv[0])
+	// 	gl.Uniform2f(lgr.from, float32(from[0]), float32(from[1]))
+	// 	gl.Uniform2f(lgr.dir, float32(dir[0]), float32(dir[1]))
+	// 	gl.Uniform1f(lgr.len, float32(length))
+	// 	gl.Uniform1i(lgr.gradient, 0)
+	// 	gl.Uniform1f(lgr.globalAlpha, float32(cv.state.globalAlpha))
+	// 	return lgr.vertex
+	// }
+	// if rg := style.RadialGradient; rg != nil {
+	// 	rg.load()
+	// 	gl.ActiveTexture(gl.TEXTURE0)
+	// 	gl.BindTexture(gl.TEXTURE_2D, rg.tex)
+	// 	gl.UseProgram(rgr.id)
+	// 	from := cv.tf(rg.from)
+	// 	to := cv.tf(rg.to)
+	// 	dir := to.sub(from)
+	// 	length := dir.len()
+	// 	dir = dir.divf(length)
+	// 	gl.Uniform2f(rgr.canvasSize, float32(cv.fw), float32(cv.fh))
+	// 	inv := cv.state.transform.invert().f32()
+	// 	gl.UniformMatrix3fv(rgr.invmat, 1, false, &inv[0])
+	// 	gl.Uniform2f(rgr.from, float32(from[0]), float32(from[1]))
+	// 	gl.Uniform2f(rgr.to, float32(to[0]), float32(to[1]))
+	// 	gl.Uniform2f(rgr.dir, float32(dir[0]), float32(dir[1]))
+	// 	gl.Uniform1f(rgr.radFrom, float32(rg.radFrom))
+	// 	gl.Uniform1f(rgr.radTo, float32(rg.radTo))
+	// 	gl.Uniform1f(rgr.len, float32(length))
+	// 	gl.Uniform1i(rgr.gradient, 0)
+	// 	gl.Uniform1f(rgr.globalAlpha, float32(cv.state.globalAlpha))
+	// 	return rgr.vertex
+	// }
+	// if img := style.Image; img != nil {
+	// 	gl.UseProgram(ipr.id)
+	// 	gl.ActiveTexture(gl.TEXTURE0)
+	// 	gl.BindTexture(gl.TEXTURE_2D, img.tex)
+	// 	gl.Uniform2f(ipr.canvasSize, float32(cv.fw), float32(cv.fh))
+	// 	inv := cv.state.transform.invert().f32()
+	// 	gl.UniformMatrix3fv(ipr.invmat, 1, false, &inv[0])
+	// 	gl.Uniform2f(ipr.imageSize, float32(img.w), float32(img.h))
+	// 	gl.Uniform1i(ipr.image, 0)
+	// 	gl.Uniform1f(ipr.globalAlpha, float32(cv.state.globalAlpha))
+	// 	return ipr.vertex
+	// }
+
+	gl.UseProgram(b.sr.ID)
+	gl.Uniform2f(b.sr.CanvasSize, float32(b.fw), float32(b.fh))
+	c := colorGoToGL(style.Color)
+	gl.Uniform4f(b.sr.Color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
+	gl.Uniform1f(b.sr.GlobalAlpha, float32(style.GlobalAlpha))
+	return b.sr.Vertex
+}
+
+func (b *GoGLBackend) useAlphaShader(style *backendbase.Style, alphaTexSlot int32) (vertexLoc, alphaTexCoordLoc uint32) {
+	// if lg := style.LinearGradient; lg != nil {
+	// 	lg.load()
+	// 	gl.ActiveTexture(gl.TEXTURE0)
+	// 	gl.BindTexture(gl.TEXTURE_2D, lg.tex)
+	// 	gl.UseProgram(lgar.id)
+	// 	from := cv.tf(lg.from)
+	// 	to := cv.tf(lg.to)
+	// 	dir := to.sub(from)
+	// 	length := dir.len()
+	// 	dir = dir.divf(length)
+	// 	gl.Uniform2f(lgar.canvasSize, float32(cv.fw), float32(cv.fh))
+	// 	inv := cv.state.transform.invert().f32()
+	// 	gl.UniformMatrix3fv(lgar.invmat, 1, false, &inv[0])
+	// 	gl.Uniform2f(lgar.from, float32(from[0]), float32(from[1]))
+	// 	gl.Uniform2f(lgar.dir, float32(dir[0]), float32(dir[1]))
+	// 	gl.Uniform1f(lgar.len, float32(length))
+	// 	gl.Uniform1i(lgar.gradient, 0)
+	// 	gl.Uniform1i(lgar.alphaTex, alphaTexSlot)
+	// 	gl.Uniform1f(lgar.globalAlpha, float32(cv.state.globalAlpha))
+	// 	return lgar.vertex, lgar.alphaTexCoord
+	// }
+	// if rg := style.RadialGradient; rg != nil {
+	// 	rg.load()
+	// 	gl.ActiveTexture(gl.TEXTURE0)
+	// 	gl.BindTexture(gl.TEXTURE_2D, rg.tex)
+	// 	gl.UseProgram(rgar.id)
+	// 	from := cv.tf(rg.from)
+	// 	to := cv.tf(rg.to)
+	// 	dir := to.sub(from)
+	// 	length := dir.len()
+	// 	dir = dir.divf(length)
+	// 	gl.Uniform2f(rgar.canvasSize, float32(cv.fw), float32(cv.fh))
+	// 	inv := cv.state.transform.invert().f32()
+	// 	gl.UniformMatrix3fv(rgar.invmat, 1, false, &inv[0])
+	// 	gl.Uniform2f(rgar.from, float32(from[0]), float32(from[1]))
+	// 	gl.Uniform2f(rgar.to, float32(to[0]), float32(to[1]))
+	// 	gl.Uniform2f(rgar.dir, float32(dir[0]), float32(dir[1]))
+	// 	gl.Uniform1f(rgar.radFrom, float32(rg.radFrom))
+	// 	gl.Uniform1f(rgar.radTo, float32(rg.radTo))
+	// 	gl.Uniform1f(rgar.len, float32(length))
+	// 	gl.Uniform1i(rgar.gradient, 0)
+	// 	gl.Uniform1i(rgar.alphaTex, alphaTexSlot)
+	// 	gl.Uniform1f(rgar.globalAlpha, float32(cv.state.globalAlpha))
+	// 	return rgar.vertex, rgar.alphaTexCoord
+	// }
+	// if img := style.Image; img != nil {
+	// 	gl.UseProgram(ipar.id)
+	// 	gl.ActiveTexture(gl.TEXTURE0)
+	// 	gl.BindTexture(gl.TEXTURE_2D, img.tex)
+	// 	gl.Uniform2f(ipar.canvasSize, float32(cv.fw), float32(cv.fh))
+	// 	inv := cv.state.transform.invert().f32()
+	// 	gl.UniformMatrix3fv(ipar.invmat, 1, false, &inv[0])
+	// 	gl.Uniform2f(ipar.imageSize, float32(img.w), float32(img.h))
+	// 	gl.Uniform1i(ipar.image, 0)
+	// 	gl.Uniform1i(ipar.alphaTex, alphaTexSlot)
+	// 	gl.Uniform1f(ipar.globalAlpha, float32(cv.state.globalAlpha))
+	// 	return ipar.vertex, ipar.alphaTexCoord
+	// }
+
+	gl.UseProgram(b.sar.ID)
+	gl.Uniform2f(b.sar.CanvasSize, float32(b.fw), float32(b.fh))
+	c := colorGoToGL(style.Color)
+	gl.Uniform4f(b.sar.Color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
+	gl.Uniform1i(b.sar.AlphaTex, alphaTexSlot)
+	gl.Uniform1f(b.sar.GlobalAlpha, float32(style.GlobalAlpha))
+	return b.sar.Vertex, b.sar.AlphaTexCoord
 }
