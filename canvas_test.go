@@ -2,6 +2,7 @@ package canvas_test
 
 import (
 	"fmt"
+	"image"
 	"image/png"
 	"math"
 	"os"
@@ -23,7 +24,7 @@ func run(t *testing.T, fn func(cv *canvas.Canvas)) {
 	}
 	defer wnd.Destroy()
 
-	cv := canvas.NewOffscreen(100, 100, false)
+	cv := canvas.NewOffscreen(wnd.Backend, 100, 100, false)
 
 	gl.Disable(gl.MULTISAMPLE)
 
@@ -58,15 +59,9 @@ func run(t *testing.T, fn func(cv *canvas.Canvas)) {
 	}
 
 	if os.IsNotExist(err) {
-		f, err := os.OpenFile(fileName, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0777)
+		err = writeImage(img, fileName)
 		if err != nil {
-			t.Fatalf("Failed to create file \"%s\"", fileName)
-		}
-		defer f.Close()
-
-		err = png.Encode(f, img)
-		if err != nil {
-			t.Fatalf("Failed to encode PNG")
+			t.Fatal(err)
 		}
 		return
 	}
@@ -95,13 +90,29 @@ func run(t *testing.T, fn func(cv *canvas.Canvas)) {
 			r2, g2, b2, a2 := img2.At(x, y).RGBA()
 			r3, g3, b3, a3 := refImg.At(x, y).RGBA()
 			if r1 != r3 || g1 != g3 || b1 != b3 || a1 != a3 {
+				writeImage(img, fmt.Sprintf("testdata/%s_fail.png", callerFuncName))
 				t.FailNow()
 			}
 			if r2 != r3 || g2 != g3 || b2 != b3 || a2 != a3 {
+				writeImage(img2, fmt.Sprintf("testdata/%s_fail.png", callerFuncName))
 				t.FailNow()
 			}
 		}
 	}
+}
+
+func writeImage(img *image.RGBA, fileName string) error {
+	f, err := os.OpenFile(fileName, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0777)
+	if err != nil {
+		return fmt.Errorf("Failed to create file \"%s\"", fileName)
+	}
+	defer f.Close()
+
+	err = png.Encode(f, img)
+	if err != nil {
+		return fmt.Errorf("Failed to encode PNG")
+	}
+	return nil
 }
 
 func TestFillRect(t *testing.T) {

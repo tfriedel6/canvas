@@ -47,8 +47,8 @@ func (cv *Canvas) drawShadow(tris []float32) {
 
 	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
 
-	var style drawStyle
-	style.color = cv.state.shadowColor
+	var style DrawStyle
+	style.Color = colorGLToGo(cv.state.shadowColor)
 
 	vertex := cv.useShader(&style)
 	gli.EnableVertexAttribArray(vertex)
@@ -82,8 +82,8 @@ func (cv *Canvas) drawTextShadow(offset image.Point, strWidth, strHeight int, x,
 
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 
-	var style drawStyle
-	style.color = cv.state.shadowColor
+	var style DrawStyle
+	style.Color = colorGLToGo(cv.state.shadowColor)
 
 	vertex, alphaTexCoord := cv.useAlphaShader(&style, 1)
 

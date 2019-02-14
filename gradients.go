@@ -143,7 +143,8 @@ func (g *gradient) colorAt(pos float64) glColor {
 // don't have to be added in order, they are sorted into the
 // right place
 func (g *gradient) AddColorStop(pos float64, color ...interface{}) {
-	c, _ := parseColor(color...)
+	gc, _ := parseColor(color...)
+	c := colorGoToGL(gc)
 	if c.a < 1 {
 		g.opaque = false
 	}

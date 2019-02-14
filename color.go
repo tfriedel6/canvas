@@ -3,6 +3,7 @@ package canvas
 import (
 	"fmt"
 	"image/color"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -21,7 +22,7 @@ func colorGoToGL(color color.Color) glColor {
 	return c
 }
 
-func colorGLToGo(c glColor) color.Color {
+func colorGLToGo(c glColor) color.RGBA {
 	if c.r < 0 {
 		c.r = 0
 	} else if c.r > 1 {
@@ -74,18 +75,18 @@ func parseHexRunePair(rn1, rn2 rune) (int, bool) {
 	return i1*16 + i2, true
 }
 
-func parseColorComponent(value interface{}) (float64, bool) {
+func parseColorComponent(value interface{}) (uint8, bool) {
 	switch v := value.(type) {
 	case float32:
-		return float64(v), true
+		return uint8(math.Floor(float64(v) * 255)), true
 	case float64:
-		return v, true
+		return uint8(math.Floor(v * 255)), true
 	case int:
-		return float64(v) / 255, true
+		return uint8(v), true
 	case uint:
-		return float64(v) / 255, true
+		return uint8(v), true
 	case uint8:
-		return float64(v) / 255, true
+		return v, true
 	case string:
 		if len(v) == 0 {
 			return 0, false
@@ -99,7 +100,7 @@ func parseColorComponent(value interface{}) (float64, bool) {
 			if err != nil {
 				return 0, false
 			}
-			return float64(conv) / 255, true
+			return uint8(conv), true
 		} else if strings.ContainsRune(v, '.') {
 			conv, err := strconv.ParseFloat(v, 32)
 			if err != nil {
@@ -110,45 +111,78 @@ func parseColorComponent(value interface{}) (float64, bool) {
 			} else if conv > 1 {
 				conv = 1
 			}
-			return float64(conv), true
+			return uint8(conv), true
 		} else {
 			conv, err := strconv.ParseUint(v, 10, 8)
 			if err != nil {
 				return 0, false
 			}
-			return float64(conv) / 255, true
+			return uint8(conv), true
 		}
 	}
 	return 0, false
 }
 
-func parseColor(value ...interface{}) (c glColor, ok bool) {
+func parseColor(value ...interface{}) (c color.RGBA, ok bool) {
 	if len(value) == 1 {
 		switch v := value[0].(type) {
 		case color.Color:
-			c = colorGoToGL(v)
+			r, g, b, a := v.RGBA()
+			c = color.RGBA{R: uint8(r >> 8), G: uint8(g >> 8), B: uint8(b >> 8), A: uint8(a >> 8)}
 			ok = true
 			return
 		case [3]float32:
-			return glColor{r: float64(v[0]), g: float64(v[1]), b: float64(v[2]), a: 1}, true
+			return color.RGBA{
+				R: uint8(math.Floor(float64(v[0] * 255))),
+				G: uint8(math.Floor(float64(v[1] * 255))),
+				B: uint8(math.Floor(float64(v[2] * 255))),
+				A: 255}, true
 		case [4]float32:
-			return glColor{r: float64(v[0]), g: float64(v[1]), b: float64(v[2]), a: float64(v[3])}, true
+			return color.RGBA{
+				R: uint8(math.Floor(float64(v[0] * 255))),
+				G: uint8(math.Floor(float64(v[1] * 255))),
+				B: uint8(math.Floor(float64(v[2] * 255))),
+				A: uint8(math.Floor(float64(v[3] * 255)))}, true
 		case [3]float64:
-			return glColor{r: v[0], g: v[1], b: v[2], a: 1}, true
+			return color.RGBA{
+				R: uint8(math.Floor(v[0] * 255)),
+				G: uint8(math.Floor(v[1] * 255)),
+				B: uint8(math.Floor(v[2] * 255)),
+				A: 255}, true
 		case [4]float64:
-			return glColor{r: v[0], g: v[1], b: v[2], a: v[3]}, true
+			return color.RGBA{
+				R: uint8(math.Floor(v[0] * 255)),
+				G: uint8(math.Floor(v[1] * 255)),
+				B: uint8(math.Floor(v[2] * 255)),
+				A: uint8(math.Floor(v[3] * 255))}, true
 		case [3]int:
-			return glColor{r: float64(v[0]) / 255, g: float64(v[1]) / 255, b: float64(v[2]) / 255, a: 1}, true
+			return color.RGBA{
+				R: uint8(v[0]),
+				G: uint8(v[1]),
+				B: uint8(v[2]),
+				A: 255}, true
 		case [4]int:
-			return glColor{r: float64(v[0]) / 255, g: float64(v[1]) / 255, b: float64(v[2]) / 255, a: float64(v[3]) / 255}, true
+			return color.RGBA{
+				R: uint8(v[0]),
+				G: uint8(v[1]),
+				B: uint8(v[2]),
+				A: uint8(v[3])}, true
 		case [3]uint:
-			return glColor{r: float64(v[0]) / 255, g: float64(v[1]) / 255, b: float64(v[2]) / 255, a: 1}, true
+			return color.RGBA{
+				R: uint8(v[0]),
+				G: uint8(v[1]),
+				B: uint8(v[2]),
+				A: 255}, true
 		case [4]uint:
-			return glColor{r: float64(v[0]) / 255, g: float64(v[1]) / 255, b: float64(v[2]) / 255, a: float64(v[3]) / 255}, true
+			return color.RGBA{
+				R: uint8(v[0]),
+				G: uint8(v[1]),
+				B: uint8(v[2]),
+				A: uint8(v[3])}, true
 		case [3]uint8:
-			return glColor{r: float64(v[0]) / 255, g: float64(v[1]) / 255, b: float64(v[2]) / 255, a: 1}, true
+			return color.RGBA{R: v[0], G: v[1], B: v[2], A: 255}, true
 		case [4]uint8:
-			return glColor{r: float64(v[0]) / 255, g: float64(v[1]) / 255, b: float64(v[2]) / 255, a: float64(v[3]) / 255}, true
+			return color.RGBA{R: v[0], G: v[1], B: v[2], A: v[3]}, true
 		case string:
 			if len(v) == 0 {
 				return
@@ -180,7 +214,7 @@ func parseColor(value ...interface{}) (c glColor, ok bool) {
 						}
 						ia = ia*16 + ia
 					}
-					return glColor{r: float64(ir) / 255, g: float64(ig) / 255, b: float64(ib) / 255, a: float64(ia) / 255}, true
+					return color.RGBA{R: uint8(ir), G: uint8(ig), B: uint8(ib), A: uint8(ia)}, true
 				} else if len(str) == 6 || len(str) == 8 {
 					var ir, ig, ib int
 					ia := 255
@@ -202,7 +236,7 @@ func parseColor(value ...interface{}) (c glColor, ok bool) {
 							return
 						}
 					}
-					return glColor{r: float64(ir) / 255, g: float64(ig) / 255, b: float64(ib) / 255, a: float64(ia) / 255}, true
+					return color.RGBA{R: uint8(ir), G: uint8(ig), B: uint8(ib), A: uint8(ia)}, true
 				} else {
 					return
 				}
@@ -211,16 +245,16 @@ func parseColor(value ...interface{}) (c glColor, ok bool) {
 				var ir, ig, ib, ia int
 				n, err := fmt.Sscanf(v, "rgb(%d,%d,%d)", &ir, &ig, &ib)
 				if err == nil && n == 3 {
-					return glColor{r: float64(ir) / 255, g: float64(ig) / 255, b: float64(ib) / 255, a: 1}, true
+					return color.RGBA{R: uint8(ir), G: uint8(ig), B: uint8(ib), A: 255}, true
 				}
 				n, err = fmt.Sscanf(v, "rgba(%d,%d,%d,%d)", &ir, &ig, &ib, &ia)
 				if err == nil && n == 4 {
-					return glColor{r: float64(ir) / 255, g: float64(ig) / 255, b: float64(ib) / 255, a: float64(ia) / 255}, true
+					return color.RGBA{R: uint8(ir), G: uint8(ig), B: uint8(ib), A: uint8(ia)}, true
 				}
 			}
 		}
 	} else if len(value) == 3 || len(value) == 4 {
-		var pr, pg, pb, pa float64
+		var pr, pg, pb, pa uint8
 		pr, ok = parseColorComponent(value[0])
 		if !ok {
 			return
@@ -239,10 +273,10 @@ func parseColor(value ...interface{}) (c glColor, ok bool) {
 				return
 			}
 		} else {
-			pa = 1
+			pa = 255
 		}
-		return glColor{r: pr, g: pg, b: pb, a: pa}, true
+		return color.RGBA{R: pr, G: pg, B: pb, A: pa}, true
 	}
 
-	return glColor{r: 0, g: 0, b: 0, a: 1}, false
+	return color.RGBA{A: 255}, false
 }

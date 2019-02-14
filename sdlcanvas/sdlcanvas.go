@@ -5,12 +5,14 @@ import (
 	_ "image/gif" // Imported here so that applications based on this package support these formats by default
 	_ "image/jpeg"
 	_ "image/png"
+	"log"
 	"runtime"
 	"time"
 	"unicode/utf8"
 
 	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/tfriedel6/canvas"
+	"github.com/tfriedel6/canvas/backend/gogl"
 	"github.com/tfriedel6/canvas/glimpl/gogl"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -21,6 +23,7 @@ type Window struct {
 	Window     *sdl.Window
 	WindowID   uint32
 	GLContext  sdl.GLContext
+	Backend    canvas.Backend
 	canvas     *canvas.Canvas
 	frameTimes [10]time.Time
 	frameIndex int
@@ -86,6 +89,11 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 		return nil, nil, fmt.Errorf("Error initializing GL: %v", err)
 	}
 
+	backend, err := goglbackend.New(0, 0, 1280, 720)
+	if err != nil {
+		log.Fatalf("Error loading GoGL backend: %v", err)
+	}
+
 	sdl.GLSetSwapInterval(1)
 	gl.Enable(gl.MULTISAMPLE)
 
@@ -94,11 +102,12 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 		return nil, nil, fmt.Errorf("Error loading canvas GL assets: %v", err)
 	}
 
-	cv := canvas.New(0, 0, w, h)
+	cv := canvas.New(backend, 0, 0, w, h)
 	wnd := &Window{
 		Window:    window,
 		WindowID:  windowID,
 		GLContext: glContext,
+		Backend:   backend,
 		canvas:    cv,
 		events:    make([]sdl.Event, 0, 100),
 	}
