@@ -666,9 +666,7 @@ func (cv *Canvas) ClearRect(x, y, w, h float64) {
 	cv.activate()
 
 	if cv.state.transform == matIdentity() {
-		gli.Scissor(int32(x+0.5), int32(cv.fh-y-h+0.5), int32(w+0.5), int32(h+0.5))
-		gli.ClearColor(0, 0, 0, 0)
-		gli.Clear(gl_COLOR_BUFFER_BIT)
+		cv.b.ClearRect(int(x+0.5), int(y+0.5), int(w+0.5), int(h+0.5))
 		cv.applyScissor()
 		return
 	}

@@ -16,6 +16,8 @@ import (
 // Canvas represents an area on the viewport on which to draw
 // using a set of functions very similar to the HTML5 canvas
 type Canvas struct {
+	b Backend
+
 	x, y, w, h     int
 	fx, fy, fw, fh float64
 
@@ -134,11 +136,11 @@ var Performance = struct {
 // While all functions on the canvas use the top left point as
 // the origin, since GL uses the bottom left coordinate, the
 // coordinates given here also use the bottom left as origin
-func New(x, y, w, h int) *Canvas {
+func New(backend Backend, x, y, w, h int) *Canvas {
 	if gli == nil {
 		panic("LoadGL must be called before a canvas can be created")
 	}
-	cv := &Canvas{stateStack: make([]drawState, 0, 20)}
+	cv := &Canvas{b: backend, stateStack: make([]drawState, 0, 20)}
 	cv.SetBounds(x, y, w, h)
 	cv.state.lineWidth = 1
 	cv.state.lineAlpha = 1
@@ -154,8 +156,8 @@ func New(x, y, w, h int) *Canvas {
 // does not render directly to the screen but renders to a
 // texture instead. If alpha is set to true, the offscreen
 // canvas will have an alpha channel
-func NewOffscreen(w, h int, alpha bool) *Canvas {
-	cv := New(0, 0, w, h)
+func NewOffscreen(backend Backend, w, h int, alpha bool) *Canvas {
+	cv := New(backend, 0, 0, w, h)
 	cv.offscreen = true
 	cv.offscrBuf.alpha = alpha
 	return cv
