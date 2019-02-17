@@ -493,10 +493,10 @@ func (s *drawStyle) isOpaque() bool {
 	return s.color.A >= 255
 }
 
-func (cv *Canvas) backendStyle(s *drawStyle) backendbase.Style {
+func (cv *Canvas) backendStyle(s *drawStyle, alpha float64) backendbase.Style {
 	return backendbase.Style{
 		Color:       s.color,
-		GlobalAlpha: cv.state.globalAlpha,
+		GlobalAlpha: cv.state.globalAlpha * alpha,
 	}
 }
 

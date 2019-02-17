@@ -648,8 +648,8 @@ func (cv *Canvas) FillRect(x, y, w, h float64) {
 
 	data := [4][2]float64{{p0[0], p0[1]}, {p1[0], p1[1]}, {p2[0], p2[1]}, {p3[0], p3[1]}}
 
-	stl := cv.backendStyle(&cv.state.fill)
-	cv.b.Fill(&stl, data)
+	stl := cv.backendStyle(&cv.state.fill, 1)
+	cv.b.Fill(&stl, data[:])
 }
 
 // ClearRect sets the color of the rectangle to transparent black

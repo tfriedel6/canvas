@@ -33,6 +33,8 @@ type GoGLBackend struct {
 	offscr1   offscreenBuffer
 	offscr2   offscreenBuffer
 	glChan    chan func()
+
+	ptsBuf []float32
 }
 
 type offscreenBuffer struct {
@@ -53,10 +55,11 @@ func New(x, y, w, h int) (canvas.Backend, error) {
 	gl.GetError() // clear error state
 
 	b := &GoGLBackend{
-		w:  w,
-		h:  h,
-		fw: float64(w),
-		fh: float64(h),
+		w:      w,
+		h:      h,
+		fw:     float64(w),
+		fh:     float64(h),
+		ptsBuf: make([]float32, 0, 4096),
 	}
 
 	err = loadShader(solidVS, solidFS, &b.sr.shaderProgram)
