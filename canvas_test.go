@@ -22,7 +22,7 @@ func run(t *testing.T, fn func(cv *canvas.Canvas)) {
 	}
 	defer wnd.Destroy()
 
-	cv := canvas.NewOffscreen(100, 100)
+	cv := canvas.NewOffscreen(100, 100, false)
 
 	gl.Disable(gl.MULTISAMPLE)
 

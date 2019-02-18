@@ -152,11 +152,22 @@ func New(x, y, w, h int) *Canvas {
 
 // NewOffscreen creates a new canvas with the given size. It
 // does not render directly to the screen but renders to a
-// texture instead
-func NewOffscreen(w, h int) *Canvas {
+// texture instead. If alpha is set to true, the offscreen
+// canvas will have an alpha channel
+func NewOffscreen(w, h int, alpha bool) *Canvas {
 	cv := New(0, 0, w, h)
 	cv.offscreen = true
+	cv.offscrBuf.alpha = alpha
 	return cv
+}
+
+func DeleteOffscreen(cv *Canvas) {
+	if !cv.offscreen {
+		return
+	}
+	gli.DeleteTextures(1, &cv.offscrBuf.tex)
+	gli.DeleteFramebuffers(1, &cv.offscrBuf.frameBuf)
+	gli.DeleteRenderbuffers(1, &cv.offscrBuf.renderStencilBuf)
 }
 
 // SetBounds updates the bounds of the canvas. This would
