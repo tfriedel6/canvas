@@ -17,14 +17,12 @@ import (
 )
 
 func run(t *testing.T, fn func(cv *canvas.Canvas)) {
-	wnd, cv2, err := sdlcanvas.CreateWindow(100, 100, "test")
+	wnd, cv, err := sdlcanvas.CreateWindow(100, 100, "test")
 	if err != nil {
 		t.Fatalf("Failed to crete window: %v", err)
 		return
 	}
 	defer wnd.Destroy()
-
-	cv := canvas.NewOffscreen(wnd.Backend, 100, 100, false)
 
 	gl.Disable(gl.MULTISAMPLE)
 
@@ -33,9 +31,6 @@ func run(t *testing.T, fn func(cv *canvas.Canvas)) {
 	cv.ClearRect(0, 0, 100, 100)
 	fn(cv)
 	img := cv.GetImageData(0, 0, 100, 100)
-
-	cv2.DrawImage(cv)
-	img2 := cv2.GetImageData(0, 0, 100, 100)
 
 	caller, _, _, ok := runtime.Caller(1)
 	if !ok {
@@ -87,16 +82,9 @@ func run(t *testing.T, fn func(cv *canvas.Canvas)) {
 	for y := 0; y < 100; y++ {
 		for x := 0; x < 100; x++ {
 			r1, g1, b1, a1 := img.At(x, y).RGBA()
-			r2, g2, b2, a2 := img2.At(x, y).RGBA()
-			r3, g3, b3, a3 := refImg.At(x, y).RGBA()
-			if r1 != r3 || g1 != g3 || b1 != b3 || a1 != a3 {
+			r2, g2, b2, a2 := refImg.At(x, y).RGBA()
+			if r1 != r2 || g1 != g2 || b1 != b2 || a1 != a2 {
 				writeImage(img, fmt.Sprintf("testdata/%s_fail.png", callerFuncName))
-				t.Error("onscreen canvas failed")
-				t.FailNow()
-			}
-			if r2 != r3 || g2 != g3 || b2 != b3 || a2 != a3 {
-				writeImage(img2, fmt.Sprintf("testdata/%s_fail.png", callerFuncName))
-				t.Error("offscreen canvas failed")
 				t.FailNow()
 			}
 		}

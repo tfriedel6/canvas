@@ -18,7 +18,7 @@ import (
 // Canvas represents an area on the viewport on which to draw
 // using a set of functions very similar to the HTML5 canvas
 type Canvas struct {
-	b Backend
+	b backendbase.Backend
 
 	x, y, w, h     int
 	fx, fy, fw, fh float64
@@ -34,16 +34,9 @@ type Canvas struct {
 	offscrBuf offscreenBuffer
 	offscrImg Image
 
-	shadowBuf [][2]float64
-}
+	images map[interface{}]*Image
 
-// Backend is used by the canvas to actually do the final
-// drawing. This enables the backend to be implemented by
-// various methods (OpenGL, but also other APIs or software)
-type Backend interface {
-	ClearRect(x, y, w, h int)
-	Clear(pts [4][2]float64)
-	Fill(style *backendbase.Style, pts [][2]float64)
+	shadowBuf [][2]float64
 }
 
 type drawState struct {
@@ -149,11 +142,15 @@ var Performance = struct {
 // While all functions on the canvas use the top left point as
 // the origin, since GL uses the bottom left coordinate, the
 // coordinates given here also use the bottom left as origin
-func New(backend Backend, x, y, w, h int) *Canvas {
+func New(backend backendbase.Backend, x, y, w, h int) *Canvas {
 	if gli == nil {
 		panic("LoadGL must be called before a canvas can be created")
 	}
-	cv := &Canvas{b: backend, stateStack: make([]drawState, 0, 20)}
+	cv := &Canvas{
+		b:          backend,
+		stateStack: make([]drawState, 0, 20),
+		images:     make(map[interface{}]*Image),
+	}
 	cv.SetBounds(x, y, w, h)
 	cv.state.lineWidth = 1
 	cv.state.lineAlpha = 1
@@ -169,7 +166,7 @@ func New(backend Backend, x, y, w, h int) *Canvas {
 // does not render directly to the screen but renders to a
 // texture instead. If alpha is set to true, the offscreen
 // canvas will have an alpha channel
-func NewOffscreen(backend Backend, w, h int, alpha bool) *Canvas {
+func NewOffscreen(backend backendbase.Backend, w, h int, alpha bool) *Canvas {
 	cv := New(backend, 0, 0, w, h)
 	cv.offscreen = true
 	cv.offscrBuf.alpha = alpha
@@ -217,9 +214,9 @@ func (cv *Canvas) Activate() {
 	if cv.offscreen {
 		gli.Viewport(0, 0, int32(cv.w), int32(cv.h))
 		cv.enableTextureRenderTarget(&cv.offscrBuf)
-		cv.offscrImg.w = cv.offscrBuf.w
-		cv.offscrImg.h = cv.offscrBuf.h
-		cv.offscrImg.tex = cv.offscrBuf.tex
+		// cv.offscrImg.w = cv.offscrBuf.w
+		// cv.offscrImg.h = cv.offscrBuf.h
+		// cv.offscrImg.tex = cv.offscrBuf.tex
 	} else {
 		gli.Viewport(int32(cv.x), int32(cv.y), int32(cv.w), int32(cv.h))
 		cv.disableTextureRenderTarget()
@@ -456,7 +453,7 @@ func glError() error {
 // the range 0-255, 3 or 4 float values for RGB(A) in the range 0-1, hex strings
 // in the format "#AABBCC", "#AABBCCDD", "#ABC", or "#ABCD"
 func (cv *Canvas) SetFillStyle(value ...interface{}) {
-	cv.state.fill = parseStyle(value...)
+	cv.state.fill = cv.parseStyle(value...)
 }
 
 // SetStrokeStyle sets the color, gradient, or image for any line drawing calls.
@@ -464,10 +461,10 @@ func (cv *Canvas) SetFillStyle(value ...interface{}) {
 // RGB(A) in the range 0-255, 3 or 4 float values for RGB(A) in the range 0-1,
 // hex strings in the format "#AABBCC", "#AABBCCDD", "#ABC", or "#ABCD"
 func (cv *Canvas) SetStrokeStyle(value ...interface{}) {
-	cv.state.stroke = parseStyle(value...)
+	cv.state.stroke = cv.parseStyle(value...)
 }
 
-func parseStyle(value ...interface{}) drawStyle {
+func (cv *Canvas) parseStyle(value ...interface{}) drawStyle {
 	var style drawStyle
 	if len(value) == 1 {
 		switch v := value[0].(type) {
@@ -485,7 +482,7 @@ func parseStyle(value ...interface{}) drawStyle {
 	} else if len(value) == 1 {
 		switch v := value[0].(type) {
 		case *Image, string:
-			style.image = getImage(v)
+			style.image = cv.getImage(v)
 		}
 	}
 	return style
@@ -499,16 +496,16 @@ func (s *drawStyle) isOpaque() bool {
 		return rg.opaque
 	}
 	if img := s.image; img != nil {
-		return img.opaque
+		return img.img.IsOpaque()
 	}
 	return s.color.A >= 255
 }
 
-func (cv *Canvas) backendStyle(s *drawStyle, alpha float64) backendbase.Style {
-	return backendbase.Style{
-		Color:       s.color,
-		GlobalAlpha: cv.state.globalAlpha * alpha,
-	}
+func (cv *Canvas) backendFillStyle(s *drawStyle, alpha float64) backendbase.FillStyle {
+	col := s.color
+	finalAlpha := (float64(s.color.A) / 255) * alpha * cv.state.globalAlpha
+	col.A = uint8(finalAlpha * 255)
+	return backendbase.FillStyle{Color: col}
 }
 
 func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
@@ -551,16 +548,18 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 		gli.Uniform1f(rgr.globalAlpha, float32(cv.state.globalAlpha))
 		return rgr.vertex
 	}
-	if img := style.image; img != nil {
-		gli.UseProgram(ipr.id)
-		gli.ActiveTexture(gl_TEXTURE0)
-		gli.BindTexture(gl_TEXTURE_2D, img.tex)
-		gli.Uniform2f(ipr.canvasSize, float32(cv.fw), float32(cv.fh))
-		gli.Uniform2f(ipr.imageSize, float32(img.w), float32(img.h))
-		gli.Uniform1i(ipr.image, 0)
-		gli.Uniform1f(ipr.globalAlpha, float32(cv.state.globalAlpha))
-		return ipr.vertex
-	}
+	// if img := style.image; img != nil {
+	// 	gli.UseProgram(ipr.id)
+	// 	gli.ActiveTexture(gl_TEXTURE0)
+	// 	gli.BindTexture(gl_TEXTURE_2D, img.tex)
+	// 	gli.Uniform2f(ipr.canvasSize, float32(cv.fw), float32(cv.fh))
+	// 	inv := cv.state.transform.invert().f32()
+	// 	gli.UniformMatrix3fv(ipr.invmat, 1, false, &inv[0])
+	// 	gli.Uniform2f(ipr.imageSize, float32(img.w), float32(img.h))
+	// 	gli.Uniform1i(ipr.image, 0)
+	// 	gli.Uniform1f(ipr.globalAlpha, float32(cv.state.globalAlpha))
+	// 	return ipr.vertex
+	// }
 
 	gli.UseProgram(sr.id)
 	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
@@ -612,17 +611,19 @@ func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLo
 		gli.Uniform1f(rgar.globalAlpha, float32(cv.state.globalAlpha))
 		return rgar.vertex, rgar.alphaTexCoord
 	}
-	if img := style.image; img != nil {
-		gli.UseProgram(ipar.id)
-		gli.ActiveTexture(gl_TEXTURE0)
-		gli.BindTexture(gl_TEXTURE_2D, img.tex)
-		gli.Uniform2f(ipar.canvasSize, float32(cv.fw), float32(cv.fh))
-		gli.Uniform2f(ipar.imageSize, float32(img.w), float32(img.h))
-		gli.Uniform1i(ipar.image, 0)
-		gli.Uniform1i(ipar.alphaTex, alphaTexSlot)
-		gli.Uniform1f(ipar.globalAlpha, float32(cv.state.globalAlpha))
-		return ipar.vertex, ipar.alphaTexCoord
-	}
+	// if img := style.image; img != nil {
+	// 	gli.UseProgram(ipar.id)
+	// 	gli.ActiveTexture(gl_TEXTURE0)
+	// 	gli.BindTexture(gl_TEXTURE_2D, img.tex)
+	// 	gli.Uniform2f(ipar.canvasSize, float32(cv.fw), float32(cv.fh))
+	// 	inv := cv.state.transform.invert().f32()
+	// 	gli.UniformMatrix3fv(ipar.invmat, 1, false, &inv[0])
+	// 	gli.Uniform2f(ipar.imageSize, float32(img.w), float32(img.h))
+	// 	gli.Uniform1i(ipar.image, 0)
+	// 	gli.Uniform1i(ipar.alphaTex, alphaTexSlot)
+	// 	gli.Uniform1f(ipar.globalAlpha, float32(cv.state.globalAlpha))
+	// 	return ipar.vertex, ipar.alphaTexCoord
+	// }
 
 	gli.UseProgram(sar.id)
 	gli.Uniform2f(sar.canvasSize, float32(cv.fw), float32(cv.fh))

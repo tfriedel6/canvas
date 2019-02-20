@@ -5,7 +5,6 @@ import (
 	"image/color"
 
 	"github.com/go-gl/gl/v3.2-core/gl"
-	"github.com/tfriedel6/canvas"
 	"github.com/tfriedel6/canvas/backend/backendbase"
 )
 
@@ -46,7 +45,7 @@ type offscreenBuffer struct {
 	alpha            bool
 }
 
-func New(x, y, w, h int) (canvas.Backend, error) {
+func New(x, y, w, h int) (backendbase.Backend, error) {
 	err := gl.Init()
 	if err != nil {
 		return nil, err
@@ -219,6 +218,23 @@ func glError() error {
 	return nil
 }
 
+// Activate makes this GL backend active and sets the viewport. Only
+// needs to be called if any other GL code changes the viewport
+func (b *GoGLBackend) Activate() {
+	// if b.offscreen {
+	// 	gli.Viewport(0, 0, int32(cv.w), int32(cv.h))
+	// 	cv.enableTextureRenderTarget(&cv.offscrBuf)
+	// 	cv.offscrImg.w = cv.offscrBuf.w
+	// 	cv.offscrImg.h = cv.offscrBuf.h
+	// 	cv.offscrImg.tex = cv.offscrBuf.tex
+	// } else {
+	gl.Viewport(int32(b.x), int32(b.y), int32(b.w), int32(b.h))
+	b.disableTextureRenderTarget()
+	// }
+	// b.applyScissor()
+	gl.Clear(gl.STENCIL_BUFFER_BIT)
+}
+
 type glColor struct {
 	r, g, b, a float64
 }
@@ -232,7 +248,7 @@ func colorGoToGL(c color.RGBA) glColor {
 	return glc
 }
 
-func (b *GoGLBackend) useShader(style *backendbase.Style) (vertexLoc uint32) {
+func (b *GoGLBackend) useShader(style *backendbase.FillStyle) (vertexLoc uint32) {
 	// if lg := style.LinearGradient; lg != nil {
 	// 	lg.load()
 	// 	gl.ActiveTexture(gl.TEXTURE0)
@@ -293,11 +309,11 @@ func (b *GoGLBackend) useShader(style *backendbase.Style) (vertexLoc uint32) {
 	gl.Uniform2f(b.sr.CanvasSize, float32(b.fw), float32(b.fh))
 	c := colorGoToGL(style.Color)
 	gl.Uniform4f(b.sr.Color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
-	gl.Uniform1f(b.sr.GlobalAlpha, float32(style.GlobalAlpha))
+	gl.Uniform1f(b.sr.GlobalAlpha, 1)
 	return b.sr.Vertex
 }
 
-func (b *GoGLBackend) useAlphaShader(style *backendbase.Style, alphaTexSlot int32) (vertexLoc, alphaTexCoordLoc uint32) {
+func (b *GoGLBackend) useAlphaShader(style *backendbase.FillStyle, alphaTexSlot int32) (vertexLoc, alphaTexCoordLoc uint32) {
 	// if lg := style.LinearGradient; lg != nil {
 	// 	lg.load()
 	// 	gl.ActiveTexture(gl.TEXTURE0)
@@ -362,7 +378,7 @@ func (b *GoGLBackend) useAlphaShader(style *backendbase.Style, alphaTexSlot int3
 	c := colorGoToGL(style.Color)
 	gl.Uniform4f(b.sar.Color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
 	gl.Uniform1i(b.sar.AlphaTex, alphaTexSlot)
-	gl.Uniform1f(b.sar.GlobalAlpha, float32(style.GlobalAlpha))
+	gl.Uniform1f(b.sar.GlobalAlpha, 1)
 	return b.sar.Vertex, b.sar.AlphaTexCoord
 }
 

@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/tfriedel6/canvas"
+	"github.com/tfriedel6/canvas/backend/backendbase"
 	"github.com/tfriedel6/canvas/backend/gogl"
 	"github.com/tfriedel6/canvas/glimpl/gogl"
 	"github.com/veandco/go-sdl2/sdl"
@@ -23,7 +24,7 @@ type Window struct {
 	Window     *sdl.Window
 	WindowID   uint32
 	GLContext  sdl.GLContext
-	Backend    canvas.Backend
+	Backend    backendbase.Backend
 	canvas     *canvas.Canvas
 	frameTimes [10]time.Time
 	frameIndex int

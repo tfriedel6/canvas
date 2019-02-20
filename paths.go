@@ -158,7 +158,7 @@ func (cv *Canvas) strokePath(path *Path2D) {
 
 	cv.drawShadow2(tris)
 
-	stl := cv.backendStyle(&cv.state.stroke, 1)
+	stl := cv.backendFillStyle(&cv.state.stroke, 1)
 	cv.b.Fill(&stl, tris)
 }
 
@@ -352,7 +352,7 @@ func (cv *Canvas) FillPath(path *Path2D) {
 
 	cv.drawShadow2(tris)
 
-	stl := cv.backendStyle(&cv.state.fill, 1)
+	stl := cv.backendFillStyle(&cv.state.fill, 1)
 	cv.b.Fill(&stl, tris)
 }
 
@@ -528,7 +528,7 @@ func (cv *Canvas) FillRect(x, y, w, h float64) {
 
 	cv.drawShadow2(data[:])
 
-	stl := cv.backendStyle(&cv.state.fill, 1)
+	stl := cv.backendFillStyle(&cv.state.fill, 1)
 	cv.b.Fill(&stl, data[:])
 }
 

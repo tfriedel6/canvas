@@ -45,7 +45,7 @@ func (b *GoGLBackend) Clear(pts [4][2]float64) {
 	gl.Enable(gl.BLEND)
 }
 
-func (b *GoGLBackend) Fill(style *backendbase.Style, pts [][2]float64) {
+func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 	if style.Blur > 0 {
 		b.offscr1.alpha = true
 		b.enableTextureRenderTarget(&b.offscr1)
@@ -71,7 +71,7 @@ func (b *GoGLBackend) Fill(style *backendbase.Style, pts [][2]float64) {
 	gl.BindBuffer(gl.ARRAY_BUFFER, b.buf)
 	gl.BufferData(gl.ARRAY_BUFFER, len(b.ptsBuf)*4, unsafe.Pointer(&b.ptsBuf[0]), gl.STREAM_DRAW)
 
-	if style.GlobalAlpha >= 1 && style.Color.A >= 255 {
+	if style.Color.A >= 255 {
 		vertex := b.useShader(style)
 
 		gl.EnableVertexAttribArray(vertex)
