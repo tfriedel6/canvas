@@ -365,3 +365,54 @@ func (b *GoGLBackend) useAlphaShader(style *backendbase.Style, alphaTexSlot int3
 	gl.Uniform1f(b.sar.GlobalAlpha, float32(style.GlobalAlpha))
 	return b.sar.Vertex, b.sar.AlphaTexCoord
 }
+
+func (b *GoGLBackend) enableTextureRenderTarget(offscr *offscreenBuffer) {
+	if offscr.w != b.w || offscr.h != b.h {
+		if offscr.w != 0 && offscr.h != 0 {
+			gl.DeleteTextures(1, &offscr.tex)
+			gl.DeleteFramebuffers(1, &offscr.frameBuf)
+			gl.DeleteRenderbuffers(1, &offscr.renderStencilBuf)
+		}
+		offscr.w = b.w
+		offscr.h = b.h
+
+		gl.ActiveTexture(gl.TEXTURE0)
+		gl.GenTextures(1, &offscr.tex)
+		gl.BindTexture(gl.TEXTURE_2D, offscr.tex)
+		// todo do non-power-of-two textures work everywhere?
+		if offscr.alpha {
+			gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(b.w), int32(b.h), 0, gl.RGBA, gl.UNSIGNED_BYTE, nil)
+		} else {
+			gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGB, int32(b.w), int32(b.h), 0, gl.RGB, gl.UNSIGNED_BYTE, nil)
+		}
+		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+
+		gl.GenFramebuffers(1, &offscr.frameBuf)
+		gl.BindFramebuffer(gl.FRAMEBUFFER, offscr.frameBuf)
+
+		gl.GenRenderbuffers(1, &offscr.renderStencilBuf)
+		gl.BindRenderbuffer(gl.RENDERBUFFER, offscr.renderStencilBuf)
+		gl.RenderbufferStorage(gl.RENDERBUFFER, gl.DEPTH24_STENCIL8, int32(b.w), int32(b.h))
+		gl.FramebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, offscr.renderStencilBuf)
+
+		gl.FramebufferTexture(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, offscr.tex, 0)
+
+		if err := gl.CheckFramebufferStatus(gl.FRAMEBUFFER); err != gl.FRAMEBUFFER_COMPLETE {
+			// todo this should maybe not panic
+			panic(fmt.Sprintf("Failed to set up framebuffer for offscreen texture: %x", err))
+		}
+
+		gl.Clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
+	} else {
+		gl.BindFramebuffer(gl.FRAMEBUFFER, offscr.frameBuf)
+	}
+}
+
+func (b *GoGLBackend) disableTextureRenderTarget() {
+	// if b.offscreen {
+	// 	b.enableTextureRenderTarget(&b.offscrBuf)
+	// } else {
+	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
+	// }
+}

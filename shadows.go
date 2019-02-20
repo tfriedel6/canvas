@@ -28,11 +28,8 @@ func (cv *Canvas) drawShadow2(pts [][2]float64) {
 		})
 	}
 
-	shadow := cv.backendShadow()
-	if cv.state.shadowBlur == 0 {
-		style := backendbase.Style{Color: shadow.Color, GlobalAlpha: 1}
-		cv.b.Fill(&style, cv.shadowBuf)
-	}
+	style := backendbase.Style{Color: cv.state.shadowColor, GlobalAlpha: 1, Blur: cv.state.shadowBlur}
+	cv.b.Fill(&style, cv.shadowBuf)
 }
 
 func (cv *Canvas) drawShadow(tris []float32) {

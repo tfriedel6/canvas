@@ -502,15 +502,6 @@ func (cv *Canvas) backendStyle(s *drawStyle, alpha float64) backendbase.Style {
 	}
 }
 
-func (cv *Canvas) backendShadow() backendbase.Shadow {
-	return backendbase.Shadow{
-		Color:   cv.state.shadowColor,
-		OffsetX: cv.state.shadowOffsetX,
-		OffsetY: cv.state.shadowOffsetY,
-		Blur:    cv.state.shadowBlur,
-	}
-}
-
 func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 	if lg := style.linearGradient; lg != nil {
 		lg.load()
