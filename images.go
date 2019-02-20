@@ -324,7 +324,7 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 	p2 := cv.tf(vec{dx + dw, dy + dh})
 	p3 := cv.tf(vec{dx + dw, dy})
 
-	if cv.state.shadowColor.a != 0 {
+	if cv.state.shadowColor.A != 0 {
 		tris := [24]float32{
 			0, 0,
 			float32(cv.fw), 0,

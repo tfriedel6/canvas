@@ -4,10 +4,39 @@ import (
 	"image"
 	"math"
 	"unsafe"
+
+	"github.com/tfriedel6/canvas/backend/backendbase"
 )
 
+func (cv *Canvas) drawShadow2(pts [][2]float64) {
+	if cv.state.shadowColor.A == 0 {
+		return
+	}
+	if cv.state.shadowOffsetX == 0 && cv.state.shadowOffsetY == 0 {
+		return
+	}
+
+	if cv.shadowBuf == nil || cap(cv.shadowBuf) < len(pts) {
+		cv.shadowBuf = make([][2]float64, 0, len(pts)+1000)
+	}
+	cv.shadowBuf = cv.shadowBuf[:0]
+
+	for _, pt := range pts {
+		cv.shadowBuf = append(cv.shadowBuf, [2]float64{
+			pt[0] + cv.state.shadowOffsetX,
+			pt[1] + cv.state.shadowOffsetY,
+		})
+	}
+
+	shadow := cv.backendShadow()
+	if cv.state.shadowBlur == 0 {
+		style := backendbase.Style{Color: shadow.Color, GlobalAlpha: 1}
+		cv.b.Fill(&style, cv.shadowBuf)
+	}
+}
+
 func (cv *Canvas) drawShadow(tris []float32) {
-	if len(tris) == 0 || cv.state.shadowColor.a == 0 {
+	if len(tris) == 0 || cv.state.shadowColor.A == 0 {
 		return
 	}
 
@@ -48,7 +77,7 @@ func (cv *Canvas) drawShadow(tris []float32) {
 	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
 
 	var style drawStyle
-	style.color = colorGLToGo(cv.state.shadowColor)
+	style.color = cv.state.shadowColor
 
 	vertex := cv.useShader(&style)
 	gli.EnableVertexAttribArray(vertex)
@@ -68,6 +97,10 @@ func (cv *Canvas) drawShadow(tris []float32) {
 }
 
 func (cv *Canvas) drawTextShadow(offset image.Point, strWidth, strHeight int, x, y float64) {
+	if cv.state.shadowColor.A == 0 {
+		return
+	}
+
 	x += cv.state.shadowOffsetX
 	y += cv.state.shadowOffsetY
 
@@ -83,7 +116,7 @@ func (cv *Canvas) drawTextShadow(offset image.Point, strWidth, strHeight int, x,
 	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 
 	var style drawStyle
-	style.color = colorGLToGo(cv.state.shadowColor)
+	style.color = cv.state.shadowColor
 
 	vertex, alphaTexCoord := cv.useAlphaShader(&style, 1)
 

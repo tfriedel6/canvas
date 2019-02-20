@@ -156,62 +156,10 @@ func (cv *Canvas) strokePath(path *Path2D) {
 		start = false
 	}
 
-	// todo draw shadow
+	cv.drawShadow2(tris)
 
 	stl := cv.backendStyle(&cv.state.stroke, 1)
 	cv.b.Fill(&stl, tris)
-
-	// gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	// gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
-
-	// cv.drawShadow(tris)
-
-	// gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-
-	// if cv.state.globalAlpha >= 1 && cv.state.lineAlpha >= 1 && cv.state.stroke.isOpaque() {
-	// 	vertex := cv.useShader(&cv.state.stroke)
-
-	// 	gli.EnableVertexAttribArray(vertex)
-	// 	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
-	// 	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
-	// 	gli.DisableVertexAttribArray(vertex)
-	// } else {
-	// 	gli.ColorMask(false, false, false, false)
-	// 	gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
-	// 	gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
-	// 	gli.StencilMask(0x01)
-
-	// 	gli.UseProgram(sr.id)
-	// 	gli.Uniform4f(sr.color, 0, 0, 0, 0)
-	// 	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
-
-	// 	gli.EnableVertexAttribArray(sr.vertex)
-	// 	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
-	// 	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
-	// 	gli.DisableVertexAttribArray(sr.vertex)
-
-	// 	gli.ColorMask(true, true, true, true)
-
-	// 	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
-
-	// 	origAlpha := cv.state.globalAlpha
-	// 	if cv.state.lineAlpha < 1 {
-	// 		cv.state.globalAlpha *= cv.state.lineAlpha
-	// 	}
-	// 	vertex := cv.useShader(&cv.state.stroke)
-	// 	cv.state.globalAlpha = origAlpha
-
-	// 	gli.EnableVertexAttribArray(vertex)
-	// 	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
-	// 	gli.DrawArrays(gl_TRIANGLES, 0, 6)
-	// 	gli.DisableVertexAttribArray(vertex)
-
-	// 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
-	// 	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
-
-	// 	gli.Clear(gl_STENCIL_BUFFER_BIT)
-	// 	gli.StencilMask(0xFF)
-	// }
 }
 
 func (cv *Canvas) applyLineDash(path []pathPoint) []pathPoint {
@@ -402,56 +350,10 @@ func (cv *Canvas) FillPath(path *Path2D) {
 		return
 	}
 
-	// todo draw shadow
+	cv.drawShadow2(tris)
 
 	stl := cv.backendStyle(&cv.state.fill, 1)
 	cv.b.Fill(&stl, tris)
-
-	// gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	// gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
-
-	// cv.drawShadow(tris)
-
-	// gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-
-	// if cv.state.globalAlpha >= 1 && cv.state.lineAlpha >= 1 && cv.state.fill.isOpaque() {
-	// 	vertex := cv.useShader(&cv.state.fill)
-
-	// 	gli.EnableVertexAttribArray(vertex)
-	// 	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
-	// 	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
-	// 	gli.DisableVertexAttribArray(vertex)
-	// } else {
-	// 	gli.ColorMask(false, false, false, false)
-	// 	gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
-	// 	gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
-	// 	gli.StencilMask(0x01)
-
-	// 	gli.UseProgram(sr.id)
-	// 	gli.Uniform4f(sr.color, 0, 0, 0, 0)
-	// 	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
-
-	// 	gli.EnableVertexAttribArray(sr.vertex)
-	// 	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
-	// 	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
-	// 	gli.DisableVertexAttribArray(sr.vertex)
-
-	// 	gli.ColorMask(true, true, true, true)
-
-	// 	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
-
-	// 	vertex := cv.useShader(&cv.state.fill)
-	// 	gli.EnableVertexAttribArray(vertex)
-	// 	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
-	// 	gli.DrawArrays(gl_TRIANGLES, 0, 6)
-	// 	gli.DisableVertexAttribArray(vertex)
-
-	// 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
-	// 	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
-
-	// 	gli.Clear(gl_STENCIL_BUFFER_BIT)
-	// 	gli.StencilMask(0xFF)
-	// }
 }
 
 func (cv *Canvas) appendSubPathTriangles(tris [][2]float64, path []pathPoint) [][2]float64 {
@@ -622,25 +524,9 @@ func (cv *Canvas) FillRect(x, y, w, h float64) {
 	p2 := cv.tf(vec{x + w, y + h})
 	p3 := cv.tf(vec{x + w, y})
 
-	if cv.state.shadowColor.a != 0 {
-		tris := [24]float32{
-			0, 0,
-			float32(cv.fw), 0,
-			float32(cv.fw), float32(cv.fh),
-			0, 0,
-			float32(cv.fw), float32(cv.fh),
-			0, float32(cv.fh),
-			float32(p0[0]), float32(p0[1]),
-			float32(p3[0]), float32(p3[1]),
-			float32(p2[0]), float32(p2[1]),
-			float32(p0[0]), float32(p0[1]),
-			float32(p2[0]), float32(p2[1]),
-			float32(p1[0]), float32(p1[1]),
-		}
-		cv.drawShadow(tris[:])
-	}
-
 	data := [4][2]float64{{p0[0], p0[1]}, {p1[0], p1[1]}, {p2[0], p2[1]}, {p3[0], p3[1]}}
+
+	cv.drawShadow2(data[:])
 
 	stl := cv.backendStyle(&cv.state.fill, 1)
 	cv.b.Fill(&stl, data[:])

@@ -33,6 +33,8 @@ type Canvas struct {
 	offscreen bool
 	offscrBuf offscreenBuffer
 	offscrImg Image
+
+	shadowBuf [][2]float64
 }
 
 type drawState struct {
@@ -58,7 +60,7 @@ type drawState struct {
 	scissor scissor
 	clip    Path2D
 
-	shadowColor   glColor
+	shadowColor   color.RGBA
 	shadowOffsetX float64
 	shadowOffsetY float64
 	shadowBlur    float64
@@ -500,6 +502,15 @@ func (cv *Canvas) backendStyle(s *drawStyle, alpha float64) backendbase.Style {
 	}
 }
 
+func (cv *Canvas) backendShadow() backendbase.Shadow {
+	return backendbase.Shadow{
+		Color:   cv.state.shadowColor,
+		OffsetX: cv.state.shadowOffsetX,
+		OffsetY: cv.state.shadowOffsetY,
+		Blur:    cv.state.shadowBlur,
+	}
+}
+
 func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 	if lg := style.linearGradient; lg != nil {
 		lg.load()
@@ -843,7 +854,7 @@ func (cv *Canvas) SetTransform(a, b, c, d, e, f float64) {
 // then no shadow is drawn
 func (cv *Canvas) SetShadowColor(color ...interface{}) {
 	if c, ok := parseColor(color...); ok {
-		cv.state.shadowColor = colorGoToGL(c)
+		cv.state.shadowColor = c
 	}
 }
 

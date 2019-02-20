@@ -5,7 +5,6 @@ import "image/color"
 type Style struct {
 	Color       color.RGBA
 	GlobalAlpha float64
-	Shadow      Shadow
 	// radialGradient *RadialGradient
 	// linearGradient *LinearGradient
 	// image          *Image

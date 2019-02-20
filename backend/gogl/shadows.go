@@ -1,37 +1,37 @@
 package goglbackend
 
 /*
-import (
-	"image"
-	"math"
-	"unsafe"
-
-	"github.com/go-gl/gl/v3.2-core/gl"
-	"github.com/tfriedel6/canvas/backend/backendbase"
-)
-
-func (b *GoGLBackend) drawShadow(sh *backendbase.Shadow, tris []float32) {
-	if len(tris) == 0 || sh.Color.A == 0 {
+func (b *GoGLBackend) FillShadow(shadow *backendbase.Shadow, pts [][2]float64) {
+	if len(pts) == 0 || shadow.Color.A == 0 {
 		return
 	}
 
-	if sh.Blur > 0 {
-		b.offscr1.alpha = true
-		cv.enableTextureRenderTarget(&b.offscr1)
-		gl.ClearColor(0, 0, 0, 0)
-		gl.Clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
+	ox, oy := float32(shadow.OffsetX), float32(shadow.OffsetY)
+
+	b.ptsBuf = b.ptsBuf[:0]
+	b.ptsBuf = append(b.ptsBuf,
+		0, 0,
+		0, float32(b.fh),
+		float32(b.fw), float32(b.fh),
+		float32(b.fw), 0)
+	for _, pt := range pts {
+		b.ptsBuf = append(b.ptsBuf, float32(pt[0])+ox, float32(pt[1])+oy)
 	}
 
-	ox, oy := float32(sh.OffsetX), float32(sh.OffsetY)
+	// if sh.Blur > 0 {
+	// 	b.offscr1.alpha = true
+	// 	cv.enableTextureRenderTarget(&b.offscr1)
+	// 	gl.ClearColor(0, 0, 0, 0)
+	// 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
+	// }
 
-	count := len(tris)
-	for i := 12; i < count; i += 2 {
-		tris[i] += ox
-		tris[i+1] += oy
+	mode := uint32(gl.TRIANGLES)
+	if len(pts) == 4 {
+		mode = gl.TRIANGLE_FAN
 	}
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, b.shadowBuf)
-	gl.BufferData(gl.ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl.STREAM_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, len(b.ptsBuf)*4, unsafe.Pointer(&b.ptsBuf[0]), gl.STREAM_DRAW)
 
 	gl.ColorMask(false, false, false, false)
 	gl.StencilFunc(gl.ALWAYS, 1, 0xFF)
@@ -44,20 +44,20 @@ func (b *GoGLBackend) drawShadow(sh *backendbase.Shadow, tris []float32) {
 
 	gl.EnableVertexAttribArray(b.sr.Vertex)
 	gl.VertexAttribPointer(b.sr.Vertex, 2, gl.FLOAT, false, 0, nil)
-	gl.DrawArrays(gl.TRIANGLES, 6, int32(len(tris)/2-6))
+	gl.DrawArrays(gl.TRIANGLES, 4, int32(len(pts)))
 	gl.DisableVertexAttribArray(b.sr.Vertex)
 
 	gl.ColorMask(true, true, true, true)
 
 	gl.StencilFunc(gl.EQUAL, 1, 0xFF)
 
-	var style drawStyle
-	style.color = colorGLToGo(sh.Color)
+	var style backendbase.Style
+	style.Color = shadow.Color
 
 	vertex := b.useShader(&style)
 	gl.EnableVertexAttribArray(vertex)
 	gl.VertexAttribPointer(vertex, 2, gl.FLOAT, false, 0, nil)
-	gl.DrawArrays(gl.TRIANGLES, 0, 6)
+	gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 	gl.DisableVertexAttribArray(vertex)
 
 	gl.StencilOp(gl.KEEP, gl.KEEP, gl.KEEP)
@@ -66,11 +66,35 @@ func (b *GoGLBackend) drawShadow(sh *backendbase.Shadow, tris []float32) {
 	gl.Clear(gl.STENCIL_BUFFER_BIT)
 	gl.StencilMask(0xFF)
 
-	if sh.Blur > 0 {
-		b.drawBlurredShadow()
-	}
-}
+	{
+		gl.DrawArrays(mode, 4, int32(len(pts)))
+		gl.DisableVertexAttribArray(b.sr.Vertex)
 
+		gl.ColorMask(true, true, true, true)
+
+		gl.StencilFunc(gl.EQUAL, 1, 0xFF)
+
+		vertex := b.useShader(style)
+		gl.EnableVertexAttribArray(vertex)
+		gl.VertexAttribPointer(vertex, 2, gl.FLOAT, false, 0, nil)
+
+		b.ptsBuf = append(b.ptsBuf[:0], 0, 0, float32(b.fw), 0, float32(b.fw), float32(b.fh), 0, float32(b.fh))
+		gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
+		gl.DisableVertexAttribArray(vertex)
+
+		gl.StencilOp(gl.KEEP, gl.KEEP, gl.KEEP)
+		gl.StencilFunc(gl.ALWAYS, 0, 0xFF)
+
+		gl.Clear(gl.STENCIL_BUFFER_BIT)
+		gl.StencilMask(0xFF)
+	}
+
+	// if sh.Blur > 0 {
+	// 	b.drawBlurredShadow()
+	// }
+}
+*/
+/*
 func (b *GoGLBackend) drawTextShadow(sh *backendbase.Shadow, offset image.Point, strWidth, strHeight int, x, y float64) {
 	x += sh.OffsetX
 	y += sh.OffsetY
