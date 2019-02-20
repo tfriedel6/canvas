@@ -91,10 +91,12 @@ func run(t *testing.T, fn func(cv *canvas.Canvas)) {
 			r3, g3, b3, a3 := refImg.At(x, y).RGBA()
 			if r1 != r3 || g1 != g3 || b1 != b3 || a1 != a3 {
 				writeImage(img, fmt.Sprintf("testdata/%s_fail.png", callerFuncName))
+				t.Error("onscreen canvas failed")
 				t.FailNow()
 			}
 			if r2 != r3 || g2 != g3 || b2 != b3 || a2 != a3 {
 				writeImage(img2, fmt.Sprintf("testdata/%s_fail.png", callerFuncName))
+				t.Error("offscreen canvas failed")
 				t.FailNow()
 			}
 		}

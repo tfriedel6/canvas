@@ -89,7 +89,7 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 		return nil, nil, fmt.Errorf("Error initializing GL: %v", err)
 	}
 
-	backend, err := goglbackend.New(0, 0, 1280, 720)
+	backend, err := goglbackend.New(0, 0, w, h)
 	if err != nil {
 		log.Fatalf("Error loading GoGL backend: %v", err)
 	}

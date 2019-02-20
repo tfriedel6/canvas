@@ -2,7 +2,6 @@ package canvas
 
 import (
 	"math"
-	"unsafe"
 )
 
 // BeginPath clears the current path and starts a new one
@@ -101,9 +100,8 @@ func (cv *Canvas) strokePath(path *Path2D) {
 
 	dashedPath := cv.applyLineDash(path.p)
 
-	var triBuf [1000]float32
+	var triBuf [500][2]float64
 	tris := triBuf[:0]
-	tris = append(tris, 0, 0, float32(cv.fw), 0, float32(cv.fw), float32(cv.fh), 0, 0, float32(cv.fw), float32(cv.fh), 0, float32(cv.fh))
 
 	start := true
 	var p0 vec
@@ -148,9 +146,7 @@ func (cv *Canvas) strokePath(path *Path2D) {
 			}
 		}
 
-		tris = append(tris,
-			float32(lp0[0]), float32(lp0[1]), float32(lp1[0]), float32(lp1[1]), float32(lp3[0]), float32(lp3[1]),
-			float32(lp0[0]), float32(lp0[1]), float32(lp3[0]), float32(lp3[1]), float32(lp2[0]), float32(lp2[1]))
+		tris = append(tris, lp0, lp1, lp3, lp0, lp3, lp2)
 
 		if p.flags&pathAttach != 0 && cv.state.lineWidth > 1 {
 			tris = cv.lineJoint(p, p0, p1, p.next, lp0, lp1, lp2, lp3, tris)
@@ -160,57 +156,62 @@ func (cv *Canvas) strokePath(path *Path2D) {
 		start = false
 	}
 
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
+	// todo draw shadow
 
-	cv.drawShadow(tris)
+	stl := cv.backendStyle(&cv.state.stroke, 1)
+	cv.b.Fill(&stl, tris)
 
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
+	// gli.BindBuffer(gl_ARRAY_BUFFER, buf)
+	// gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
 
-	if cv.state.globalAlpha >= 1 && cv.state.lineAlpha >= 1 && cv.state.stroke.isOpaque() {
-		vertex := cv.useShader(&cv.state.stroke)
+	// cv.drawShadow(tris)
 
-		gli.EnableVertexAttribArray(vertex)
-		gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
-		gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
-		gli.DisableVertexAttribArray(vertex)
-	} else {
-		gli.ColorMask(false, false, false, false)
-		gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
-		gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
-		gli.StencilMask(0x01)
+	// gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 
-		gli.UseProgram(sr.id)
-		gli.Uniform4f(sr.color, 0, 0, 0, 0)
-		gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
+	// if cv.state.globalAlpha >= 1 && cv.state.lineAlpha >= 1 && cv.state.stroke.isOpaque() {
+	// 	vertex := cv.useShader(&cv.state.stroke)
 
-		gli.EnableVertexAttribArray(sr.vertex)
-		gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
-		gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
-		gli.DisableVertexAttribArray(sr.vertex)
+	// 	gli.EnableVertexAttribArray(vertex)
+	// 	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
+	// 	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
+	// 	gli.DisableVertexAttribArray(vertex)
+	// } else {
+	// 	gli.ColorMask(false, false, false, false)
+	// 	gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
+	// 	gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
+	// 	gli.StencilMask(0x01)
 
-		gli.ColorMask(true, true, true, true)
+	// 	gli.UseProgram(sr.id)
+	// 	gli.Uniform4f(sr.color, 0, 0, 0, 0)
+	// 	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
 
-		gli.StencilFunc(gl_EQUAL, 1, 0xFF)
+	// 	gli.EnableVertexAttribArray(sr.vertex)
+	// 	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
+	// 	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
+	// 	gli.DisableVertexAttribArray(sr.vertex)
 
-		origAlpha := cv.state.globalAlpha
-		if cv.state.lineAlpha < 1 {
-			cv.state.globalAlpha *= cv.state.lineAlpha
-		}
-		vertex := cv.useShader(&cv.state.stroke)
-		cv.state.globalAlpha = origAlpha
+	// 	gli.ColorMask(true, true, true, true)
 
-		gli.EnableVertexAttribArray(vertex)
-		gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
-		gli.DrawArrays(gl_TRIANGLES, 0, 6)
-		gli.DisableVertexAttribArray(vertex)
+	// 	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
 
-		gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
-		gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
+	// 	origAlpha := cv.state.globalAlpha
+	// 	if cv.state.lineAlpha < 1 {
+	// 		cv.state.globalAlpha *= cv.state.lineAlpha
+	// 	}
+	// 	vertex := cv.useShader(&cv.state.stroke)
+	// 	cv.state.globalAlpha = origAlpha
 
-		gli.Clear(gl_STENCIL_BUFFER_BIT)
-		gli.StencilMask(0xFF)
-	}
+	// 	gli.EnableVertexAttribArray(vertex)
+	// 	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
+	// 	gli.DrawArrays(gl_TRIANGLES, 0, 6)
+	// 	gli.DisableVertexAttribArray(vertex)
+
+	// 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
+	// 	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
+
+	// 	gli.Clear(gl_STENCIL_BUFFER_BIT)
+	// 	gli.StencilMask(0xFF)
+	// }
 }
 
 func (cv *Canvas) applyLineDash(path []pathPoint) []pathPoint {
@@ -269,7 +270,7 @@ func (cv *Canvas) applyLineDash(path []pathPoint) []pathPoint {
 	return path2
 }
 
-func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec, tris []float32) []float32 {
+func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec, tris [][2]float64) [][2]float64 {
 	v2 := p1.sub(p2).norm()
 	v3 := vec{v2[1], -v2[0]}.mulf(cv.state.lineWidth * 0.5)
 
@@ -295,9 +296,7 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec,
 			l1p1 := p1.sub(v3)
 			l1p3 := p1.add(v3)
 
-			tris = append(tris,
-				float32(p1[0]), float32(p1[1]), float32(l0p1[0]), float32(l0p1[1]), float32(l1p1[0]), float32(l1p1[1]),
-				float32(p1[0]), float32(p1[1]), float32(l1p3[0]), float32(l1p3[1]), float32(l0p3[0]), float32(l0p3[1]))
+			tris = append(tris, p1, l0p1, l1p1, p1, l1p3, l0p3)
 			return tris
 		}
 
@@ -315,24 +314,16 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec,
 			l1p1 := p1.sub(v3)
 			l1p3 := p1.add(v3)
 
-			tris = append(tris,
-				float32(p1[0]), float32(p1[1]), float32(l0p1[0]), float32(l0p1[1]), float32(l1p1[0]), float32(l1p1[1]),
-				float32(p1[0]), float32(p1[1]), float32(l1p3[0]), float32(l1p3[1]), float32(l0p3[0]), float32(l0p3[1]))
+			tris = append(tris, p1, l0p1, l1p1, p1, l1p3, l0p3)
 			return tris
 		}
 
-		tris = append(tris,
-			float32(p1[0]), float32(p1[1]), float32(l0p1[0]), float32(l0p1[1]), float32(ip0[0]), float32(ip0[1]),
-			float32(p1[0]), float32(p1[1]), float32(ip0[0]), float32(ip0[1]), float32(l1p1[0]), float32(l1p1[1]),
-			float32(p1[0]), float32(p1[1]), float32(l1p3[0]), float32(l1p3[1]), float32(ip1[0]), float32(ip1[1]),
-			float32(p1[0]), float32(p1[1]), float32(ip1[0]), float32(ip1[1]), float32(l0p3[0]), float32(l0p3[1]))
+		tris = append(tris, p1, l0p1, ip0, p1, ip0, l1p1, p1, l1p3, ip1, p1, ip1, l0p3)
 	case Bevel:
 		l1p1 := p1.sub(v3)
 		l1p3 := p1.add(v3)
 
-		tris = append(tris,
-			float32(p1[0]), float32(p1[1]), float32(l0p1[0]), float32(l0p1[1]), float32(l1p1[0]), float32(l1p1[1]),
-			float32(p1[0]), float32(p1[1]), float32(l1p3[0]), float32(l1p3[1]), float32(l0p3[0]), float32(l0p3[1]))
+		tris = append(tris, p1, l0p1, l1p1, p1, l1p3, l0p3)
 	case Round:
 		tris = cv.addCircleTris(p1, cv.state.lineWidth*0.5, tris)
 	}
@@ -340,7 +331,7 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec,
 	return tris
 }
 
-func (cv *Canvas) addCircleTris(center vec, radius float64, tris []float32) []float32 {
+func (cv *Canvas) addCircleTris(center vec, radius float64, tris [][2]float64) [][2]float64 {
 	step := 6 / radius
 	if step > 0.8 {
 		step = 0.8
@@ -351,8 +342,7 @@ func (cv *Canvas) addCircleTris(center vec, radius float64, tris []float32) []fl
 	for angle := step; angle <= math.Pi*2+step; angle += step {
 		s, c := math.Sincos(angle)
 		p1 := vec{center[0] + s*radius, center[1] + c*radius}
-		tris = append(tris,
-			float32(center[0]), float32(center[1]), float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]))
+		tris = append(tris, center, p0, p1)
 		p0 = p1
 	}
 	return tris
@@ -392,9 +382,8 @@ func (cv *Canvas) FillPath(path *Path2D) {
 	}
 	cv.activate()
 
-	var triBuf [1000]float32
+	var triBuf [500][2]float64
 	tris := triBuf[:0]
-	tris = append(tris, 0, 0, float32(cv.fw), 0, float32(cv.fw), float32(cv.fh), 0, 0, float32(cv.fw), float32(cv.fh), 0, float32(cv.fh))
 
 	start := 0
 	for i, p := range path.p {
@@ -413,61 +402,66 @@ func (cv *Canvas) FillPath(path *Path2D) {
 		return
 	}
 
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
+	// todo draw shadow
 
-	cv.drawShadow(tris)
+	stl := cv.backendStyle(&cv.state.fill, 1)
+	cv.b.Fill(&stl, tris)
 
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
+	// gli.BindBuffer(gl_ARRAY_BUFFER, buf)
+	// gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
 
-	if cv.state.globalAlpha >= 1 && cv.state.lineAlpha >= 1 && cv.state.fill.isOpaque() {
-		vertex := cv.useShader(&cv.state.fill)
+	// cv.drawShadow(tris)
 
-		gli.EnableVertexAttribArray(vertex)
-		gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
-		gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
-		gli.DisableVertexAttribArray(vertex)
-	} else {
-		gli.ColorMask(false, false, false, false)
-		gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
-		gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
-		gli.StencilMask(0x01)
+	// gli.BindBuffer(gl_ARRAY_BUFFER, buf)
 
-		gli.UseProgram(sr.id)
-		gli.Uniform4f(sr.color, 0, 0, 0, 0)
-		gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
+	// if cv.state.globalAlpha >= 1 && cv.state.lineAlpha >= 1 && cv.state.fill.isOpaque() {
+	// 	vertex := cv.useShader(&cv.state.fill)
 
-		gli.EnableVertexAttribArray(sr.vertex)
-		gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
-		gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
-		gli.DisableVertexAttribArray(sr.vertex)
+	// 	gli.EnableVertexAttribArray(vertex)
+	// 	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
+	// 	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
+	// 	gli.DisableVertexAttribArray(vertex)
+	// } else {
+	// 	gli.ColorMask(false, false, false, false)
+	// 	gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
+	// 	gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
+	// 	gli.StencilMask(0x01)
 
-		gli.ColorMask(true, true, true, true)
+	// 	gli.UseProgram(sr.id)
+	// 	gli.Uniform4f(sr.color, 0, 0, 0, 0)
+	// 	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
 
-		gli.StencilFunc(gl_EQUAL, 1, 0xFF)
+	// 	gli.EnableVertexAttribArray(sr.vertex)
+	// 	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
+	// 	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
+	// 	gli.DisableVertexAttribArray(sr.vertex)
 
-		vertex := cv.useShader(&cv.state.fill)
-		gli.EnableVertexAttribArray(vertex)
-		gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
-		gli.DrawArrays(gl_TRIANGLES, 0, 6)
-		gli.DisableVertexAttribArray(vertex)
+	// 	gli.ColorMask(true, true, true, true)
 
-		gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
-		gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
+	// 	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
 
-		gli.Clear(gl_STENCIL_BUFFER_BIT)
-		gli.StencilMask(0xFF)
-	}
+	// 	vertex := cv.useShader(&cv.state.fill)
+	// 	gli.EnableVertexAttribArray(vertex)
+	// 	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
+	// 	gli.DrawArrays(gl_TRIANGLES, 0, 6)
+	// 	gli.DisableVertexAttribArray(vertex)
+
+	// 	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
+	// 	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
+
+	// 	gli.Clear(gl_STENCIL_BUFFER_BIT)
+	// 	gli.StencilMask(0xFF)
+	// }
 }
 
-func (cv *Canvas) appendSubPathTriangles(tris []float32, path []pathPoint) []float32 {
+func (cv *Canvas) appendSubPathTriangles(tris [][2]float64, path []pathPoint) [][2]float64 {
 	last := path[len(path)-1]
 	if last.flags&pathIsConvex != 0 {
 		p0, p1 := path[0].pos, path[1].pos
 		last := len(path)
 		for i := 2; i < last; i++ {
 			p2 := path[i].pos
-			tris = append(tris, float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]), float32(p2[0]), float32(p2[1]))
+			tris = append(tris, p0, p1, p2)
 			p1 = p2
 		}
 	} else if last.flags&pathSelfIntersects != 0 {
@@ -506,53 +500,53 @@ func (cv *Canvas) clip(path []pathPoint) {
 		return
 	}
 
-	cv.activate()
+	// cv.activate()
 
-	var triBuf [1000]float32
-	tris := triBuf[:0]
-	tris = append(tris, 0, 0, float32(cv.fw), 0, float32(cv.fw), float32(cv.fh), 0, 0, float32(cv.fw), float32(cv.fh), 0, float32(cv.fh))
-	baseLen := len(tris)
-	tris = triangulatePath(path, tris)
-	if len(tris) <= baseLen {
-		return
-	}
+	// var triBuf [1000]float32
+	// tris := triBuf[:0]
+	// tris = append(tris, 0, 0, float32(cv.fw), 0, float32(cv.fw), float32(cv.fh), 0, 0, float32(cv.fw), float32(cv.fh), 0, float32(cv.fh))
+	// baseLen := len(tris)
+	// tris = triangulatePath(path, tris)
+	// if len(tris) <= baseLen {
+	// 	return
+	// }
 
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
-	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
+	// gli.BindBuffer(gl_ARRAY_BUFFER, buf)
+	// gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
+	// gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
 
-	gli.UseProgram(sr.id)
-	gli.Uniform4f(sr.color, 1, 1, 1, 1)
-	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
-	gli.EnableVertexAttribArray(sr.vertex)
+	// gli.UseProgram(sr.id)
+	// gli.Uniform4f(sr.color, 1, 1, 1, 1)
+	// gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
+	// gli.EnableVertexAttribArray(sr.vertex)
 
-	gli.ColorMask(false, false, false, false)
+	// gli.ColorMask(false, false, false, false)
 
-	gli.StencilMask(0x04)
-	gli.StencilFunc(gl_ALWAYS, 4, 0x04)
-	gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
-	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
+	// gli.StencilMask(0x04)
+	// gli.StencilFunc(gl_ALWAYS, 4, 0x04)
+	// gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
+	// gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
 
-	gli.StencilMask(0x02)
-	gli.StencilFunc(gl_EQUAL, 0, 0x06)
-	gli.StencilOp(gl_KEEP, gl_INVERT, gl_INVERT)
-	gli.DrawArrays(gl_TRIANGLES, 0, 6)
+	// gli.StencilMask(0x02)
+	// gli.StencilFunc(gl_EQUAL, 0, 0x06)
+	// gli.StencilOp(gl_KEEP, gl_INVERT, gl_INVERT)
+	// gli.DrawArrays(gl_TRIANGLES, 0, 6)
 
-	gli.StencilMask(0x04)
-	gli.StencilFunc(gl_ALWAYS, 0, 0x04)
-	gli.StencilOp(gl_ZERO, gl_ZERO, gl_ZERO)
-	gli.DrawArrays(gl_TRIANGLES, 0, 6)
+	// gli.StencilMask(0x04)
+	// gli.StencilFunc(gl_ALWAYS, 0, 0x04)
+	// gli.StencilOp(gl_ZERO, gl_ZERO, gl_ZERO)
+	// gli.DrawArrays(gl_TRIANGLES, 0, 6)
 
-	gli.DisableVertexAttribArray(sr.vertex)
+	// gli.DisableVertexAttribArray(sr.vertex)
 
-	gli.ColorMask(true, true, true, true)
-	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
-	gli.StencilMask(0xFF)
-	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
+	// gli.ColorMask(true, true, true, true)
+	// gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
+	// gli.StencilMask(0xFF)
+	// gli.StencilFunc(gl_EQUAL, 0, 0xFF)
 
-	cv.state.clip = cv.path
-	cv.state.clip.p = make([]pathPoint, len(cv.path.p))
-	copy(cv.state.clip.p, cv.path.p)
+	// cv.state.clip = cv.path
+	// cv.state.clip.p = make([]pathPoint, len(cv.path.p))
+	// copy(cv.state.clip.p, cv.path.p)
 }
 
 func (cv *Canvas) scissor(path []pathPoint) {

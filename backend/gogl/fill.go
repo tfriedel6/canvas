@@ -112,6 +112,11 @@ func (b *GoGLBackend) Fill(style *backendbase.Style, pts [4][2]float64) {
 
 func (b *GoGLBackend) Fill(style *backendbase.Style, pts [][2]float64) {
 	b.ptsBuf = b.ptsBuf[:0]
+	b.ptsBuf = append(b.ptsBuf,
+		0, 0,
+		0, float32(b.fh),
+		float32(b.fw), float32(b.fh),
+		float32(b.fw), 0)
 	for _, pt := range pts {
 		b.ptsBuf = append(b.ptsBuf, float32(pt[0]), float32(pt[1]))
 	}
@@ -124,12 +129,12 @@ func (b *GoGLBackend) Fill(style *backendbase.Style, pts [][2]float64) {
 	gl.BindBuffer(gl.ARRAY_BUFFER, b.buf)
 	gl.BufferData(gl.ARRAY_BUFFER, len(b.ptsBuf)*4, unsafe.Pointer(&b.ptsBuf[0]), gl.STREAM_DRAW)
 
-	if style.GlobalAlpha >= 1 { // && cv.state.fill.isOpaque() {
+	if style.GlobalAlpha >= 1 && style.Color.A >= 255 {
 		vertex := b.useShader(style)
 
 		gl.EnableVertexAttribArray(vertex)
 		gl.VertexAttribPointer(vertex, 2, gl.FLOAT, false, 0, nil)
-		gl.DrawArrays(mode, 0, int32(len(b.ptsBuf)/2))
+		gl.DrawArrays(mode, 4, int32(len(pts)))
 		gl.DisableVertexAttribArray(vertex)
 	} else {
 		gl.ColorMask(false, false, false, false)
@@ -143,7 +148,7 @@ func (b *GoGLBackend) Fill(style *backendbase.Style, pts [][2]float64) {
 
 		gl.EnableVertexAttribArray(b.sr.Vertex)
 		gl.VertexAttribPointer(b.sr.Vertex, 2, gl.FLOAT, false, 0, nil)
-		gl.DrawArrays(mode, 0, int32(len(b.ptsBuf)/2))
+		gl.DrawArrays(mode, 4, int32(len(pts)))
 		gl.DisableVertexAttribArray(b.sr.Vertex)
 
 		gl.ColorMask(true, true, true, true)

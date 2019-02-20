@@ -62,7 +62,7 @@ func polygonContainsPoint(polygon []vec, p vec) bool {
 	return count%2 == 1
 }
 
-func triangulatePath(path []pathPoint, target []float32) []float32 {
+func triangulatePath(path []pathPoint, target [][2]float64) [][2]float64 {
 	var buf [500]vec
 	polygon := buf[:0]
 	for _, p := range path {
@@ -93,7 +93,7 @@ func triangulatePath(path []pathPoint, target []float32) []float32 {
 					continue triangles
 				}
 			}
-			target = append(target, float32(a[0]), float32(a[1]), float32(b[0]), float32(b[1]), float32(c[0]), float32(c[1]))
+			target = append(target, a, b, c)
 			break
 		}
 		remove := (i + 1) % len(polygon)
