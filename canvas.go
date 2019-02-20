@@ -37,6 +37,15 @@ type Canvas struct {
 	shadowBuf [][2]float64
 }
 
+// Backend is used by the canvas to actually do the final
+// drawing. This enables the backend to be implemented by
+// various methods (OpenGL, but also other APIs or software)
+type Backend interface {
+	ClearRect(x, y, w, h int)
+	Clear(pts [4][2]float64)
+	Fill(style *backendbase.Style, pts [][2]float64)
+}
+
 type drawState struct {
 	transform     mat
 	fill          drawStyle
