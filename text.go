@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/draw"
 	"io/ioutil"
-	"unsafe"
 
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
@@ -210,52 +209,14 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		yOff = -float64(metrics.Descent) / 64
 	}
 
-	gli.ActiveTexture(gl_TEXTURE1)
-	gli.BindTexture(gl_TEXTURE_2D, alphaTex)
-	for y := 0; y < strHeight; y++ {
-		off := y * textImage.Stride
-		gli.TexSubImage2D(gl_TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(strWidth), 1, gl_ALPHA, gl_UNSIGNED_BYTE, gli.Ptr(&textImage.Pix[off]))
-	}
+	var pts [4][2]float64
+	pts[0] = cv.tf(vec{float64(textOffset.X) + x, float64(textOffset.Y) + y + yOff})
+	pts[1] = cv.tf(vec{float64(textOffset.X) + x, float64(textOffset.Y+strHeight) + y + yOff})
+	pts[2] = cv.tf(vec{float64(textOffset.X+strWidth) + x, float64(textOffset.Y+strHeight) + y + yOff})
+	pts[3] = cv.tf(vec{float64(textOffset.X+strWidth) + x, float64(textOffset.Y) + y + yOff})
 
-	cv.drawTextShadow(textOffset, strWidth, strHeight, x, y)
-
-	gli.StencilFunc(gl_EQUAL, 0, 0xFF)
-
-	gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-
-	vertex, alphaTexCoord := cv.useAlphaShader(&cv.state.fill, 1)
-
-	gli.EnableVertexAttribArray(vertex)
-	gli.EnableVertexAttribArray(alphaTexCoord)
-
-	p0 := cv.tf(vec{float64(textOffset.X) + x, float64(textOffset.Y) + y + yOff})
-	p1 := cv.tf(vec{float64(textOffset.X) + x, float64(textOffset.Y+strHeight) + y + yOff})
-	p2 := cv.tf(vec{float64(textOffset.X+strWidth) + x, float64(textOffset.Y+strHeight) + y + yOff})
-	p3 := cv.tf(vec{float64(textOffset.X+strWidth) + x, float64(textOffset.Y) + y + yOff})
-
-	tw := float64(strWidth) / alphaTexSize
-	th := float64(strHeight) / alphaTexSize
-	data := [16]float32{float32(p0[0]), float32(p0[1]), float32(p1[0]), float32(p1[1]), float32(p2[0]), float32(p2[1]), float32(p3[0]), float32(p3[1]),
-		0, 1, 0, float32(1 - th), float32(tw), float32(1 - th), float32(tw), 1}
-	gli.BufferData(gl_ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl_STREAM_DRAW)
-
-	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
-	gli.VertexAttribPointer(alphaTexCoord, 2, gl_FLOAT, false, 0, 8*4)
-	gli.DrawArrays(gl_TRIANGLE_FAN, 0, 4)
-
-	gli.DisableVertexAttribArray(vertex)
-	gli.DisableVertexAttribArray(alphaTexCoord)
-
-	gli.ActiveTexture(gl_TEXTURE1)
-	gli.BindTexture(gl_TEXTURE_2D, alphaTex)
-
-	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
-
-	for y := 0; y < strHeight; y++ {
-		gli.TexSubImage2D(gl_TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(strWidth), 1, gl_ALPHA, gl_UNSIGNED_BYTE, gli.Ptr(&zeroes[0]))
-	}
-
-	gli.ActiveTexture(gl_TEXTURE0)
+	stl := cv.backendFillStyle(&cv.state.fill, 1)
+	cv.b.FillImageMask(&stl, textImage.SubImage(image.Rect(0, 0, strWidth, strHeight)).(*image.Alpha), pts)
 }
 
 // StrokeText draws the given string at the given coordinates

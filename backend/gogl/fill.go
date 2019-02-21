@@ -1,6 +1,7 @@
 package goglbackend
 
 import (
+	"image"
 	"math"
 	"unsafe"
 
@@ -115,6 +116,57 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 	if style.Blur > 0 {
 		b.drawBlurred(style.Blur)
 	}
+}
+
+func (b *GoGLBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Alpha, pts [4][2]float64) {
+	w, h := mask.Rect.Dx(), mask.Rect.Dy()
+
+	gl.ActiveTexture(gl.TEXTURE1)
+	gl.BindTexture(gl.TEXTURE_2D, b.alphaTex)
+	for y := 0; y < h; y++ {
+		off := y * mask.Stride
+		gl.TexSubImage2D(gl.TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(w), 1, gl.ALPHA, gl.UNSIGNED_BYTE, gl.Ptr(&mask.Pix[off]))
+	}
+
+	// b.drawTextShadow(textOffset, w, h, x, y)
+
+	gl.StencilFunc(gl.EQUAL, 0, 0xFF)
+
+	gl.BindBuffer(gl.ARRAY_BUFFER, b.buf)
+
+	vertex, alphaTexCoord := b.useAlphaShader(style, 1)
+
+	gl.EnableVertexAttribArray(vertex)
+	gl.EnableVertexAttribArray(alphaTexCoord)
+
+	tw := float64(w) / alphaTexSize
+	th := float64(h) / alphaTexSize
+	var buf [16]float32
+	data := buf[:0]
+	for _, pt := range pts {
+		data = append(data, float32(pt[0]), float32(pt[1]))
+	}
+	data = append(data, 0, 1, 0, float32(1-th), float32(tw), float32(1-th), float32(tw), 1)
+
+	gl.BufferData(gl.ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl.STREAM_DRAW)
+
+	gl.VertexAttribPointer(vertex, 2, gl.FLOAT, false, 0, nil)
+	gl.VertexAttribPointer(alphaTexCoord, 2, gl.FLOAT, false, 0, gl.PtrOffset(8*4))
+	gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
+
+	gl.DisableVertexAttribArray(vertex)
+	gl.DisableVertexAttribArray(alphaTexCoord)
+
+	gl.ActiveTexture(gl.TEXTURE1)
+	gl.BindTexture(gl.TEXTURE_2D, b.alphaTex)
+
+	gl.StencilFunc(gl.ALWAYS, 0, 0xFF)
+
+	for y := 0; y < h; y++ {
+		gl.TexSubImage2D(gl.TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(w), 1, gl.ALPHA, gl.UNSIGNED_BYTE, gl.Ptr(&zeroes[0]))
+	}
+
+	gl.ActiveTexture(gl.TEXTURE0)
 }
 
 func (b *GoGLBackend) drawBlurred(blur float64) {

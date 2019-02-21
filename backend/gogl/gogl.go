@@ -11,6 +11,8 @@ import (
 
 const alphaTexSize = 2048
 
+var zeroes [alphaTexSize]byte
+
 type GoGLBackend struct {
 	x, y, w, h     int
 	fx, fy, fw, fh float64
