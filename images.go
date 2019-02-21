@@ -172,3 +172,13 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 
 	cv.b.DrawImage(img.img, sx, sy, sw, sh, dx, dy, dw, dh, cv.state.globalAlpha)
 }
+
+// GetImageData returns an RGBA image of the current image
+func (cv *Canvas) GetImageData(x, y, w, h int) *image.RGBA {
+	return cv.b.GetImageData(x, y, w, h)
+}
+
+// PutImageData puts the given image at the given x/y coordinates
+func (cv *Canvas) PutImageData(img *image.RGBA, x, y int) {
+	cv.b.PutImageData(img, x, y)
+}

@@ -19,6 +19,9 @@ type Backend interface {
 	Fill(style *FillStyle, pts [][2]float64)
 	DrawImage(dimg Image, sx, sy, sw, sh, dx, dy, dw, dh float64, alpha float64)
 	FillImageMask(style *FillStyle, mask *image.Alpha, pts [][2]float64) // pts must have four points
+
+	GetImageData(x, y, w, h int) *image.RGBA
+	PutImageData(img *image.RGBA, x, y int)
 }
 
 // FillStyle is the color and other details on how to fill

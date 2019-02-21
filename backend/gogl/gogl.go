@@ -20,6 +20,7 @@ type GoGLBackend struct {
 	buf       uint32
 	shadowBuf uint32
 	alphaTex  uint32
+
 	sr        solidShader
 	lgr       linearGradientShader
 	rgr       radialGradientShader
@@ -32,11 +33,16 @@ type GoGLBackend struct {
 	gauss15r  gaussianShader
 	gauss63r  gaussianShader
 	gauss127r gaussianShader
-	offscr1   offscreenBuffer
-	offscr2   offscreenBuffer
-	glChan    chan func()
+
+	offscr1 offscreenBuffer
+	offscr2 offscreenBuffer
+
+	imageBufTex uint32
+	imageBuf    []byte
 
 	ptsBuf []float32
+
+	glChan chan func()
 }
 
 type offscreenBuffer struct {
