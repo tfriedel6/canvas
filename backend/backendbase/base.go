@@ -22,7 +22,8 @@ type FillStyle struct {
 	Blur  float64
 	// radialGradient *RadialGradient
 	// linearGradient *LinearGradient
-	// image          *Image
+	Image      Image
+	FillMatrix [9]float64
 }
 
 type Image interface {

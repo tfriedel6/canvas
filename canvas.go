@@ -502,10 +502,15 @@ func (s *drawStyle) isOpaque() bool {
 }
 
 func (cv *Canvas) backendFillStyle(s *drawStyle, alpha float64) backendbase.FillStyle {
-	col := s.color
-	finalAlpha := (float64(s.color.A) / 255) * alpha * cv.state.globalAlpha
-	col.A = uint8(finalAlpha * 255)
-	return backendbase.FillStyle{Color: col}
+	stl := backendbase.FillStyle{Color: s.color, FillMatrix: cv.state.transform}
+	alpha *= cv.state.globalAlpha
+	if img := cv.state.fill.image; img != nil {
+		stl.Image = img.img
+	} else {
+		alpha *= float64(s.color.A) / 255
+	}
+	stl.Color.A = uint8(alpha * 255)
+	return stl
 }
 
 func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {

@@ -292,18 +292,19 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle) (vertexLoc uint32)
 	// 	gl.Uniform1f(rgr.globalAlpha, float32(cv.state.globalAlpha))
 	// 	return rgr.vertex
 	// }
-	// if img := style.Image; img != nil {
-	// 	gl.UseProgram(ipr.id)
-	// 	gl.ActiveTexture(gl.TEXTURE0)
-	// 	gl.BindTexture(gl.TEXTURE_2D, img.tex)
-	// 	gl.Uniform2f(ipr.canvasSize, float32(cv.fw), float32(cv.fh))
-	// 	inv := cv.state.transform.invert().f32()
-	// 	gl.UniformMatrix3fv(ipr.invmat, 1, false, &inv[0])
-	// 	gl.Uniform2f(ipr.imageSize, float32(img.w), float32(img.h))
-	// 	gl.Uniform1i(ipr.image, 0)
-	// 	gl.Uniform1f(ipr.globalAlpha, float32(cv.state.globalAlpha))
-	// 	return ipr.vertex
-	// }
+	if img := style.Image; img != nil {
+		img := img.(*Image)
+		gl.UseProgram(b.ipr.ID)
+		gl.ActiveTexture(gl.TEXTURE0)
+		gl.BindTexture(gl.TEXTURE_2D, img.tex)
+		gl.Uniform2f(b.ipr.CanvasSize, float32(b.fw), float32(b.fh))
+		inv := mat(style.FillMatrix).invert().f32()
+		gl.UniformMatrix3fv(b.ipr.Invmat, 1, false, &inv[0])
+		gl.Uniform2f(b.ipr.ImageSize, float32(img.w), float32(img.h))
+		gl.Uniform1i(b.ipr.Image, 0)
+		gl.Uniform1f(b.ipr.GlobalAlpha, float32(style.Color.A)/255)
+		return b.ipr.Vertex
+	}
 
 	gl.UseProgram(b.sr.ID)
 	gl.Uniform2f(b.sr.CanvasSize, float32(b.fw), float32(b.fh))
@@ -359,19 +360,20 @@ func (b *GoGLBackend) useAlphaShader(style *backendbase.FillStyle, alphaTexSlot 
 	// 	gl.Uniform1f(rgar.globalAlpha, float32(cv.state.globalAlpha))
 	// 	return rgar.vertex, rgar.alphaTexCoord
 	// }
-	// if img := style.Image; img != nil {
-	// 	gl.UseProgram(ipar.id)
-	// 	gl.ActiveTexture(gl.TEXTURE0)
-	// 	gl.BindTexture(gl.TEXTURE_2D, img.tex)
-	// 	gl.Uniform2f(ipar.canvasSize, float32(cv.fw), float32(cv.fh))
-	// 	inv := cv.state.transform.invert().f32()
-	// 	gl.UniformMatrix3fv(ipar.invmat, 1, false, &inv[0])
-	// 	gl.Uniform2f(ipar.imageSize, float32(img.w), float32(img.h))
-	// 	gl.Uniform1i(ipar.image, 0)
-	// 	gl.Uniform1i(ipar.alphaTex, alphaTexSlot)
-	// 	gl.Uniform1f(ipar.globalAlpha, float32(cv.state.globalAlpha))
-	// 	return ipar.vertex, ipar.alphaTexCoord
-	// }
+	if img := style.Image; img != nil {
+		img := img.(*Image)
+		gl.UseProgram(b.ipar.ID)
+		gl.ActiveTexture(gl.TEXTURE0)
+		gl.BindTexture(gl.TEXTURE_2D, img.tex)
+		gl.Uniform2f(b.ipar.CanvasSize, float32(b.fw), float32(b.fh))
+		inv := mat(style.FillMatrix).invert().f32()
+		gl.UniformMatrix3fv(b.ipar.Invmat, 1, false, &inv[0])
+		gl.Uniform2f(b.ipar.ImageSize, float32(img.w), float32(img.h))
+		gl.Uniform1i(b.ipar.Image, 0)
+		gl.Uniform1i(b.ipar.AlphaTex, alphaTexSlot)
+		gl.Uniform1f(b.ipar.GlobalAlpha, float32(style.Color.A)/255)
+		return b.ipar.Vertex, b.ipar.AlphaTexCoord
+	}
 
 	gl.UseProgram(b.sar.ID)
 	gl.Uniform2f(b.sar.CanvasSize, float32(b.fw), float32(b.fh))
@@ -431,4 +433,28 @@ func (b *GoGLBackend) disableTextureRenderTarget() {
 	// } else {
 	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 	// }
+}
+
+type mat [9]float64
+
+func (m mat) invert() mat {
+	var identity float64 = 1.0 / (m[0]*m[4]*m[8] + m[3]*m[7]*m[2] + m[6]*m[1]*m[5] - m[6]*m[4]*m[2] - m[3]*m[1]*m[8] - m[0]*m[7]*m[5])
+
+	return mat{
+		(m[4]*m[8] - m[5]*m[7]) * identity,
+		(m[2]*m[7] - m[1]*m[8]) * identity,
+		(m[1]*m[5] - m[2]*m[4]) * identity,
+		(m[5]*m[6] - m[3]*m[8]) * identity,
+		(m[0]*m[8] - m[2]*m[6]) * identity,
+		(m[2]*m[3] - m[0]*m[5]) * identity,
+		(m[3]*m[7] - m[4]*m[6]) * identity,
+		(m[1]*m[6] - m[0]*m[7]) * identity,
+		(m[0]*m[4] - m[1]*m[3]) * identity}
+}
+
+func (m mat) f32() [9]float32 {
+	return [9]float32{
+		float32(m[0]), float32(m[1]), float32(m[2]),
+		float32(m[3]), float32(m[4]), float32(m[5]),
+		float32(m[6]), float32(m[7]), float32(m[8])}
 }
