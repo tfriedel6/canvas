@@ -1,6 +1,8 @@
 package canvas
 
-import "math"
+import (
+	"math"
+)
 
 type Path2D struct {
 	p     []pathPoint
@@ -113,27 +115,43 @@ func (p *Path2D) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise b
 
 	lastWasMove := len(p.p) == 0 || p.p[len(p.p)-1].flags&pathMove != 0
 
-	startAngle = math.Mod(startAngle, math.Pi*2)
-	if startAngle < 0 {
-		startAngle += math.Pi * 2
+	if endAngle == startAngle {
+		s, c := math.Sincos(endAngle)
+		p.lineTo(x+radius*c, y+radius*s, checkSelfIntersection)
+
+		if lastWasMove {
+			p.p[len(p.p)-1].flags |= pathIsConvex
+		}
+
+		return
 	}
-	endAngle = math.Mod(endAngle, math.Pi*2)
-	if endAngle < 0 {
-		endAngle += math.Pi * 2
+
+	if (!anticlockwise && endAngle < startAngle) || (anticlockwise && endAngle > startAngle) {
+		endAngle, startAngle = startAngle, endAngle
 	}
-	if !anticlockwise && endAngle <= startAngle {
-		endAngle += math.Pi * 2
-	} else if anticlockwise && endAngle >= startAngle {
-		endAngle -= math.Pi * 2
+
+	if !anticlockwise {
+		diff := endAngle - startAngle
+		if diff >= math.Pi*4 {
+			diff = math.Mod(diff, math.Pi*2) + math.Pi*2
+			endAngle = startAngle + diff
+		}
+	} else {
+		diff := startAngle - endAngle
+		if diff >= math.Pi*4 {
+			diff = math.Mod(diff, math.Pi*2)
+			endAngle = startAngle - diff
+		}
 	}
-	const step = math.Pi * 2 / 360
-	if anticlockwise {
-		for a := startAngle; a > endAngle; a -= step {
+
+	const step = math.Pi * 2 / 90
+	if !anticlockwise {
+		for a := startAngle; a < endAngle; a += step {
 			s, c := math.Sincos(a)
 			p.lineTo(x+radius*c, y+radius*s, checkSelfIntersection)
 		}
 	} else {
-		for a := startAngle; a < endAngle; a += step {
+		for a := startAngle; a > endAngle; a -= step {
 			s, c := math.Sincos(a)
 			p.lineTo(x+radius*c, y+radius*s, checkSelfIntersection)
 		}
@@ -159,7 +177,7 @@ func (p *Path2D) ArcTo(x1, y1, x2, y2, radius float64) {
 		p.LineTo(x2, y2)
 		return
 	}
-	// cv are the vectors orthogonal to the lines that point to the center of the circle
+	// cv0 and cv1 are vectors that point to the center of the circle
 	cv0 := vec{-v0[1], v0[0]}
 	cv1 := vec{v1[1], -v1[0]}
 	x := cv1.sub(cv0).div(v0.sub(v1))[0] * radius
@@ -169,6 +187,15 @@ func (p *Path2D) ArcTo(x1, y1, x2, y2, radius float64) {
 	}
 	center := p1.add(v0.mulf(math.Abs(x))).add(cv0.mulf(radius))
 	a0, a1 := cv0.mulf(-1).atan2(), cv1.mulf(-1).atan2()
+	if x > 0 {
+		if a1-a0 > 0 {
+			a0 += math.Pi * 2
+		}
+	} else {
+		if a0-a1 > 0 {
+			a1 += math.Pi * 2
+		}
+	}
 	p.Arc(center[0], center[1], radius, a0, a1, x > 0)
 }
 

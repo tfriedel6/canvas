@@ -34,7 +34,10 @@ func (cv *Canvas) LineTo(x, y float64) {
 // means that the line is added anticlockwise
 func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise bool) {
 	tf := cv.tf(vec{x, y})
-	cv.path.Arc(tf[0], tf[1], radius, startAngle, endAngle, anticlockwise)
+	ax, ay := math.Sincos(startAngle)
+	startAngle2 := vec{ay, ax}.mulMat2(cv.state.transform.mat2()).atan2()
+	endAngle2 := startAngle2 + (endAngle - startAngle)
+	cv.path.Arc(tf[0], tf[1], radius, startAngle2, endAngle2, anticlockwise)
 }
 
 // ArcTo adds to the current path by drawing a line toward x1/y1 and a circle

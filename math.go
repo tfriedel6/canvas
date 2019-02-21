@@ -34,6 +34,10 @@ func (v vec) mulMat(m mat) (vec, float64) {
 		m[2]*v[0] + m[5]*v[1] + m[8]
 }
 
+func (v vec) mulMat2(m mat2) vec {
+	return vec{m[0]*v[0] + m[2]*v[1], m[1]*v[0] + m[3]*v[1]}
+}
+
 func (v1 vec) div(v2 vec) vec {
 	return vec{v1[0] / v2[0], v1[1] / v2[1]}
 }
@@ -138,4 +142,14 @@ func (m mat) f32() [9]float32 {
 		float32(m[0]), float32(m[1]), float32(m[2]),
 		float32(m[3]), float32(m[4]), float32(m[5]),
 		float32(m[6]), float32(m[7]), float32(m[8])}
+}
+
+func (m mat) mat2() mat2 {
+	return mat2{m[0], m[1], m[3], m[4]}
+}
+
+type mat2 [4]float64
+
+func (m *mat2) String() string {
+	return fmt.Sprintf("[%f,%f,\n %f,%f]", m[0], m[2], m[1], m[3])
 }
