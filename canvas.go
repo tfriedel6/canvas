@@ -504,7 +504,13 @@ func (s *drawStyle) isOpaque() bool {
 func (cv *Canvas) backendFillStyle(s *drawStyle, alpha float64) backendbase.FillStyle {
 	stl := backendbase.FillStyle{Color: s.color, FillMatrix: cv.state.transform}
 	alpha *= cv.state.globalAlpha
-	if img := cv.state.fill.image; img != nil {
+	if lg := s.linearGradient; lg != nil {
+		lg.load()
+		stl.LinearGradient = lg.grad
+	} else if rg := s.radialGradient; rg != nil {
+		rg.load()
+		stl.RadialGradient = rg.grad
+	} else if img := s.image; img != nil {
 		stl.Image = img.img
 	} else {
 		alpha *= float64(s.color.A) / 255
@@ -516,42 +522,46 @@ func (cv *Canvas) backendFillStyle(s *drawStyle, alpha float64) backendbase.Fill
 func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 	if lg := style.linearGradient; lg != nil {
 		lg.load()
-		gli.ActiveTexture(gl_TEXTURE0)
-		gli.BindTexture(gl_TEXTURE_2D, lg.tex)
-		gli.UseProgram(lgr.id)
-		from := cv.tf(lg.from)
-		to := cv.tf(lg.to)
-		dir := to.sub(from)
-		length := dir.len()
-		dir = dir.divf(length)
-		gli.Uniform2f(lgr.canvasSize, float32(cv.fw), float32(cv.fh))
-		gli.Uniform2f(lgr.from, float32(from[0]), float32(from[1]))
-		gli.Uniform2f(lgr.dir, float32(dir[0]), float32(dir[1]))
-		gli.Uniform1f(lgr.len, float32(length))
-		gli.Uniform1i(lgr.gradient, 0)
-		gli.Uniform1f(lgr.globalAlpha, float32(cv.state.globalAlpha))
-		return lgr.vertex
+		// 	gli.ActiveTexture(gl_TEXTURE0)
+		// 	gli.BindTexture(gl_TEXTURE_2D, lg.tex)
+		// 	gli.UseProgram(lgr.id)
+		// 	from := cv.tf(lg.from)
+		// 	to := cv.tf(lg.to)
+		// 	dir := to.sub(from)
+		// 	length := dir.len()
+		// 	dir = dir.divf(length)
+		// 	gli.Uniform2f(lgr.canvasSize, float32(cv.fw), float32(cv.fh))
+		// 	inv := cv.state.transform.invert().f32()
+		// 	gli.UniformMatrix3fv(lgr.invmat, 1, false, &inv[0])
+		// 	gli.Uniform2f(lgr.from, float32(from[0]), float32(from[1]))
+		// 	gli.Uniform2f(lgr.dir, float32(dir[0]), float32(dir[1]))
+		// 	gli.Uniform1f(lgr.len, float32(length))
+		// 	gli.Uniform1i(lgr.gradient, 0)
+		// 	gli.Uniform1f(lgr.globalAlpha, float32(cv.state.globalAlpha))
+		// 	return lgr.vertex
 	}
 	if rg := style.radialGradient; rg != nil {
 		rg.load()
-		gli.ActiveTexture(gl_TEXTURE0)
-		gli.BindTexture(gl_TEXTURE_2D, rg.tex)
-		gli.UseProgram(rgr.id)
-		from := cv.tf(rg.from)
-		to := cv.tf(rg.to)
-		dir := to.sub(from)
-		length := dir.len()
-		dir = dir.divf(length)
-		gli.Uniform2f(rgr.canvasSize, float32(cv.fw), float32(cv.fh))
-		gli.Uniform2f(rgr.from, float32(from[0]), float32(from[1]))
-		gli.Uniform2f(rgr.to, float32(to[0]), float32(to[1]))
-		gli.Uniform2f(rgr.dir, float32(dir[0]), float32(dir[1]))
-		gli.Uniform1f(rgr.radFrom, float32(rg.radFrom))
-		gli.Uniform1f(rgr.radTo, float32(rg.radTo))
-		gli.Uniform1f(rgr.len, float32(length))
-		gli.Uniform1i(rgr.gradient, 0)
-		gli.Uniform1f(rgr.globalAlpha, float32(cv.state.globalAlpha))
-		return rgr.vertex
+		// 	gli.ActiveTexture(gl_TEXTURE0)
+		// 	gli.BindTexture(gl_TEXTURE_2D, rg.tex)
+		// 	gli.UseProgram(rgr.id)
+		// 	from := cv.tf(rg.from)
+		// 	to := cv.tf(rg.to)
+		// 	dir := to.sub(from)
+		// 	length := dir.len()
+		// 	dir = dir.divf(length)
+		// 	gli.Uniform2f(rgr.canvasSize, float32(cv.fw), float32(cv.fh))
+		// 	inv := cv.state.transform.invert().f32()
+		// 	gli.UniformMatrix3fv(rgr.invmat, 1, false, &inv[0])
+		// 	gli.Uniform2f(rgr.from, float32(from[0]), float32(from[1]))
+		// 	gli.Uniform2f(rgr.to, float32(to[0]), float32(to[1]))
+		// 	gli.Uniform2f(rgr.dir, float32(dir[0]), float32(dir[1]))
+		// 	gli.Uniform1f(rgr.radFrom, float32(rg.radFrom))
+		// 	gli.Uniform1f(rgr.radTo, float32(rg.radTo))
+		// 	gli.Uniform1f(rgr.len, float32(length))
+		// 	gli.Uniform1i(rgr.gradient, 0)
+		// 	gli.Uniform1f(rgr.globalAlpha, float32(cv.state.globalAlpha))
+		// 	return rgr.vertex
 	}
 	// if img := style.image; img != nil {
 	// 	gli.UseProgram(ipr.id)
@@ -577,44 +587,48 @@ func (cv *Canvas) useShader(style *drawStyle) (vertexLoc uint32) {
 func (cv *Canvas) useAlphaShader(style *drawStyle, alphaTexSlot int32) (vertexLoc, alphaTexCoordLoc uint32) {
 	if lg := style.linearGradient; lg != nil {
 		lg.load()
-		gli.ActiveTexture(gl_TEXTURE0)
-		gli.BindTexture(gl_TEXTURE_2D, lg.tex)
-		gli.UseProgram(lgar.id)
-		from := cv.tf(lg.from)
-		to := cv.tf(lg.to)
-		dir := to.sub(from)
-		length := dir.len()
-		dir = dir.divf(length)
-		gli.Uniform2f(lgar.canvasSize, float32(cv.fw), float32(cv.fh))
-		gli.Uniform2f(lgar.from, float32(from[0]), float32(from[1]))
-		gli.Uniform2f(lgar.dir, float32(dir[0]), float32(dir[1]))
-		gli.Uniform1f(lgar.len, float32(length))
-		gli.Uniform1i(lgar.gradient, 0)
-		gli.Uniform1i(lgar.alphaTex, alphaTexSlot)
-		gli.Uniform1f(lgar.globalAlpha, float32(cv.state.globalAlpha))
-		return lgar.vertex, lgar.alphaTexCoord
+		// 	gli.ActiveTexture(gl_TEXTURE0)
+		// 	gli.BindTexture(gl_TEXTURE_2D, lg.tex)
+		// 	gli.UseProgram(lgar.id)
+		// 	from := cv.tf(lg.from)
+		// 	to := cv.tf(lg.to)
+		// 	dir := to.sub(from)
+		// 	length := dir.len()
+		// 	dir = dir.divf(length)
+		// 	gli.Uniform2f(lgar.canvasSize, float32(cv.fw), float32(cv.fh))
+		// 	inv := cv.state.transform.invert().f32()
+		// 	gli.UniformMatrix3fv(lgar.invmat, 1, false, &inv[0])
+		// 	gli.Uniform2f(lgar.from, float32(from[0]), float32(from[1]))
+		// 	gli.Uniform2f(lgar.dir, float32(dir[0]), float32(dir[1]))
+		// 	gli.Uniform1f(lgar.len, float32(length))
+		// 	gli.Uniform1i(lgar.gradient, 0)
+		// 	gli.Uniform1i(lgar.alphaTex, alphaTexSlot)
+		// 	gli.Uniform1f(lgar.globalAlpha, float32(cv.state.globalAlpha))
+		// 	return lgar.vertex, lgar.alphaTexCoord
 	}
 	if rg := style.radialGradient; rg != nil {
 		rg.load()
-		gli.ActiveTexture(gl_TEXTURE0)
-		gli.BindTexture(gl_TEXTURE_2D, rg.tex)
-		gli.UseProgram(rgar.id)
-		from := cv.tf(rg.from)
-		to := cv.tf(rg.to)
-		dir := to.sub(from)
-		length := dir.len()
-		dir = dir.divf(length)
-		gli.Uniform2f(rgar.canvasSize, float32(cv.fw), float32(cv.fh))
-		gli.Uniform2f(rgar.from, float32(from[0]), float32(from[1]))
-		gli.Uniform2f(rgar.to, float32(to[0]), float32(to[1]))
-		gli.Uniform2f(rgar.dir, float32(dir[0]), float32(dir[1]))
-		gli.Uniform1f(rgar.radFrom, float32(rg.radFrom))
-		gli.Uniform1f(rgar.radTo, float32(rg.radTo))
-		gli.Uniform1f(rgar.len, float32(length))
-		gli.Uniform1i(rgar.gradient, 0)
-		gli.Uniform1i(rgar.alphaTex, alphaTexSlot)
-		gli.Uniform1f(rgar.globalAlpha, float32(cv.state.globalAlpha))
-		return rgar.vertex, rgar.alphaTexCoord
+		// 	gli.ActiveTexture(gl_TEXTURE0)
+		// 	gli.BindTexture(gl_TEXTURE_2D, rg.tex)
+		// 	gli.UseProgram(rgar.id)
+		// 	from := cv.tf(rg.from)
+		// 	to := cv.tf(rg.to)
+		// 	dir := to.sub(from)
+		// 	length := dir.len()
+		// 	dir = dir.divf(length)
+		// 	gli.Uniform2f(rgar.canvasSize, float32(cv.fw), float32(cv.fh))
+		// 	inv := cv.state.transform.invert().f32()
+		// 	gli.UniformMatrix3fv(rgar.invmat, 1, false, &inv[0])
+		// 	gli.Uniform2f(rgar.from, float32(from[0]), float32(from[1]))
+		// 	gli.Uniform2f(rgar.to, float32(to[0]), float32(to[1]))
+		// 	gli.Uniform2f(rgar.dir, float32(dir[0]), float32(dir[1]))
+		// 	gli.Uniform1f(rgar.radFrom, float32(rg.radFrom))
+		// 	gli.Uniform1f(rgar.radTo, float32(rg.radTo))
+		// 	gli.Uniform1f(rgar.len, float32(length))
+		// 	gli.Uniform1i(rgar.gradient, 0)
+		// 	gli.Uniform1i(rgar.alphaTex, alphaTexSlot)
+		// 	gli.Uniform1f(rgar.globalAlpha, float32(cv.state.globalAlpha))
+		// 	return rgar.vertex, rgar.alphaTexCoord
 	}
 	// if img := style.image; img != nil {
 	// 	gli.UseProgram(ipar.id)

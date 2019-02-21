@@ -3,6 +3,7 @@ package goglbackend
 import (
 	"fmt"
 	"image/color"
+	"math"
 
 	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/tfriedel6/canvas/backend/backendbase"
@@ -249,49 +250,49 @@ func colorGoToGL(c color.RGBA) glColor {
 }
 
 func (b *GoGLBackend) useShader(style *backendbase.FillStyle) (vertexLoc uint32) {
-	// if lg := style.LinearGradient; lg != nil {
-	// 	lg.load()
-	// 	gl.ActiveTexture(gl.TEXTURE0)
-	// 	gl.BindTexture(gl.TEXTURE_2D, lg.tex)
-	// 	gl.UseProgram(lgr.id)
-	// 	from := cv.tf(lg.from)
-	// 	to := cv.tf(lg.to)
-	// 	dir := to.sub(from)
-	// 	length := dir.len()
-	// 	dir = dir.divf(length)
-	// 	gl.Uniform2f(lgr.canvasSize, float32(cv.fw), float32(cv.fh))
-	// 	inv := cv.state.transform.invert().f32()
-	// 	gl.UniformMatrix3fv(lgr.invmat, 1, false, &inv[0])
-	// 	gl.Uniform2f(lgr.from, float32(from[0]), float32(from[1]))
-	// 	gl.Uniform2f(lgr.dir, float32(dir[0]), float32(dir[1]))
-	// 	gl.Uniform1f(lgr.len, float32(length))
-	// 	gl.Uniform1i(lgr.gradient, 0)
-	// 	gl.Uniform1f(lgr.globalAlpha, float32(cv.state.globalAlpha))
-	// 	return lgr.vertex
-	// }
-	// if rg := style.RadialGradient; rg != nil {
-	// 	rg.load()
-	// 	gl.ActiveTexture(gl.TEXTURE0)
-	// 	gl.BindTexture(gl.TEXTURE_2D, rg.tex)
-	// 	gl.UseProgram(rgr.id)
-	// 	from := cv.tf(rg.from)
-	// 	to := cv.tf(rg.to)
-	// 	dir := to.sub(from)
-	// 	length := dir.len()
-	// 	dir = dir.divf(length)
-	// 	gl.Uniform2f(rgr.canvasSize, float32(cv.fw), float32(cv.fh))
-	// 	inv := cv.state.transform.invert().f32()
-	// 	gl.UniformMatrix3fv(rgr.invmat, 1, false, &inv[0])
-	// 	gl.Uniform2f(rgr.from, float32(from[0]), float32(from[1]))
-	// 	gl.Uniform2f(rgr.to, float32(to[0]), float32(to[1]))
-	// 	gl.Uniform2f(rgr.dir, float32(dir[0]), float32(dir[1]))
-	// 	gl.Uniform1f(rgr.radFrom, float32(rg.radFrom))
-	// 	gl.Uniform1f(rgr.radTo, float32(rg.radTo))
-	// 	gl.Uniform1f(rgr.len, float32(length))
-	// 	gl.Uniform1i(rgr.gradient, 0)
-	// 	gl.Uniform1f(rgr.globalAlpha, float32(cv.state.globalAlpha))
-	// 	return rgr.vertex
-	// }
+	if lg := style.LinearGradient; lg != nil {
+		lg := lg.(*LinearGradient)
+		gl.ActiveTexture(gl.TEXTURE0)
+		gl.BindTexture(gl.TEXTURE_2D, lg.tex)
+		gl.UseProgram(b.lgr.ID)
+		from := mat(style.FillMatrix).mul(lg.from)
+		to := mat(style.FillMatrix).mul(lg.to)
+		dir := to.sub(from)
+		length := dir.len()
+		dir = dir.scale(1 / length)
+		gl.Uniform2f(b.lgr.CanvasSize, float32(b.fw), float32(b.fh))
+		inv := mat(style.FillMatrix).invert().f32()
+		gl.UniformMatrix3fv(b.lgr.Invmat, 1, false, &inv[0])
+		gl.Uniform2f(b.lgr.From, float32(from[0]), float32(from[1]))
+		gl.Uniform2f(b.lgr.Dir, float32(dir[0]), float32(dir[1]))
+		gl.Uniform1f(b.lgr.Len, float32(length))
+		gl.Uniform1i(b.lgr.Gradient, 0)
+		gl.Uniform1f(b.lgr.GlobalAlpha, float32(style.Color.A)/255)
+		return b.lgr.Vertex
+	}
+	if rg := style.RadialGradient; rg != nil {
+		rg := rg.(*RadialGradient)
+		gl.ActiveTexture(gl.TEXTURE0)
+		gl.BindTexture(gl.TEXTURE_2D, rg.tex)
+		gl.UseProgram(b.rgr.ID)
+		from := mat(style.FillMatrix).mul(rg.from)
+		to := mat(style.FillMatrix).mul(rg.to)
+		dir := to.sub(from)
+		length := dir.len()
+		dir = dir.scale(1 / length)
+		gl.Uniform2f(b.rgr.CanvasSize, float32(b.fw), float32(b.fh))
+		inv := mat(style.FillMatrix).invert().f32()
+		gl.UniformMatrix3fv(b.rgr.Invmat, 1, false, &inv[0])
+		gl.Uniform2f(b.rgr.From, float32(from[0]), float32(from[1]))
+		gl.Uniform2f(b.rgr.To, float32(to[0]), float32(to[1]))
+		gl.Uniform2f(b.rgr.Dir, float32(dir[0]), float32(dir[1]))
+		gl.Uniform1f(b.rgr.RadFrom, float32(rg.radFrom))
+		gl.Uniform1f(b.rgr.RadTo, float32(rg.radTo))
+		gl.Uniform1f(b.rgr.Len, float32(length))
+		gl.Uniform1i(b.rgr.Gradient, 0)
+		gl.Uniform1f(b.rgr.GlobalAlpha, float32(style.Color.A)/255)
+		return b.rgr.Vertex
+	}
 	if img := style.Image; img != nil {
 		img := img.(*Image)
 		gl.UseProgram(b.ipr.ID)
@@ -315,51 +316,51 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle) (vertexLoc uint32)
 }
 
 func (b *GoGLBackend) useAlphaShader(style *backendbase.FillStyle, alphaTexSlot int32) (vertexLoc, alphaTexCoordLoc uint32) {
-	// if lg := style.LinearGradient; lg != nil {
-	// 	lg.load()
-	// 	gl.ActiveTexture(gl.TEXTURE0)
-	// 	gl.BindTexture(gl.TEXTURE_2D, lg.tex)
-	// 	gl.UseProgram(lgar.id)
-	// 	from := cv.tf(lg.from)
-	// 	to := cv.tf(lg.to)
-	// 	dir := to.sub(from)
-	// 	length := dir.len()
-	// 	dir = dir.divf(length)
-	// 	gl.Uniform2f(lgar.canvasSize, float32(cv.fw), float32(cv.fh))
-	// 	inv := cv.state.transform.invert().f32()
-	// 	gl.UniformMatrix3fv(lgar.invmat, 1, false, &inv[0])
-	// 	gl.Uniform2f(lgar.from, float32(from[0]), float32(from[1]))
-	// 	gl.Uniform2f(lgar.dir, float32(dir[0]), float32(dir[1]))
-	// 	gl.Uniform1f(lgar.len, float32(length))
-	// 	gl.Uniform1i(lgar.gradient, 0)
-	// 	gl.Uniform1i(lgar.alphaTex, alphaTexSlot)
-	// 	gl.Uniform1f(lgar.globalAlpha, float32(cv.state.globalAlpha))
-	// 	return lgar.vertex, lgar.alphaTexCoord
-	// }
-	// if rg := style.RadialGradient; rg != nil {
-	// 	rg.load()
-	// 	gl.ActiveTexture(gl.TEXTURE0)
-	// 	gl.BindTexture(gl.TEXTURE_2D, rg.tex)
-	// 	gl.UseProgram(rgar.id)
-	// 	from := cv.tf(rg.from)
-	// 	to := cv.tf(rg.to)
-	// 	dir := to.sub(from)
-	// 	length := dir.len()
-	// 	dir = dir.divf(length)
-	// 	gl.Uniform2f(rgar.canvasSize, float32(cv.fw), float32(cv.fh))
-	// 	inv := cv.state.transform.invert().f32()
-	// 	gl.UniformMatrix3fv(rgar.invmat, 1, false, &inv[0])
-	// 	gl.Uniform2f(rgar.from, float32(from[0]), float32(from[1]))
-	// 	gl.Uniform2f(rgar.to, float32(to[0]), float32(to[1]))
-	// 	gl.Uniform2f(rgar.dir, float32(dir[0]), float32(dir[1]))
-	// 	gl.Uniform1f(rgar.radFrom, float32(rg.radFrom))
-	// 	gl.Uniform1f(rgar.radTo, float32(rg.radTo))
-	// 	gl.Uniform1f(rgar.len, float32(length))
-	// 	gl.Uniform1i(rgar.gradient, 0)
-	// 	gl.Uniform1i(rgar.alphaTex, alphaTexSlot)
-	// 	gl.Uniform1f(rgar.globalAlpha, float32(cv.state.globalAlpha))
-	// 	return rgar.vertex, rgar.alphaTexCoord
-	// }
+	if lg := style.LinearGradient; lg != nil {
+		lg := lg.(*LinearGradient)
+		gl.ActiveTexture(gl.TEXTURE0)
+		gl.BindTexture(gl.TEXTURE_2D, lg.tex)
+		gl.UseProgram(b.lgar.ID)
+		from := mat(style.FillMatrix).mul(lg.from)
+		to := mat(style.FillMatrix).mul(lg.to)
+		dir := to.sub(from)
+		length := dir.len()
+		dir = dir.scale(1 / length)
+		gl.Uniform2f(b.lgar.CanvasSize, float32(b.fw), float32(b.fh))
+		inv := mat(style.FillMatrix).invert().f32()
+		gl.UniformMatrix3fv(b.lgar.Invmat, 1, false, &inv[0])
+		gl.Uniform2f(b.lgar.From, float32(from[0]), float32(from[1]))
+		gl.Uniform2f(b.lgar.Dir, float32(dir[0]), float32(dir[1]))
+		gl.Uniform1f(b.lgar.Len, float32(length))
+		gl.Uniform1i(b.lgar.Gradient, 0)
+		gl.Uniform1i(b.lgar.AlphaTex, alphaTexSlot)
+		gl.Uniform1f(b.lgar.GlobalAlpha, float32(style.Color.A)/255)
+		return b.lgar.Vertex, b.lgar.AlphaTexCoord
+	}
+	if rg := style.RadialGradient; rg != nil {
+		rg := rg.(*RadialGradient)
+		gl.ActiveTexture(gl.TEXTURE0)
+		gl.BindTexture(gl.TEXTURE_2D, rg.tex)
+		gl.UseProgram(b.rgar.ID)
+		from := mat(style.FillMatrix).mul(rg.from)
+		to := mat(style.FillMatrix).mul(rg.to)
+		dir := to.sub(from)
+		length := dir.len()
+		dir = dir.scale(1 / length)
+		gl.Uniform2f(b.rgar.CanvasSize, float32(b.fw), float32(b.fh))
+		inv := mat(style.FillMatrix).invert().f32()
+		gl.UniformMatrix3fv(b.rgar.Invmat, 1, false, &inv[0])
+		gl.Uniform2f(b.rgar.From, float32(from[0]), float32(from[1]))
+		gl.Uniform2f(b.rgar.To, float32(to[0]), float32(to[1]))
+		gl.Uniform2f(b.rgar.Dir, float32(dir[0]), float32(dir[1]))
+		gl.Uniform1f(b.rgar.RadFrom, float32(rg.radFrom))
+		gl.Uniform1f(b.rgar.RadTo, float32(rg.radTo))
+		gl.Uniform1f(b.rgar.Len, float32(length))
+		gl.Uniform1i(b.rgar.Gradient, 0)
+		gl.Uniform1i(b.rgar.AlphaTex, alphaTexSlot)
+		gl.Uniform1f(b.rgar.GlobalAlpha, float32(style.Color.A)/255)
+		return b.rgar.Vertex, b.rgar.AlphaTexCoord
+	}
 	if img := style.Image; img != nil {
 		img := img.(*Image)
 		gl.UseProgram(b.ipar.ID)
@@ -457,4 +458,22 @@ func (m mat) f32() [9]float32 {
 		float32(m[0]), float32(m[1]), float32(m[2]),
 		float32(m[3]), float32(m[4]), float32(m[5]),
 		float32(m[6]), float32(m[7]), float32(m[8])}
+}
+
+func (m mat) mul(v vec) vec {
+	return vec{m[0]*v[0] + m[3]*v[1] + m[6], m[1]*v[0] + m[4]*v[1] + m[7]}
+}
+
+type vec [2]float64
+
+func (v1 vec) sub(v2 vec) vec {
+	return vec{v1[0] - v2[0], v1[1] - v2[1]}
+}
+
+func (v vec) len() float64 {
+	return math.Sqrt(v[0]*v[0] + v[1]*v[1])
+}
+
+func (v vec) scale(f float64) vec {
+	return vec{v[0] * f, v[1] * f}
 }
