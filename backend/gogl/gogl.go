@@ -225,7 +225,7 @@ func glError() error {
 // needs to be called if any other GL code changes the viewport
 func (b *GoGLBackend) Activate() {
 	// if b.offscreen {
-	// 	gli.Viewport(0, 0, int32(cv.w), int32(cv.h))
+	// 	gl.Viewport(0, 0, int32(cv.w), int32(cv.h))
 	// 	cv.enableTextureRenderTarget(&cv.offscrBuf)
 	// 	cv.offscrImg.w = cv.offscrBuf.w
 	// 	cv.offscrImg.h = cv.offscrBuf.h

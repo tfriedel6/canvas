@@ -215,8 +215,12 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 	pts[2] = cv.tf(vec{float64(textOffset.X+strWidth) + x, float64(textOffset.Y+strHeight) + y + yOff})
 	pts[3] = cv.tf(vec{float64(textOffset.X+strWidth) + x, float64(textOffset.Y) + y + yOff})
 
+	mask := textImage.SubImage(image.Rect(0, 0, strWidth, strHeight)).(*image.Alpha)
+
+	cv.drawShadow2(pts[:], mask)
+
 	stl := cv.backendFillStyle(&cv.state.fill, 1)
-	cv.b.FillImageMask(&stl, textImage.SubImage(image.Rect(0, 0, strWidth, strHeight)).(*image.Alpha), pts)
+	cv.b.FillImageMask(&stl, mask, pts[:])
 }
 
 // StrokeText draws the given string at the given coordinates

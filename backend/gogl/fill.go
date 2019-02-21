@@ -118,7 +118,7 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 	}
 }
 
-func (b *GoGLBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Alpha, pts [4][2]float64) {
+func (b *GoGLBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Alpha, pts [][2]float64) {
 	w, h := mask.Rect.Dx(), mask.Rect.Dy()
 
 	gl.ActiveTexture(gl.TEXTURE1)
@@ -128,7 +128,12 @@ func (b *GoGLBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Al
 		gl.TexSubImage2D(gl.TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(w), 1, gl.ALPHA, gl.UNSIGNED_BYTE, gl.Ptr(&mask.Pix[off]))
 	}
 
-	// b.drawTextShadow(textOffset, w, h, x, y)
+	if style.Blur > 0 {
+		b.offscr1.alpha = true
+		b.enableTextureRenderTarget(&b.offscr1)
+		gl.ClearColor(0, 0, 0, 0)
+		gl.Clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
+	}
 
 	gl.StencilFunc(gl.EQUAL, 0, 0xFF)
 
@@ -167,6 +172,10 @@ func (b *GoGLBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Al
 	}
 
 	gl.ActiveTexture(gl.TEXTURE0)
+
+	if style.Blur > 0 {
+		b.drawBlurred(style.Blur)
+	}
 }
 
 func (b *GoGLBackend) drawBlurred(blur float64) {
