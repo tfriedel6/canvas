@@ -32,67 +32,6 @@ func (cv *Canvas) drawShadow2(pts [][2]float64) {
 	cv.b.Fill(&style, cv.shadowBuf)
 }
 
-func (cv *Canvas) drawShadow(tris []float32) {
-	if len(tris) == 0 || cv.state.shadowColor.A == 0 {
-		return
-	}
-
-	if cv.state.shadowBlur > 0 {
-		offscr1.alpha = true
-		cv.enableTextureRenderTarget(&offscr1)
-		gli.ClearColor(0, 0, 0, 0)
-		gli.Clear(gl_COLOR_BUFFER_BIT | gl_STENCIL_BUFFER_BIT)
-	}
-
-	ox, oy := float32(cv.state.shadowOffsetX), float32(cv.state.shadowOffsetY)
-
-	count := len(tris)
-	for i := 12; i < count; i += 2 {
-		tris[i] += ox
-		tris[i+1] += oy
-	}
-
-	gli.BindBuffer(gl_ARRAY_BUFFER, shadowBuf)
-	gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
-
-	gli.ColorMask(false, false, false, false)
-	gli.StencilFunc(gl_ALWAYS, 1, 0xFF)
-	gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
-	gli.StencilMask(0x01)
-
-	gli.UseProgram(sr.id)
-	gli.Uniform4f(sr.color, 0, 0, 0, 0)
-	gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
-
-	gli.EnableVertexAttribArray(sr.vertex)
-	gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
-	gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
-	gli.DisableVertexAttribArray(sr.vertex)
-
-	gli.ColorMask(true, true, true, true)
-
-	gli.StencilFunc(gl_EQUAL, 1, 0xFF)
-
-	var style drawStyle
-	style.color = cv.state.shadowColor
-
-	vertex := cv.useShader(&style)
-	gli.EnableVertexAttribArray(vertex)
-	gli.VertexAttribPointer(vertex, 2, gl_FLOAT, false, 0, 0)
-	gli.DrawArrays(gl_TRIANGLES, 0, 6)
-	gli.DisableVertexAttribArray(vertex)
-
-	gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
-	gli.StencilFunc(gl_ALWAYS, 0, 0xFF)
-
-	gli.Clear(gl_STENCIL_BUFFER_BIT)
-	gli.StencilMask(0xFF)
-
-	if cv.state.shadowBlur > 0 {
-		cv.drawBlurredShadow()
-	}
-}
-
 func (cv *Canvas) drawTextShadow(offset image.Point, strWidth, strHeight int, x, y float64) {
 	if cv.state.shadowColor.A == 0 {
 		return
