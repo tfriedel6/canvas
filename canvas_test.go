@@ -3,6 +3,7 @@ package canvas_test
 import (
 	"fmt"
 	"image/png"
+	"math"
 	"os"
 	"runtime"
 	"strings"
@@ -517,5 +518,54 @@ func TestTransform2(t *testing.T) {
 		cv.SetLineJoin(canvas.Round)
 		cv.SetLineCap(canvas.Round)
 		cv.Stroke()
+	})
+}
+
+func TestImage(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		cv.DrawImage("testdata/cat.jpg", 5, 5, 40, 40)
+		cv.DrawImage("testdata/cat.jpg", 100, 100, 100, 100, 55, 55, 40, 40)
+		cv.Save()
+		cv.Translate(75, 25)
+		cv.Rotate(math.Pi / 2)
+		cv.Translate(-20, -20)
+		cv.DrawImage("testdata/cat.jpg", 0, 0, 40, 40)
+		cv.Restore()
+		cv.SetTransform(1, 0, 0.2, 1, 0, 0)
+		cv.DrawImage("testdata/cat.jpg", -8, 55, 40, 40)
+	})
+}
+
+func TestGradient(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		cv.Translate(50, 50)
+		cv.Scale(0.8, 0.7)
+		cv.Rotate(math.Pi * 0.1)
+		cv.Translate(-50, -50)
+
+		lg := canvas.NewLinearGradient(10, 10, 40, 20)
+		lg.AddColorStop(0, 0.5, 0, 0)
+		lg.AddColorStop(0.5, "#008000")
+		lg.AddColorStop(1, 0, 0, 128)
+		cv.SetFillStyle(lg)
+		cv.FillRect(0, 0, 50, 100)
+
+		rg := canvas.NewRadialGradient(75, 15, 10, 75, 75, 20)
+		rg.AddColorStop(0, 1.0, 0, 0, 0.5)
+		rg.AddColorStop(0.5, "#00FF0080")
+		rg.AddColorStop(1, 0, 0, 255, 128)
+		cv.SetFillStyle(rg)
+		cv.FillRect(50, 0, 50, 100)
+	})
+}
+
+func TestImagePattern(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		cv.Translate(50, 50)
+		cv.Scale(0.95, 1.05)
+		cv.Rotate(-math.Pi * 0.1)
+
+		cv.SetFillStyle("testdata/cat.jpg")
+		cv.FillRect(-40, -40, 80, 80)
 	})
 }
