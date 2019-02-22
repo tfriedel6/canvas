@@ -13,8 +13,8 @@ type Backend interface {
 	Size() (int, int)
 
 	LoadImage(img image.Image) (Image, error)
-	LoadLinearGradient(data *LinearGradientData) LinearGradient
-	LoadRadialGradient(data *RadialGradientData) RadialGradient
+	LoadLinearGradient(data Gradient) LinearGradient
+	LoadRadialGradient(data Gradient) RadialGradient
 
 	Clear(pts [4][2]float64)
 	Fill(style *FillStyle, pts [][2]float64)
@@ -34,22 +34,13 @@ type FillStyle struct {
 	Blur           float64
 	LinearGradient LinearGradient
 	RadialGradient RadialGradient
-	Image          Image
-	FillMatrix     [9]float64
-}
-
-type LinearGradientData struct {
-	X0, Y0 float64
-	X1, Y1 float64
-	Stops  Gradient
-}
-
-type RadialGradientData struct {
-	X0, Y0  float64
-	X1, Y1  float64
-	RadFrom float64
-	RadTo   float64
-	Stops   Gradient
+	Gradient       struct {
+		X0, Y0  float64
+		X1, Y1  float64
+		RadFrom float64
+		RadTo   float64
+	}
+	Image Image
 }
 
 type Gradient []GradientStop
@@ -97,14 +88,14 @@ type LinearGradient interface {
 	Delete()
 	IsDeleted() bool
 	IsOpaque() bool
-	Replace(data *LinearGradientData)
+	Replace(data Gradient)
 }
 
 type RadialGradient interface {
 	Delete()
 	IsDeleted() bool
 	IsOpaque() bool
-	Replace(data *RadialGradientData)
+	Replace(data Gradient)
 }
 
 type Image interface {

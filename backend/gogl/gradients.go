@@ -21,23 +21,21 @@ type LinearGradient struct {
 // will correspond to a circle
 type RadialGradient struct {
 	gradient
-	radFrom, radTo float64
 }
 
 type gradient struct {
-	b        *GoGLBackend
-	from, to vec
-	tex      uint32
-	loaded   bool
-	deleted  bool
-	opaque   bool
+	b       *GoGLBackend
+	tex     uint32
+	loaded  bool
+	deleted bool
+	opaque  bool
 }
 
-func (b *GoGLBackend) LoadLinearGradient(data *backendbase.LinearGradientData) backendbase.LinearGradient {
+func (b *GoGLBackend) LoadLinearGradient(data backendbase.Gradient) backendbase.LinearGradient {
 	b.activate()
 
 	lg := &LinearGradient{
-		gradient: gradient{b: b, from: vec{data.X0, data.Y0}, to: vec{data.X1, data.Y1}, opaque: true},
+		gradient: gradient{b: b, opaque: true},
 	}
 	gl.GenTextures(1, &lg.tex)
 	gl.ActiveTexture(gl.TEXTURE0)
@@ -46,7 +44,7 @@ func (b *GoGLBackend) LoadLinearGradient(data *backendbase.LinearGradientData) b
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-	lg.load(data.Stops)
+	lg.load(data)
 	runtime.SetFinalizer(lg, func(lg *LinearGradient) {
 		b.glChan <- func() {
 			gl.DeleteTextures(1, &lg.tex)
@@ -55,13 +53,11 @@ func (b *GoGLBackend) LoadLinearGradient(data *backendbase.LinearGradientData) b
 	return lg
 }
 
-func (b *GoGLBackend) LoadRadialGradient(data *backendbase.RadialGradientData) backendbase.RadialGradient {
+func (b *GoGLBackend) LoadRadialGradient(data backendbase.Gradient) backendbase.RadialGradient {
 	b.activate()
 
 	rg := &RadialGradient{
-		gradient: gradient{b: b, from: vec{data.X0, data.Y0}, to: vec{data.X1, data.Y1}, opaque: true},
-		radFrom:  data.RadFrom,
-		radTo:    data.RadTo,
+		gradient: gradient{b: b, opaque: true},
 	}
 	gl.GenTextures(1, &rg.tex)
 	gl.ActiveTexture(gl.TEXTURE0)
@@ -70,7 +66,7 @@ func (b *GoGLBackend) LoadRadialGradient(data *backendbase.RadialGradientData) b
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-	rg.load(data.Stops)
+	rg.load(data)
 	runtime.SetFinalizer(rg, func(rg *RadialGradient) {
 		b.glChan <- func() {
 			gl.DeleteTextures(1, &rg.tex)
@@ -90,8 +86,8 @@ func (g *gradient) Delete() {
 func (g *gradient) IsDeleted() bool { return g.deleted }
 func (g *gradient) IsOpaque() bool  { return g.opaque }
 
-func (lg *LinearGradient) Replace(data *backendbase.LinearGradientData) { lg.load(data.Stops) }
-func (rg *RadialGradient) Replace(data *backendbase.RadialGradientData) { rg.load(data.Stops) }
+func (lg *LinearGradient) Replace(data backendbase.Gradient) { lg.load(data) }
+func (rg *RadialGradient) Replace(data backendbase.Gradient) { rg.load(data) }
 
 func (g *gradient) load(stops backendbase.Gradient) {
 	if g.loaded {

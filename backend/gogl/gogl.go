@@ -306,8 +306,8 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle) (vertexLoc uint32)
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, lg.tex)
 		gl.UseProgram(b.lgr.ID)
-		from := mat(style.FillMatrix).mul(lg.from)
-		to := mat(style.FillMatrix).mul(lg.to)
+		from := vec{style.Gradient.X0, style.Gradient.Y0}
+		to := vec{style.Gradient.X1, style.Gradient.Y1}
 		dir := to.sub(from)
 		length := dir.len()
 		dir = dir.scale(1 / length)
@@ -324,13 +324,13 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle) (vertexLoc uint32)
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, rg.tex)
 		gl.UseProgram(b.rgr.ID)
-		from := mat(style.FillMatrix).mul(rg.from)
-		to := mat(style.FillMatrix).mul(rg.to)
+		from := vec{style.Gradient.X0, style.Gradient.Y0}
+		to := vec{style.Gradient.X1, style.Gradient.Y1}
 		gl.Uniform2f(b.rgr.CanvasSize, float32(b.fw), float32(b.fh))
 		gl.Uniform2f(b.rgr.From, float32(from[0]), float32(from[1]))
 		gl.Uniform2f(b.rgr.To, float32(to[0]), float32(to[1]))
-		gl.Uniform1f(b.rgr.RadFrom, float32(rg.radFrom))
-		gl.Uniform1f(b.rgr.RadTo, float32(rg.radTo))
+		gl.Uniform1f(b.rgr.RadFrom, float32(style.Gradient.RadFrom))
+		gl.Uniform1f(b.rgr.RadTo, float32(style.Gradient.RadTo))
 		gl.Uniform1i(b.rgr.Gradient, 0)
 		gl.Uniform1f(b.rgr.GlobalAlpha, float32(style.Color.A)/255)
 		return b.rgr.Vertex
@@ -361,8 +361,8 @@ func (b *GoGLBackend) useAlphaShader(style *backendbase.FillStyle, alphaTexSlot 
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, lg.tex)
 		gl.UseProgram(b.lgar.ID)
-		from := mat(style.FillMatrix).mul(lg.from)
-		to := mat(style.FillMatrix).mul(lg.to)
+		from := vec{style.Gradient.X0, style.Gradient.Y0}
+		to := vec{style.Gradient.X1, style.Gradient.Y1}
 		dir := to.sub(from)
 		length := dir.len()
 		dir = dir.scale(1 / length)
@@ -380,13 +380,13 @@ func (b *GoGLBackend) useAlphaShader(style *backendbase.FillStyle, alphaTexSlot 
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, rg.tex)
 		gl.UseProgram(b.rgar.ID)
-		from := mat(style.FillMatrix).mul(rg.from)
-		to := mat(style.FillMatrix).mul(rg.to)
+		from := vec{style.Gradient.X0, style.Gradient.Y0}
+		to := vec{style.Gradient.X1, style.Gradient.Y1}
 		gl.Uniform2f(b.rgar.CanvasSize, float32(b.fw), float32(b.fh))
 		gl.Uniform2f(b.rgar.From, float32(from[0]), float32(from[1]))
 		gl.Uniform2f(b.rgar.To, float32(to[0]), float32(to[1]))
-		gl.Uniform1f(b.rgar.RadFrom, float32(rg.radFrom))
-		gl.Uniform1f(b.rgar.RadTo, float32(rg.radTo))
+		gl.Uniform1f(b.rgar.RadFrom, float32(style.Gradient.RadFrom))
+		gl.Uniform1f(b.rgar.RadTo, float32(style.Gradient.RadTo))
 		gl.Uniform1i(b.rgar.Gradient, 0)
 		gl.Uniform1i(b.rgar.AlphaTex, alphaTexSlot)
 		gl.Uniform1f(b.rgar.GlobalAlpha, float32(style.Color.A)/255)

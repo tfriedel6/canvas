@@ -244,13 +244,27 @@ func (s *drawStyle) isOpaque() bool {
 }
 
 func (cv *Canvas) backendFillStyle(s *drawStyle, alpha float64) backendbase.FillStyle {
-	stl := backendbase.FillStyle{Color: s.color, FillMatrix: cv.state.transform}
+	stl := backendbase.FillStyle{Color: s.color}
 	alpha *= cv.state.globalAlpha
 	if lg := s.linearGradient; lg != nil {
 		lg.load()
 		stl.LinearGradient = lg.grad
+		from := cv.tf(lg.from)
+		to := cv.tf(lg.to)
+		stl.Gradient.X0 = from[0]
+		stl.Gradient.Y0 = from[1]
+		stl.Gradient.X1 = to[0]
+		stl.Gradient.Y1 = to[1]
 	} else if rg := s.radialGradient; rg != nil {
 		rg.load()
+		from := cv.tf(rg.from)
+		to := cv.tf(rg.to)
+		stl.Gradient.X0 = from[0]
+		stl.Gradient.Y0 = from[1]
+		stl.Gradient.X1 = to[0]
+		stl.Gradient.Y1 = to[1]
+		stl.Gradient.RadFrom = rg.radFrom
+		stl.Gradient.RadTo = rg.radTo
 		stl.RadialGradient = rg.grad
 	} else if img := s.image; img != nil {
 		stl.Image = img.img

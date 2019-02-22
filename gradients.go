@@ -11,13 +11,14 @@ import (
 // be drawn such that each point on the gradient
 // will correspond to a straight line
 type LinearGradient struct {
-	cv      *Canvas
-	created bool
-	loaded  bool
-	deleted bool
-	opaque  bool
-	grad    backendbase.LinearGradient
-	data    backendbase.LinearGradientData
+	cv       *Canvas
+	from, to vec
+	created  bool
+	loaded   bool
+	deleted  bool
+	opaque   bool
+	grad     backendbase.LinearGradient
+	data     backendbase.Gradient
 }
 
 // RadialGradient is a gradient with any number of
@@ -25,13 +26,16 @@ type LinearGradient struct {
 // be drawn such that each point on the gradient
 // will correspond to a circle
 type RadialGradient struct {
-	cv      *Canvas
-	created bool
-	loaded  bool
-	deleted bool
-	opaque  bool
-	grad    backendbase.RadialGradient
-	data    backendbase.RadialGradientData
+	cv       *Canvas
+	from, to vec
+	radFrom  float64
+	radTo    float64
+	created  bool
+	loaded   bool
+	deleted  bool
+	opaque   bool
+	grad     backendbase.RadialGradient
+	data     backendbase.Gradient
 }
 
 // NewLinearGradient creates a new linear gradient with
@@ -41,13 +45,9 @@ func (cv *Canvas) NewLinearGradient(x0, y0, x1, y1 float64) *LinearGradient {
 	return &LinearGradient{
 		cv:     cv,
 		opaque: true,
-		data: backendbase.LinearGradientData{
-			X0:    x0,
-			Y0:    y0,
-			X1:    x1,
-			Y1:    y1,
-			Stops: make(backendbase.Gradient, 0, 20),
-		},
+		from:   vec{x0, y0},
+		to:     vec{x1, y1},
+		data:   make(backendbase.Gradient, 0, 20),
 	}
 }
 
@@ -57,19 +57,14 @@ func (cv *Canvas) NewLinearGradient(x0, y0, x1, y1 float64) *LinearGradient {
 // circle
 func (cv *Canvas) NewRadialGradient(x0, y0, r0, x1, y1, r1 float64) *RadialGradient {
 	return &RadialGradient{
-		cv:     cv,
-		opaque: true,
-		data: backendbase.RadialGradientData{
-			X0:      x0,
-			Y0:      y0,
-			X1:      x1,
-			Y1:      y1,
-			RadFrom: r0,
-			RadTo:   r1,
-			Stops:   make(backendbase.Gradient, 0, 20),
-		},
+		cv:      cv,
+		opaque:  true,
+		from:    vec{x0, y0},
+		to:      vec{x1, y1},
+		radFrom: r0,
+		radTo:   r1,
+		data:    make(backendbase.Gradient, 0, 20),
 	}
-
 }
 
 // Delete explicitly deletes the gradient
@@ -79,28 +74,28 @@ func (lg *LinearGradient) Delete() { lg.grad.Delete() }
 func (rg *RadialGradient) Delete() { rg.grad.Delete() }
 
 func (lg *LinearGradient) load() {
-	if lg.loaded || len(lg.data.Stops) < 1 {
+	if lg.loaded || len(lg.data) < 1 {
 		return
 	}
 
 	if !lg.created {
-		lg.grad = lg.cv.b.LoadLinearGradient(&lg.data)
+		lg.grad = lg.cv.b.LoadLinearGradient(lg.data)
 	} else {
-		lg.grad.Replace(&lg.data)
+		lg.grad.Replace(lg.data)
 	}
 	lg.created = true
 	lg.loaded = true
 }
 
 func (rg *RadialGradient) load() {
-	if rg.loaded || len(rg.data.Stops) < 1 {
+	if rg.loaded || len(rg.data) < 1 {
 		return
 	}
 
 	if !rg.created {
-		rg.grad = rg.cv.b.LoadRadialGradient(&rg.data)
+		rg.grad = rg.cv.b.LoadRadialGradient(rg.data)
 	} else {
-		rg.grad.Replace(&rg.data)
+		rg.grad.Replace(rg.data)
 	}
 	rg.created = true
 	rg.loaded = true
@@ -111,7 +106,7 @@ func (rg *RadialGradient) load() {
 // right place
 func (lg *LinearGradient) AddColorStop(pos float64, stopColor ...interface{}) {
 	var c color.RGBA
-	lg.data.Stops, c = addColorStop(lg.data.Stops, pos, stopColor...)
+	lg.data, c = addColorStop(lg.data, pos, stopColor...)
 	if c.A < 255 {
 		lg.opaque = false
 	}
@@ -123,7 +118,7 @@ func (lg *LinearGradient) AddColorStop(pos float64, stopColor ...interface{}) {
 // right place
 func (rg *RadialGradient) AddColorStop(pos float64, stopColor ...interface{}) {
 	var c color.RGBA
-	rg.data.Stops, c = addColorStop(rg.data.Stops, pos, stopColor...)
+	rg.data, c = addColorStop(rg.data, pos, stopColor...)
 	if c.A < 255 {
 		rg.opaque = false
 	}
