@@ -92,9 +92,8 @@ precision mediump float;
 varying vec2 v_cp;
 uniform mat3 invmat;
 uniform sampler2D gradient;
-uniform vec2 from, to, dir;
+uniform vec2 from, to;
 uniform float radFrom, radTo;
-uniform float len;
 uniform float globalAlpha;
 bool isNaN(float v) {
   return v < 0.0 || 0.0 < v || v == 0.0 ? false : true;
@@ -222,9 +221,8 @@ varying vec2 v_cp;
 varying vec2 v_atc;
 uniform mat3 invmat;
 uniform sampler2D gradient;
-uniform vec2 from, to, dir;
+uniform vec2 from, to;
 uniform float radFrom, radTo;
-uniform float len;
 uniform sampler2D alphaTex;
 uniform float globalAlpha;
 bool isNaN(float v) {
@@ -409,10 +407,8 @@ type radialGradientShader struct {
 	Gradient    int32
 	From        int32
 	To          int32
-	Dir         int32
 	RadFrom     int32
 	RadTo       int32
-	Len         int32
 	GlobalAlpha int32
 }
 
@@ -459,10 +455,8 @@ type radialGradientAlphaShader struct {
 	Gradient      int32
 	From          int32
 	To            int32
-	Dir           int32
 	RadFrom       int32
 	RadTo         int32
-	Len           int32
 	AlphaTex      int32
 	GlobalAlpha   int32
 }
