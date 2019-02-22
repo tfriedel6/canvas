@@ -61,14 +61,12 @@ var linearGradientFS = `
 precision mediump float;
 #endif
 varying vec2 v_cp;
-uniform mat3 invmat;
 uniform sampler2D gradient;
 uniform vec2 from, dir;
 uniform float len;
 uniform float globalAlpha;
 void main() {
-	vec3 untf = vec3(v_cp, 1.0) * invmat;
-	vec2 v = untf.xy - from;
+	vec2 v = v_cp - from;
 	float r = dot(v, dir) / len;
 	r = clamp(r, 0.0, 1.0);
 	vec4 col = texture2D(gradient, vec2(r, 0.0));
@@ -90,7 +88,6 @@ var radialGradientFS = `
 precision mediump float;
 #endif
 varying vec2 v_cp;
-uniform mat3 invmat;
 uniform sampler2D gradient;
 uniform vec2 from, to;
 uniform float radFrom, radTo;
@@ -99,13 +96,12 @@ bool isNaN(float v) {
   return v < 0.0 || 0.0 < v || v == 0.0 ? false : true;
 }
 void main() {
-	vec3 untf = vec3(v_cp, 1.0) * invmat;
 	float o_a = 0.5 * sqrt(
-		pow(-2.0*from.x*from.x+2.0*from.x*to.x+2.0*from.x*untf.x-2.0*to.x*untf.x-2.0*from.y*from.y+2.0*from.y*to.y+2.0*from.y*untf.y-2.0*to.y*untf.y+2.0*radFrom*radFrom-2.0*radFrom*radTo, 2.0)
-		-4.0*(from.x*from.x-2.0*from.x*untf.x+untf.x*untf.x+from.y*from.y-2.0*from.y*untf.y+untf.y*untf.y-radFrom*radFrom)
+		pow(-2.0*from.x*from.x+2.0*from.x*to.x+2.0*from.x*v_cp.x-2.0*to.x*v_cp.x-2.0*from.y*from.y+2.0*from.y*to.y+2.0*from.y*v_cp.y-2.0*to.y*v_cp.y+2.0*radFrom*radFrom-2.0*radFrom*radTo, 2.0)
+		-4.0*(from.x*from.x-2.0*from.x*v_cp.x+v_cp.x*v_cp.x+from.y*from.y-2.0*from.y*v_cp.y+v_cp.y*v_cp.y-radFrom*radFrom)
 		*(from.x*from.x-2.0*from.x*to.x+to.x*to.x+from.y*from.y-2.0*from.y*to.y+to.y*to.y-radFrom*radFrom+2.0*radFrom*radTo-radTo*radTo)
 	);
-	float o_b = (from.x*from.x-from.x*to.x-from.x*untf.x+to.x*untf.x+from.y*from.y-from.y*to.y-from.y*untf.y+to.y*untf.y-radFrom*radFrom+radFrom*radTo);
+	float o_b = (from.x*from.x-from.x*to.x-from.x*v_cp.x+to.x*v_cp.x+from.y*from.y-from.y*to.y-from.y*v_cp.y+to.y*v_cp.y-radFrom*radFrom+radFrom*radTo);
 	float o_c = (from.x*from.x-2.0*from.x*to.x+to.x*to.x+from.y*from.y-2.0*from.y*to.y+to.y*to.y-radFrom*radFrom+2.0*radFrom*radTo-radTo*radTo);
 	float o1 = (-o_a + o_b) / o_c;
 	float o2 = (o_a + o_b) / o_c;
@@ -135,12 +131,10 @@ precision mediump float;
 #endif
 varying vec2 v_cp;
 uniform vec2 imageSize;
-uniform mat3 invmat;
 uniform sampler2D image;
 uniform float globalAlpha;
 void main() {
-	vec3 untf = vec3(v_cp, 1.0) * invmat;
-	vec4 col = texture2D(image, mod(untf.xy / imageSize, 1.0));
+	vec4 col = texture2D(image, mod(v_cp / imageSize, 1.0));
 	col.a *= globalAlpha;
     gl_FragColor = col;
 }`
@@ -186,15 +180,13 @@ precision mediump float;
 varying vec2 v_cp;
 varying vec2 v_atc;
 varying vec2 v_texCoord;
-uniform mat3 invmat;
 uniform sampler2D gradient;
 uniform vec2 from, dir;
 uniform float len;
 uniform sampler2D alphaTex;
 uniform float globalAlpha;
 void main() {
-	vec3 untf = vec3(v_cp, 1.0) * invmat;
-	vec2 v = untf.xy - from;
+	vec2 v = v_cp - from;
 	float r = dot(v, dir) / len;
 	r = clamp(r, 0.0, 1.0);
     vec4 col = texture2D(gradient, vec2(r, 0.0));
@@ -219,7 +211,6 @@ precision mediump float;
 #endif
 varying vec2 v_cp;
 varying vec2 v_atc;
-uniform mat3 invmat;
 uniform sampler2D gradient;
 uniform vec2 from, to;
 uniform float radFrom, radTo;
@@ -229,13 +220,12 @@ bool isNaN(float v) {
   return v < 0.0 || 0.0 < v || v == 0.0 ? false : true;
 }
 void main() {
-	vec3 untf = vec3(v_cp, 1.0) * invmat;
 	float o_a = 0.5 * sqrt(
-		pow(-2.0*from.x*from.x+2.0*from.x*to.x+2.0*from.x*untf.x-2.0*to.x*untf.x-2.0*from.y*from.y+2.0*from.y*to.y+2.0*from.y*untf.y-2.0*to.y*untf.y+2.0*radFrom*radFrom-2.0*radFrom*radTo, 2.0)
-		-4.0*(from.x*from.x-2.0*from.x*untf.x+untf.x*untf.x+from.y*from.y-2.0*from.y*untf.y+untf.y*untf.y-radFrom*radFrom)
+		pow(-2.0*from.x*from.x+2.0*from.x*to.x+2.0*from.x*v_cp.x-2.0*to.x*v_cp.x-2.0*from.y*from.y+2.0*from.y*to.y+2.0*from.y*v_cp.y-2.0*to.y*v_cp.y+2.0*radFrom*radFrom-2.0*radFrom*radTo, 2.0)
+		-4.0*(from.x*from.x-2.0*from.x*v_cp.x+v_cp.x*v_cp.x+from.y*from.y-2.0*from.y*v_cp.y+v_cp.y*v_cp.y-radFrom*radFrom)
 		*(from.x*from.x-2.0*from.x*to.x+to.x*to.x+from.y*from.y-2.0*from.y*to.y+to.y*to.y-radFrom*radFrom+2.0*radFrom*radTo-radTo*radTo)
 	);
-	float o_b = (from.x*from.x-from.x*to.x-from.x*untf.x+to.x*untf.x+from.y*from.y-from.y*to.y-from.y*untf.y+to.y*untf.y-radFrom*radFrom+radFrom*radTo);
+	float o_b = (from.x*from.x-from.x*to.x-from.x*v_cp.x+to.x*v_cp.x+from.y*from.y-from.y*to.y-from.y*v_cp.y+to.y*v_cp.y-radFrom*radFrom+radFrom*radTo);
 	float o_c = (from.x*from.x-2.0*from.x*to.x+to.x*to.x+from.y*from.y-2.0*from.y*to.y+to.y*to.y-radFrom*radFrom+2.0*radFrom*radTo-radTo*radTo);
 	float o1 = (-o_a + o_b) / o_c;
 	float o2 = (o_a + o_b) / o_c;
@@ -268,13 +258,11 @@ precision mediump float;
 varying vec2 v_cp;
 varying vec2 v_atc;
 uniform vec2 imageSize;
-uniform mat3 invmat;
 uniform sampler2D image;
 uniform sampler2D alphaTex;
 uniform float globalAlpha;
 void main() {
-	vec3 untf = vec3(v_cp, 1.0) * invmat;
-    vec4 col = texture2D(image, mod(untf.xy / imageSize, 1.0));
+    vec4 col = texture2D(image, mod(v_cp / imageSize, 1.0));
     col.a *= texture2D(alphaTex, v_atc).a * globalAlpha;
 	gl_FragColor = col;
 }`
@@ -391,7 +379,6 @@ type linearGradientShader struct {
 	shaderProgram
 	Vertex      uint32
 	CanvasSize  int32
-	Invmat      int32
 	Gradient    int32
 	From        int32
 	Dir         int32
@@ -403,7 +390,6 @@ type radialGradientShader struct {
 	shaderProgram
 	Vertex      uint32
 	CanvasSize  int32
-	Invmat      int32
 	Gradient    int32
 	From        int32
 	To          int32
@@ -417,7 +403,6 @@ type imagePatternShader struct {
 	Vertex      uint32
 	CanvasSize  int32
 	ImageSize   int32
-	Invmat      int32
 	Image       int32
 	GlobalAlpha int32
 }
@@ -437,7 +422,6 @@ type linearGradientAlphaShader struct {
 	Vertex        uint32
 	AlphaTexCoord uint32
 	CanvasSize    int32
-	Invmat        int32
 	Gradient      int32
 	From          int32
 	Dir           int32
@@ -451,7 +435,6 @@ type radialGradientAlphaShader struct {
 	Vertex        uint32
 	AlphaTexCoord uint32
 	CanvasSize    int32
-	Invmat        int32
 	Gradient      int32
 	From          int32
 	To            int32
@@ -467,7 +450,6 @@ type imagePatternAlphaShader struct {
 	AlphaTexCoord uint32
 	CanvasSize    int32
 	ImageSize     int32
-	Invmat        int32
 	Image         int32
 	AlphaTex      int32
 	GlobalAlpha   int32

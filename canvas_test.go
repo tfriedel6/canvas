@@ -543,14 +543,14 @@ func TestGradient(t *testing.T) {
 		cv.Rotate(math.Pi * 0.1)
 		cv.Translate(-50, -50)
 
-		lg := canvas.NewLinearGradient(10, 10, 40, 20)
+		lg := cv.NewLinearGradient(10, 10, 40, 20)
 		lg.AddColorStop(0, 0.5, 0, 0)
 		lg.AddColorStop(0.5, "#008000")
 		lg.AddColorStop(1, 0, 0, 128)
 		cv.SetFillStyle(lg)
 		cv.FillRect(0, 0, 50, 100)
 
-		rg := canvas.NewRadialGradient(75, 15, 10, 75, 75, 20)
+		rg := cv.NewRadialGradient(75, 15, 10, 75, 75, 20)
 		rg.AddColorStop(0, 1.0, 0, 0, 0.5)
 		rg.AddColorStop(0.5, "#00FF0080")
 		rg.AddColorStop(1, 0, 0, 255, 128)
