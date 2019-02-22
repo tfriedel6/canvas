@@ -467,34 +467,6 @@ func (b *GoGLBackend) disableTextureRenderTarget() {
 	}
 }
 
-type mat [9]float64
-
-func (m mat) invert() mat {
-	var identity float64 = 1.0 / (m[0]*m[4]*m[8] + m[3]*m[7]*m[2] + m[6]*m[1]*m[5] - m[6]*m[4]*m[2] - m[3]*m[1]*m[8] - m[0]*m[7]*m[5])
-
-	return mat{
-		(m[4]*m[8] - m[5]*m[7]) * identity,
-		(m[2]*m[7] - m[1]*m[8]) * identity,
-		(m[1]*m[5] - m[2]*m[4]) * identity,
-		(m[5]*m[6] - m[3]*m[8]) * identity,
-		(m[0]*m[8] - m[2]*m[6]) * identity,
-		(m[2]*m[3] - m[0]*m[5]) * identity,
-		(m[3]*m[7] - m[4]*m[6]) * identity,
-		(m[1]*m[6] - m[0]*m[7]) * identity,
-		(m[0]*m[4] - m[1]*m[3]) * identity}
-}
-
-func (m mat) f32() [9]float32 {
-	return [9]float32{
-		float32(m[0]), float32(m[1]), float32(m[2]),
-		float32(m[3]), float32(m[4]), float32(m[5]),
-		float32(m[6]), float32(m[7]), float32(m[8])}
-}
-
-func (m mat) mul(v vec) vec {
-	return vec{m[0]*v[0] + m[3]*v[1] + m[6], m[1]*v[0] + m[4]*v[1] + m[7]}
-}
-
 type vec [2]float64
 
 func (v1 vec) sub(v2 vec) vec {
