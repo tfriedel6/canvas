@@ -16,7 +16,6 @@ type Backend interface {
 	LoadLinearGradient(data *LinearGradientData) LinearGradient
 	LoadRadialGradient(data *RadialGradientData) RadialGradient
 
-	// ClearRect(x, y, w, h int)
 	Clear(pts [4][2]float64)
 	Fill(style *FillStyle, pts [][2]float64)
 	DrawImage(dimg Image, sx, sy, sw, sh, dx, dy, dw, dh float64, alpha float64)

@@ -12,14 +12,13 @@ import (
 
 	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/tfriedel6/canvas"
-	_ "github.com/tfriedel6/canvas/glimpl/xmobile"
 	"github.com/tfriedel6/canvas/sdlcanvas"
 )
 
 func run(t *testing.T, fn func(cv *canvas.Canvas)) {
 	wnd, cv, err := sdlcanvas.CreateWindow(100, 100, "test")
 	if err != nil {
-		t.Fatalf("Failed to crete window: %v", err)
+		t.Fatalf("Failed to create window: %v", err)
 		return
 	}
 	defer wnd.Destroy()
