@@ -9,15 +9,22 @@ import (
 	"github.com/tfriedel6/canvas/backend/backendbase"
 )
 
-// ClearRect sets the color of the rectangle to transparent black
-func (b *GoGLBackend) ClearRect(x, y, w, h int) {
-	gl.Scissor(int32(x), int32(b.h-y-h), int32(w), int32(h))
-	gl.ClearColor(0, 0, 0, 0)
-	gl.Clear(gl.COLOR_BUFFER_BIT)
-	// cv.applyScissor()
-}
-
 func (b *GoGLBackend) Clear(pts [4][2]float64) {
+	// first check if the four points are aligned to form a nice rectangle, which can be more easily
+	// cleared using glScissor and glClear
+	aligned := pts[0][0] == pts[1][0] && pts[2][0] == pts[3][0] && pts[0][1] == pts[3][1] && pts[1][1] == pts[2][1]
+	if !aligned {
+		aligned = pts[0][0] == pts[3][0] && pts[1][0] == pts[2][0] && pts[0][1] == pts[1][1] && pts[2][1] == pts[3][1]
+	}
+	if aligned {
+		minX := math.Floor(math.Min(pts[0][0], pts[2][0]))
+		maxX := math.Ceil(math.Max(pts[0][0], pts[2][0]))
+		minY := math.Floor(math.Min(pts[0][1], pts[2][1]))
+		maxY := math.Ceil(math.Max(pts[0][1], pts[2][1]))
+		b.clearRect(int(minX), int(minY), int(maxX)-int(minX), int(maxY)-int(minY))
+		return
+	}
+
 	data := [8]float32{
 		float32(pts[0][0]), float32(pts[0][1]),
 		float32(pts[1][0]), float32(pts[1][1]),
@@ -44,6 +51,13 @@ func (b *GoGLBackend) Clear(pts [4][2]float64) {
 	gl.StencilFunc(gl.ALWAYS, 0, 0xFF)
 
 	gl.Enable(gl.BLEND)
+}
+
+func (b *GoGLBackend) clearRect(x, y, w, h int) {
+	gl.Scissor(int32(x), int32(b.h-y-h), int32(w), int32(h))
+	gl.ClearColor(0, 0, 0, 0)
+	gl.Clear(gl.COLOR_BUFFER_BIT)
+	// cv.applyScissor()
 }
 
 func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {

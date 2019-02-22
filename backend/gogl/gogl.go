@@ -414,6 +414,8 @@ func (b *GoGLBackend) enableTextureRenderTarget(offscr *offscreenBuffer) {
 		}
 		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
 		gl.GenFramebuffers(1, &offscr.frameBuf)
 		gl.BindFramebuffer(gl.FRAMEBUFFER, offscr.frameBuf)

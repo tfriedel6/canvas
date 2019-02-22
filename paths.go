@@ -536,17 +536,10 @@ func (cv *Canvas) FillRect(x, y, w, h float64) {
 func (cv *Canvas) ClearRect(x, y, w, h float64) {
 	cv.activate()
 
-	if cv.state.transform == matIdentity() {
-		cv.b.ClearRect(int(x+0.5), int(y+0.5), int(w+0.5), int(h+0.5))
-		cv.applyScissor()
-		return
-	}
-
 	p0 := cv.tf(vec{x, y})
 	p1 := cv.tf(vec{x, y + h})
 	p2 := cv.tf(vec{x + w, y + h})
 	p3 := cv.tf(vec{x + w, y})
-
 	data := [4][2]float64{{p0[0], p0[1]}, {p1[0], p1[1]}, {p2[0], p2[1]}, {p3[0], p3[1]}}
 
 	cv.b.Clear(data)
