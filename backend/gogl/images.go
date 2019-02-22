@@ -215,7 +215,7 @@ func (img *Image) Replace(src image.Image) error {
 // have a full alpha value
 func (img *Image) IsOpaque() bool { return img.opaque }
 
-func (b *GoGLBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh, dx, dy, dw, dh float64, alpha float64) {
+func (b *GoGLBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh float64, pts [4][2]float64, alpha float64) {
 	b.activate()
 
 	img := dimg.(*Image)
@@ -225,19 +225,21 @@ func (b *GoGLBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh, dx, dy, 
 	sw /= float64(img.w)
 	sh /= float64(img.h)
 
+	var buf [16]float32
+	data := buf[:0]
+	for _, pt := range pts {
+		data = append(data, float32(pt[0]), float32(pt[1]))
+	}
+	data = append(data,
+		float32(sx), float32(sy),
+		float32(sx), float32(sy+sh),
+		float32(sx+sw), float32(sy+sh),
+		float32(sx+sw), float32(sy),
+	)
+
 	gl.StencilFunc(gl.EQUAL, 0, 0xFF)
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, b.buf)
-	data := [16]float32{
-		float32(dx), float32(dy),
-		float32(dx), float32(dy + dh),
-		float32(dx + dw), float32(dy + dh),
-		float32(dx + dw), float32(dy),
-		float32(sx), float32(sy),
-		float32(sx), float32(sy + sh),
-		float32(sx + sw), float32(sy + sh),
-		float32(sx + sw), float32(sy),
-	}
 	gl.BufferData(gl.ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl.STREAM_DRAW)
 
 	gl.ActiveTexture(gl.TEXTURE0)

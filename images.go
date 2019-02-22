@@ -168,7 +168,7 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 
 	cv.drawShadow2(data[:], nil)
 
-	cv.b.DrawImage(img.img, sx, sy, sw, sh, dx, dy, dw, dh, cv.state.globalAlpha)
+	cv.b.DrawImage(img.img, sx, sy, sw, sh, data, cv.state.globalAlpha)
 }
 
 // GetImageData returns an RGBA image of the current image
