@@ -38,10 +38,10 @@ type RadialGradient struct {
 	data     backendbase.Gradient
 }
 
-// NewLinearGradient creates a new linear gradient with
+// CreateLinearGradient creates a new linear gradient with
 // the coordinates from where to where the gradient
 // will apply on the canvas
-func (cv *Canvas) NewLinearGradient(x0, y0, x1, y1 float64) *LinearGradient {
+func (cv *Canvas) CreateLinearGradient(x0, y0, x1, y1 float64) *LinearGradient {
 	return &LinearGradient{
 		cv:     cv,
 		opaque: true,
@@ -51,11 +51,11 @@ func (cv *Canvas) NewLinearGradient(x0, y0, x1, y1 float64) *LinearGradient {
 	}
 }
 
-// NewRadialGradient creates a new linear gradient with
+// CreateRadialGradient creates a new radial gradient with
 // the coordinates and the radii for two circles. The
 // gradient will apply from the first to the second
 // circle
-func (cv *Canvas) NewRadialGradient(x0, y0, r0, x1, y1, r1 float64) *RadialGradient {
+func (cv *Canvas) CreateRadialGradient(x0, y0, r0, x1, y1, r1 float64) *RadialGradient {
 	return &RadialGradient{
 		cv:      cv,
 		opaque:  true,

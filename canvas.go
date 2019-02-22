@@ -341,11 +341,6 @@ func (cv *Canvas) SetLineJoin(join lineJoin) {
 	cv.state.lineJoin = join
 }
 
-// SetLineEnd is a synonym for SetLineCap that was misnamed by mistake. Deprecated
-func (cv *Canvas) SetLineEnd(cap lineCap) {
-	cv.SetLineCap(cap)
-}
-
 // SetLineCap sets the style of line endings for rendering a path with Stroke
 // The value can be Butt, Square, or Round
 func (cv *Canvas) SetLineCap(cap lineCap) {
