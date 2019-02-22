@@ -331,21 +331,7 @@ func (cv *Canvas) FillPath(path *Path2D) {
 	cv.activate()
 
 	var triBuf [500][2]float64
-	tris := triBuf[:0]
-
-	start := 0
-	for i, p := range path.p {
-		if p.flags&pathMove == 0 {
-			continue
-		}
-		if i >= start+3 {
-			tris = cv.appendSubPathTriangles(tris, path.p[start:i])
-		}
-		start = i
-	}
-	if len(path.p) >= start+3 {
-		tris = cv.appendSubPathTriangles(tris, path.p[start:])
-	}
+	tris := buildFillTriangles(path, triBuf[:0])
 	if len(tris) == 0 {
 		return
 	}
@@ -356,7 +342,24 @@ func (cv *Canvas) FillPath(path *Path2D) {
 	cv.b.Fill(&stl, tris)
 }
 
-func (cv *Canvas) appendSubPathTriangles(tris [][2]float64, path []pathPoint) [][2]float64 {
+func buildFillTriangles(path *Path2D, tris [][2]float64) [][2]float64 {
+	start := 0
+	for i, p := range path.p {
+		if p.flags&pathMove == 0 {
+			continue
+		}
+		if i >= start+3 {
+			tris = appendSubPathTriangles(tris, path.p[start:i])
+		}
+		start = i
+	}
+	if len(path.p) >= start+3 {
+		tris = appendSubPathTriangles(tris, path.p[start:])
+	}
+	return tris
+}
+
+func appendSubPathTriangles(tris [][2]float64, path []pathPoint) [][2]float64 {
 	last := path[len(path)-1]
 	if last.flags&pathIsConvex != 0 {
 		p0, p1 := path[0].pos, path[1].pos
@@ -367,7 +370,7 @@ func (cv *Canvas) appendSubPathTriangles(tris [][2]float64, path []pathPoint) []
 			p1 = p2
 		}
 	} else if last.flags&pathSelfIntersects != 0 {
-		path = cv.cutIntersections(path)
+		path = cutIntersections(path)
 		tris = triangulatePath(path, tris)
 	} else {
 		tris = triangulatePath(path, tris)
@@ -378,110 +381,21 @@ func (cv *Canvas) appendSubPathTriangles(tris [][2]float64, path []pathPoint) []
 // Clip uses the current path to clip any further drawing. Use Save/Restore to
 // remove the clipping again
 func (cv *Canvas) Clip() {
-	if len(cv.path.p) < 3 {
+	cv.clip(&cv.path)
+}
+
+func (cv *Canvas) clip(path *Path2D) {
+	if len(path.p) < 3 {
 		return
 	}
 
-	path := cv.path.p
-	for i := len(path) - 1; i >= 0; i-- {
-		if path[i].flags&pathMove != 0 {
-			path = path[i:]
-			break
-		}
-	}
-
-	cv.clip(path)
-}
-
-func (cv *Canvas) clip(path []pathPoint) {
-	if len(path) < 3 {
-		return
-	}
-	if path[len(path)-1].flags&pathIsRect != 0 {
-		cv.scissor(path)
+	var triBuf [500][2]float64
+	tris := buildFillTriangles(path, triBuf[:0])
+	if len(tris) == 0 {
 		return
 	}
 
-	// cv.activate()
-
-	// var triBuf [1000]float32
-	// tris := triBuf[:0]
-	// tris = append(tris, 0, 0, float32(cv.fw), 0, float32(cv.fw), float32(cv.fh), 0, 0, float32(cv.fw), float32(cv.fh), 0, float32(cv.fh))
-	// baseLen := len(tris)
-	// tris = triangulatePath(path, tris)
-	// if len(tris) <= baseLen {
-	// 	return
-	// }
-
-	// gli.BindBuffer(gl_ARRAY_BUFFER, buf)
-	// gli.BufferData(gl_ARRAY_BUFFER, len(tris)*4, unsafe.Pointer(&tris[0]), gl_STREAM_DRAW)
-	// gli.VertexAttribPointer(sr.vertex, 2, gl_FLOAT, false, 0, 0)
-
-	// gli.UseProgram(sr.id)
-	// gli.Uniform4f(sr.color, 1, 1, 1, 1)
-	// gli.Uniform2f(sr.canvasSize, float32(cv.fw), float32(cv.fh))
-	// gli.EnableVertexAttribArray(sr.vertex)
-
-	// gli.ColorMask(false, false, false, false)
-
-	// gli.StencilMask(0x04)
-	// gli.StencilFunc(gl_ALWAYS, 4, 0x04)
-	// gli.StencilOp(gl_REPLACE, gl_REPLACE, gl_REPLACE)
-	// gli.DrawArrays(gl_TRIANGLES, 6, int32(len(tris)/2-6))
-
-	// gli.StencilMask(0x02)
-	// gli.StencilFunc(gl_EQUAL, 0, 0x06)
-	// gli.StencilOp(gl_KEEP, gl_INVERT, gl_INVERT)
-	// gli.DrawArrays(gl_TRIANGLES, 0, 6)
-
-	// gli.StencilMask(0x04)
-	// gli.StencilFunc(gl_ALWAYS, 0, 0x04)
-	// gli.StencilOp(gl_ZERO, gl_ZERO, gl_ZERO)
-	// gli.DrawArrays(gl_TRIANGLES, 0, 6)
-
-	// gli.DisableVertexAttribArray(sr.vertex)
-
-	// gli.ColorMask(true, true, true, true)
-	// gli.StencilOp(gl_KEEP, gl_KEEP, gl_KEEP)
-	// gli.StencilMask(0xFF)
-	// gli.StencilFunc(gl_EQUAL, 0, 0xFF)
-
-	// cv.state.clip = cv.path
-	// cv.state.clip.p = make([]pathPoint, len(cv.path.p))
-	// copy(cv.state.clip.p, cv.path.p)
-}
-
-func (cv *Canvas) scissor(path []pathPoint) {
-	tl, br := vec{math.MaxFloat64, math.MaxFloat64}, vec{}
-	for _, p := range path {
-		tl[0] = math.Min(p.pos[0], tl[0])
-		tl[1] = math.Min(p.pos[1], tl[1])
-		br[0] = math.Max(p.pos[0], br[0])
-		br[1] = math.Max(p.pos[1], br[1])
-	}
-
-	if cv.state.scissor.on {
-		tl[0] = math.Max(tl[0], cv.state.scissor.tl[0])
-		tl[1] = math.Max(tl[1], cv.state.scissor.tl[1])
-		br[0] = math.Min(br[0], cv.state.scissor.br[0])
-		br[1] = math.Min(br[1], cv.state.scissor.br[1])
-	}
-
-	if tl[0] >= br[0] || tl[1] >= br[1] {
-		tl, br = vec{}, vec{}
-	}
-
-	cv.state.scissor = scissor{tl: tl, br: br, on: true}
-	cv.applyScissor()
-}
-
-func (cv *Canvas) applyScissor() {
-	s := &cv.state.scissor
-	if s.on {
-		gli.Scissor(int32(s.tl[0]+0.5), int32(cv.fh-s.br[1]+0.5), int32(s.br[0]-s.tl[0]+0.5), int32(s.br[1]-s.tl[1]+0.5))
-	} else {
-		gli.Scissor(0, 0, int32(cv.w), int32(cv.h))
-	}
+	cv.b.Clip(tris)
 }
 
 // Rect creates a closed rectangle path for stroking or filling

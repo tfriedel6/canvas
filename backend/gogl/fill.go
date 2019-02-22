@@ -54,10 +54,17 @@ func (b *GoGLBackend) Clear(pts [4][2]float64) {
 }
 
 func (b *GoGLBackend) clearRect(x, y, w, h int) {
+	gl.Enable(gl.SCISSOR_TEST)
+
+	var box [4]int32
+	gl.GetIntegerv(gl.SCISSOR_BOX, &box[0])
+
 	gl.Scissor(int32(x), int32(b.h-y-h), int32(w), int32(h))
 	gl.ClearColor(0, 0, 0, 0)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
-	// cv.applyScissor()
+	gl.Scissor(box[0], box[1], box[2], box[3])
+
+	gl.Disable(gl.SCISSOR_TEST)
 }
 
 func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {

@@ -205,7 +205,7 @@ func New(x, y, w, h int) (backendbase.Backend, error) {
 	gl.StencilOp(gl.KEEP, gl.KEEP, gl.KEEP)
 	gl.StencilFunc(gl.EQUAL, 0, 0xFF)
 
-	gl.Enable(gl.SCISSOR_TEST)
+	gl.Disable(gl.SCISSOR_TEST)
 
 	return b, nil
 }

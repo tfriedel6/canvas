@@ -59,8 +59,7 @@ type drawState struct {
 	lineDashPoint  int
 	lineDashOffset float64
 
-	scissor scissor
-	clip    Path2D
+	clip Path2D
 
 	shadowColor   color.RGBA
 	shadowOffsetX float64
@@ -83,11 +82,6 @@ type drawStyle struct {
 	radialGradient *RadialGradient
 	linearGradient *LinearGradient
 	image          *Image
-}
-
-type scissor struct {
-	on     bool
-	tl, br vec
 }
 
 type lineJoin uint8
@@ -221,8 +215,6 @@ func (cv *Canvas) Activate() {
 		gli.Viewport(int32(cv.x), int32(cv.y), int32(cv.w), int32(cv.h))
 		cv.disableTextureRenderTarget()
 	}
-	cv.applyScissor()
-	gli.Clear(gl_STENCIL_BUFFER_BIT)
 }
 
 var activeCanvas *Canvas
@@ -535,18 +527,14 @@ func (cv *Canvas) Restore() {
 	if l <= 0 {
 		return
 	}
-	cv.state.scissor = scissor{}
-	cv.applyScissor()
-	gli.StencilMask(0xFF)
-	gli.Clear(gl_STENCIL_BUFFER_BIT)
+	cv.b.ClearClip()
 	for _, st := range cv.stateStack {
 		if len(st.clip.p) > 0 {
-			cv.clip(st.clip.p)
+			cv.clip(&st.clip)
 		}
 	}
 	cv.state = cv.stateStack[l-1]
 	cv.stateStack = cv.stateStack[:l-1]
-	cv.applyScissor()
 }
 
 // Scale updates the current transformation with a scaling by the given values

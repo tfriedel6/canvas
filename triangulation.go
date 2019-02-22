@@ -102,7 +102,7 @@ func triangulatePath(path []pathPoint, target [][2]float64) [][2]float64 {
 	return target
 }
 
-func (cv *Canvas) cutIntersections(path []pathPoint) []pathPoint {
+func cutIntersections(path []pathPoint) []pathPoint {
 	type cut struct {
 		from, to int
 		j        int

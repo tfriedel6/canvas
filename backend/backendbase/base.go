@@ -20,6 +20,9 @@ type Backend interface {
 	DrawImage(dimg Image, sx, sy, sw, sh, dx, dy, dw, dh float64, alpha float64)
 	FillImageMask(style *FillStyle, mask *image.Alpha, pts [][2]float64) // pts must have four points
 
+	ClearClip()
+	Clip(pts [][2]float64)
+
 	GetImageData(x, y, w, h int) *image.RGBA
 	PutImageData(img *image.RGBA, x, y int)
 }
