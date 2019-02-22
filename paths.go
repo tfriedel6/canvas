@@ -96,8 +96,6 @@ func (cv *Canvas) strokePath(path *Path2D) {
 		return
 	}
 
-	cv.activate()
-
 	dashedPath := cv.applyLineDash(path.p)
 
 	var triBuf [500][2]float64
@@ -328,7 +326,6 @@ func (cv *Canvas) FillPath(path *Path2D) {
 	if len(path.p) < 3 {
 		return
 	}
-	cv.activate()
 
 	var triBuf [500][2]float64
 	tris := buildFillTriangles(path, triBuf[:0])
@@ -431,8 +428,6 @@ func (cv *Canvas) StrokeRect(x, y, w, h float64) {
 
 // FillRect fills a rectangle with the active fill style
 func (cv *Canvas) FillRect(x, y, w, h float64) {
-	cv.activate()
-
 	p0 := cv.tf(vec{x, y})
 	p1 := cv.tf(vec{x, y + h})
 	p2 := cv.tf(vec{x + w, y + h})
@@ -448,8 +443,6 @@ func (cv *Canvas) FillRect(x, y, w, h float64) {
 
 // ClearRect sets the color of the rectangle to transparent black
 func (cv *Canvas) ClearRect(x, y, w, h float64) {
-	cv.activate()
-
 	p0 := cv.tf(vec{x, y})
 	p1 := cv.tf(vec{x, y + h})
 	p2 := cv.tf(vec{x + w, y + h})

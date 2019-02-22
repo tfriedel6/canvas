@@ -10,6 +10,8 @@ import (
 // drawing. This enables the backend to be implemented by
 // various methods (OpenGL, but also other APIs or software)
 type Backend interface {
+	Size() (int, int)
+
 	LoadImage(img image.Image) (Image, error)
 	LoadLinearGradient(data *LinearGradientData) LinearGradient
 	LoadRadialGradient(data *RadialGradientData) RadialGradient

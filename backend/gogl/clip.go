@@ -7,11 +7,15 @@ import (
 )
 
 func (b *GoGLBackend) ClearClip() {
+	b.activate()
+
 	gl.StencilMask(0xFF)
 	gl.Clear(gl.STENCIL_BUFFER_BIT)
 }
 
 func (b *GoGLBackend) Clip(pts [][2]float64) {
+	b.activate()
+
 	b.ptsBuf = b.ptsBuf[:0]
 	b.ptsBuf = append(b.ptsBuf,
 		0, 0,

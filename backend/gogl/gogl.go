@@ -42,6 +42,10 @@ type GoGLBackend struct {
 
 	ptsBuf []float32
 
+	offscreen bool
+	offscrBuf offscreenBuffer
+	offscrImg Image
+
 	glChan chan func()
 }
 
@@ -54,7 +58,7 @@ type offscreenBuffer struct {
 	alpha            bool
 }
 
-func New(x, y, w, h int) (backendbase.Backend, error) {
+func New(x, y, w, h int) (*GoGLBackend, error) {
 	err := gl.Init()
 	if err != nil {
 		return nil, err
@@ -210,13 +214,29 @@ func New(x, y, w, h int) (backendbase.Backend, error) {
 	return b, nil
 }
 
+func NewOffscreen(w, h int, alpha bool) (*GoGLBackend, error) {
+	b, err := New(0, 0, w, h)
+	if err != nil {
+		return nil, err
+	}
+	b.offscreen = true
+	b.offscrBuf.alpha = alpha
+	return b, nil
+}
+
 // SetBounds updates the bounds of the canvas. This would
 // usually be called for example when the window is resized
 func (b *GoGLBackend) SetBounds(x, y, w, h int) {
-	b.x, b.y = x, y
-	b.fx, b.fy = float64(x), float64(y)
+	if !b.offscreen {
+		b.x, b.y = x, y
+		b.fx, b.fy = float64(x), float64(y)
+	}
 	b.w, b.h = w, h
 	b.fw, b.fh = float64(w), float64(h)
+}
+
+func (b *GoGLBackend) Size() (int, int) {
+	return b.w, b.h
 }
 
 func glError() error {
@@ -227,21 +247,44 @@ func glError() error {
 	return nil
 }
 
-// Activate makes this GL backend active and sets the viewport. Only
-// needs to be called if any other GL code changes the viewport
-func (b *GoGLBackend) Activate() {
-	// if b.offscreen {
-	// 	gl.Viewport(0, 0, int32(cv.w), int32(cv.h))
-	// 	cv.enableTextureRenderTarget(&cv.offscrBuf)
-	// 	cv.offscrImg.w = cv.offscrBuf.w
-	// 	cv.offscrImg.h = cv.offscrBuf.h
-	// 	cv.offscrImg.tex = cv.offscrBuf.tex
-	// } else {
-	gl.Viewport(int32(b.x), int32(b.y), int32(b.w), int32(b.h))
-	b.disableTextureRenderTarget()
-	// }
-	// b.applyScissor()
-	gl.Clear(gl.STENCIL_BUFFER_BIT)
+var activeContext *GoGLBackend
+
+func (b *GoGLBackend) activate() {
+	if activeContext != b {
+		activeContext = b
+		if b.offscreen {
+			gl.Viewport(0, 0, int32(b.w), int32(b.h))
+			b.enableTextureRenderTarget(&b.offscrBuf)
+			b.offscrImg.w = b.offscrBuf.w
+			b.offscrImg.h = b.offscrBuf.h
+			b.offscrImg.tex = b.offscrBuf.tex
+		} else {
+			gl.Viewport(int32(b.x), int32(b.y), int32(b.w), int32(b.h))
+			b.disableTextureRenderTarget()
+		}
+	}
+
+loop:
+	for {
+		select {
+		case f := <-b.glChan:
+			f()
+		default:
+			break loop
+		}
+	}
+}
+
+func (b *GoGLBackend) DeleteOffscreen() {
+	if !b.offscreen {
+		return
+	}
+	gl.DeleteTextures(1, &b.offscrBuf.tex)
+	gl.DeleteFramebuffers(1, &b.offscrBuf.frameBuf)
+	gl.DeleteRenderbuffers(1, &b.offscrBuf.renderStencilBuf)
+	b.offscreen = false
+
+	b.activate()
 }
 
 type glColor struct {
@@ -439,11 +482,11 @@ func (b *GoGLBackend) enableTextureRenderTarget(offscr *offscreenBuffer) {
 }
 
 func (b *GoGLBackend) disableTextureRenderTarget() {
-	// if b.offscreen {
-	// 	b.enableTextureRenderTarget(&b.offscrBuf)
-	// } else {
-	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
-	// }
+	if b.offscreen {
+		b.enableTextureRenderTarget(&b.offscrBuf)
+	} else {
+		gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
+	}
 }
 
 type mat [9]float64

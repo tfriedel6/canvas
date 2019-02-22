@@ -28,10 +28,7 @@ var defaultFont *Font
 
 // LoadFont loads a font and returns the result. The font
 // can be a file name or a byte slice in TTF format
-func LoadFont(src interface{}) (*Font, error) {
-	if gli == nil {
-		panic("LoadGL must be called before fonts can be loaded")
-	}
+func (cv *Canvas) LoadFont(src interface{}) (*Font, error) {
 	var f *Font
 	switch v := src.(type) {
 	case *truetype.Font:
@@ -64,8 +61,6 @@ func LoadFont(src interface{}) (*Font, error) {
 // FillText draws the given string at the given coordinates
 // using the currently set font and font height
 func (cv *Canvas) FillText(str string, x, y float64) {
-	cv.activate()
-
 	if cv.state.font == nil {
 		return
 	}
@@ -227,8 +222,6 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 // using the currently set font and font height and using the
 // current stroke style
 func (cv *Canvas) StrokeText(str string, x, y float64) {
-	cv.activate()
-
 	if cv.state.font == nil {
 		return
 	}

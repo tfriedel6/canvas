@@ -10,6 +10,8 @@ import (
 )
 
 func (b *GoGLBackend) Clear(pts [4][2]float64) {
+	b.activate()
+
 	// first check if the four points are aligned to form a nice rectangle, which can be more easily
 	// cleared using glScissor and glClear
 	aligned := pts[0][0] == pts[1][0] && pts[2][0] == pts[3][0] && pts[0][1] == pts[3][1] && pts[1][1] == pts[2][1]
@@ -68,6 +70,8 @@ func (b *GoGLBackend) clearRect(x, y, w, h int) {
 }
 
 func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
+	b.activate()
+
 	if style.Blur > 0 {
 		b.offscr1.alpha = true
 		b.enableTextureRenderTarget(&b.offscr1)
@@ -140,6 +144,8 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 }
 
 func (b *GoGLBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Alpha, pts [][2]float64) {
+	b.activate()
+
 	w, h := mask.Rect.Dx(), mask.Rect.Dy()
 
 	gl.ActiveTexture(gl.TEXTURE1)

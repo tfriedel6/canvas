@@ -25,6 +25,7 @@ type RadialGradient struct {
 }
 
 type gradient struct {
+	b        *GoGLBackend
 	from, to vec
 	tex      uint32
 	loaded   bool
@@ -33,8 +34,10 @@ type gradient struct {
 }
 
 func (b *GoGLBackend) LoadLinearGradient(data *backendbase.LinearGradientData) backendbase.LinearGradient {
+	b.activate()
+
 	lg := &LinearGradient{
-		gradient: gradient{from: vec{data.X0, data.Y0}, to: vec{data.X1, data.Y1}, opaque: true},
+		gradient: gradient{b: b, from: vec{data.X0, data.Y0}, to: vec{data.X1, data.Y1}, opaque: true},
 	}
 	gl.GenTextures(1, &lg.tex)
 	gl.ActiveTexture(gl.TEXTURE0)
@@ -53,8 +56,10 @@ func (b *GoGLBackend) LoadLinearGradient(data *backendbase.LinearGradientData) b
 }
 
 func (b *GoGLBackend) LoadRadialGradient(data *backendbase.RadialGradientData) backendbase.RadialGradient {
+	b.activate()
+
 	rg := &RadialGradient{
-		gradient: gradient{from: vec{data.X0, data.Y0}, to: vec{data.X1, data.Y1}, opaque: true},
+		gradient: gradient{b: b, from: vec{data.X0, data.Y0}, to: vec{data.X1, data.Y1}, opaque: true},
 		radFrom:  data.RadFrom,
 		radTo:    data.RadTo,
 	}
@@ -76,6 +81,8 @@ func (b *GoGLBackend) LoadRadialGradient(data *backendbase.RadialGradientData) b
 
 // Delete explicitly deletes the gradient
 func (g *gradient) Delete() {
+	g.b.activate()
+
 	gl.DeleteTextures(1, &g.tex)
 	g.deleted = true
 }
@@ -90,6 +97,8 @@ func (g *gradient) load(stops backendbase.Gradient) {
 	if g.loaded {
 		return
 	}
+
+	g.b.activate()
 
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindTexture(gl.TEXTURE_2D, g.tex)

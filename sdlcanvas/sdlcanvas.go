@@ -12,9 +12,7 @@ import (
 
 	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/tfriedel6/canvas"
-	"github.com/tfriedel6/canvas/backend/backendbase"
 	"github.com/tfriedel6/canvas/backend/gogl"
-	"github.com/tfriedel6/canvas/glimpl/gogl"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -24,7 +22,7 @@ type Window struct {
 	Window     *sdl.Window
 	WindowID   uint32
 	GLContext  sdl.GLContext
-	Backend    backendbase.Backend
+	Backend    *goglbackend.GoGLBackend
 	canvas     *canvas.Canvas
 	frameTimes [10]time.Time
 	frameIndex int
@@ -98,12 +96,7 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 	sdl.GLSetSwapInterval(1)
 	gl.Enable(gl.MULTISAMPLE)
 
-	err = canvas.LoadGL(glimplgogl.GLImpl{})
-	if err != nil {
-		return nil, nil, fmt.Errorf("Error loading canvas GL assets: %v", err)
-	}
-
-	cv := canvas.New(backend, 0, 0, w, h)
+	cv := canvas.New(backend)
 	wnd := &Window{
 		Window:    window,
 		WindowID:  windowID,
@@ -195,7 +188,7 @@ func (wnd *Window) StartFrame() error {
 						wnd.SizeChange(int(e.Data1), int(e.Data2))
 						handled = true
 					} else {
-						wnd.canvas.SetBounds(0, 0, int(e.Data1), int(e.Data2))
+						wnd.Backend.SetBounds(0, 0, int(e.Data1), int(e.Data2))
 					}
 				}
 			}

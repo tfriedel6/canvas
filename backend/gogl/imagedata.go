@@ -10,7 +10,7 @@ import (
 
 // GetImageData returns an RGBA image of the current image
 func (b *GoGLBackend) GetImageData(x, y, w, h int) *image.RGBA {
-	// cv.activate()
+	b.activate()
 
 	if x < 0 {
 		w += x
@@ -44,7 +44,7 @@ func (b *GoGLBackend) GetImageData(x, y, w, h int) *image.RGBA {
 
 // PutImageData puts the given image at the given x/y coordinates
 func (b *GoGLBackend) PutImageData(img *image.RGBA, x, y int) {
-	// cv.activate()
+	b.activate()
 
 	gl.ActiveTexture(gl.TEXTURE0)
 	if b.imageBufTex == 0 {

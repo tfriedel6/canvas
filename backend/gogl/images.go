@@ -12,6 +12,7 @@ import (
 
 // Image represents a loaded image that can be used in various drawing functions
 type Image struct {
+	b       *GoGLBackend
 	w, h    int
 	tex     uint32
 	deleted bool
@@ -19,6 +20,8 @@ type Image struct {
 }
 
 func (b *GoGLBackend) LoadImage(src image.Image) (backendbase.Image, error) {
+	b.activate()
+
 	var tex uint32
 	gl.GenTextures(1, &tex)
 	gl.ActiveTexture(gl.TEXTURE0)
@@ -184,6 +187,8 @@ func (img *Image) Size() (int, int) { return img.w, img.h }
 // Delete deletes the image from memory. Any draw calls
 // with a deleted image will not do anything
 func (img *Image) Delete() {
+	img.b.activate()
+
 	gl.DeleteTextures(1, &img.tex)
 	img.deleted = true
 }
@@ -194,6 +199,8 @@ func (img *Image) IsDeleted() bool { return img.deleted }
 
 // Replace replaces the image with the new one
 func (img *Image) Replace(src image.Image) error {
+	img.b.activate()
+
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindTexture(gl.TEXTURE_2D, img.tex)
 	newImg, err := loadImage(src, img.tex)
@@ -209,6 +216,8 @@ func (img *Image) Replace(src image.Image) error {
 func (img *Image) IsOpaque() bool { return img.opaque }
 
 func (b *GoGLBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh, dx, dy, dw, dh float64, alpha float64) {
+	b.activate()
+
 	img := dimg.(*Image)
 
 	sx /= float64(img.w)

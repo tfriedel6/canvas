@@ -20,8 +20,8 @@ import (
 type Canvas struct {
 	b backendbase.Backend
 
-	x, y, w, h     int
-	fx, fy, fw, fh float64
+	w, h   int
+	fw, fh float64
 
 	path   Path2D
 	convex bool
@@ -29,10 +29,6 @@ type Canvas struct {
 
 	state      drawState
 	stateStack []drawState
-
-	offscreen bool
-	offscrBuf offscreenBuffer
-	offscrImg Image
 
 	images map[interface{}]*Image
 
@@ -136,16 +132,14 @@ var Performance = struct {
 // While all functions on the canvas use the top left point as
 // the origin, since GL uses the bottom left coordinate, the
 // coordinates given here also use the bottom left as origin
-func New(backend backendbase.Backend, x, y, w, h int) *Canvas {
-	if gli == nil {
-		panic("LoadGL must be called before a canvas can be created")
-	}
+func New(backend backendbase.Backend) *Canvas {
 	cv := &Canvas{
 		b:          backend,
 		stateStack: make([]drawState, 0, 20),
 		images:     make(map[interface{}]*Image),
 	}
-	cv.SetBounds(x, y, w, h)
+	w, h := backend.Size()
+	cv.setBounds(w, h)
 	cv.state.lineWidth = 1
 	cv.state.lineAlpha = 1
 	cv.state.miterLimitSqr = 100
@@ -156,36 +150,9 @@ func New(backend backendbase.Backend, x, y, w, h int) *Canvas {
 	return cv
 }
 
-// NewOffscreen creates a new canvas with the given size. It
-// does not render directly to the screen but renders to a
-// texture instead. If alpha is set to true, the offscreen
-// canvas will have an alpha channel
-func NewOffscreen(backend backendbase.Backend, w, h int, alpha bool) *Canvas {
-	cv := New(backend, 0, 0, w, h)
-	cv.offscreen = true
-	cv.offscrBuf.alpha = alpha
-	return cv
-}
-
-func DeleteOffscreen(cv *Canvas) {
-	if !cv.offscreen {
-		return
-	}
-	gli.DeleteTextures(1, &cv.offscrBuf.tex)
-	gli.DeleteFramebuffers(1, &cv.offscrBuf.frameBuf)
-	gli.DeleteRenderbuffers(1, &cv.offscrBuf.renderStencilBuf)
-}
-
-// SetBounds updates the bounds of the canvas. This would
-// usually be called for example when the window is resized
-func (cv *Canvas) SetBounds(x, y, w, h int) {
-	if !cv.offscreen {
-		cv.x, cv.y = x, y
-		cv.fx, cv.fy = float64(x), float64(y)
-	}
+func (cv *Canvas) setBounds(w, h int) {
 	cv.w, cv.h = w, h
 	cv.fw, cv.fh = float64(w), float64(h)
-	activeCanvas = nil
 }
 
 // Width returns the internal width of the canvas
@@ -202,45 +169,7 @@ func (cv *Canvas) tf(v vec) vec {
 	return v
 }
 
-// Activate makes the canvas active and sets the viewport. Only needs
-// to be called if any other GL code changes the viewport
-func (cv *Canvas) Activate() {
-	if cv.offscreen {
-		gli.Viewport(0, 0, int32(cv.w), int32(cv.h))
-		cv.enableTextureRenderTarget(&cv.offscrBuf)
-		// cv.offscrImg.w = cv.offscrBuf.w
-		// cv.offscrImg.h = cv.offscrBuf.h
-		// cv.offscrImg.tex = cv.offscrBuf.tex
-	} else {
-		gli.Viewport(int32(cv.x), int32(cv.y), int32(cv.w), int32(cv.h))
-		cv.disableTextureRenderTarget()
-	}
-}
-
-var activeCanvas *Canvas
-
-func (cv *Canvas) activate() {
-	if activeCanvas != cv {
-		activeCanvas = cv
-		cv.Activate()
-	}
-loop:
-	for {
-		select {
-		case f := <-glChan:
-			f()
-		default:
-			break loop
-		}
-	}
-}
-
 const alphaTexSize = 2048
-
-var (
-	gli    GL
-	glChan = make(chan func())
-)
 
 type offscreenBuffer struct {
 	tex              uint32
@@ -259,23 +188,6 @@ type gaussianShader struct {
 	kernelScale int32
 	image       int32
 	kernel      int32
-}
-
-// LoadGL needs to be called once per GL context to load the GL assets
-// that canvas needs. The parameter is an implementation of the GL interface
-// in this package that should make this package neutral to GL implementations.
-// The goglimpl subpackage contains an implementation based on Go-GL v3.2
-func LoadGL(glimpl GL) (err error) {
-	gli = glimpl
-	return
-}
-
-func glError() error {
-	glErr := gli.GetError()
-	if glErr != gl_NO_ERROR {
-		return fmt.Errorf("GL Error: %x", glErr)
-	}
-	return nil
 }
 
 // SetFillStyle sets the color, gradient, or image for any fill calls. To set a
@@ -349,57 +261,6 @@ func (cv *Canvas) backendFillStyle(s *drawStyle, alpha float64) backendbase.Fill
 	return stl
 }
 
-func (cv *Canvas) enableTextureRenderTarget(offscr *offscreenBuffer) {
-	if offscr.w != cv.w || offscr.h != cv.h {
-		if offscr.w != 0 && offscr.h != 0 {
-			gli.DeleteTextures(1, &offscr.tex)
-			gli.DeleteFramebuffers(1, &offscr.frameBuf)
-			gli.DeleteRenderbuffers(1, &offscr.renderStencilBuf)
-		}
-		offscr.w = cv.w
-		offscr.h = cv.h
-
-		gli.ActiveTexture(gl_TEXTURE0)
-		gli.GenTextures(1, &offscr.tex)
-		gli.BindTexture(gl_TEXTURE_2D, offscr.tex)
-		// todo do non-power-of-two textures work everywhere?
-		if offscr.alpha {
-			gli.TexImage2D(gl_TEXTURE_2D, 0, gl_RGBA, int32(cv.w), int32(cv.h), 0, gl_RGBA, gl_UNSIGNED_BYTE, nil)
-		} else {
-			gli.TexImage2D(gl_TEXTURE_2D, 0, gl_RGB, int32(cv.w), int32(cv.h), 0, gl_RGB, gl_UNSIGNED_BYTE, nil)
-		}
-		gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MAG_FILTER, gl_NEAREST)
-		gli.TexParameteri(gl_TEXTURE_2D, gl_TEXTURE_MIN_FILTER, gl_NEAREST)
-
-		gli.GenFramebuffers(1, &offscr.frameBuf)
-		gli.BindFramebuffer(gl_FRAMEBUFFER, offscr.frameBuf)
-
-		gli.GenRenderbuffers(1, &offscr.renderStencilBuf)
-		gli.BindRenderbuffer(gl_RENDERBUFFER, offscr.renderStencilBuf)
-		gli.RenderbufferStorage(gl_RENDERBUFFER, gl_DEPTH24_STENCIL8, int32(cv.w), int32(cv.h))
-		gli.FramebufferRenderbuffer(gl_FRAMEBUFFER, gl_DEPTH_STENCIL_ATTACHMENT, gl_RENDERBUFFER, offscr.renderStencilBuf)
-
-		gli.FramebufferTexture(gl_FRAMEBUFFER, gl_COLOR_ATTACHMENT0, offscr.tex, 0)
-
-		if err := gli.CheckFramebufferStatus(gl_FRAMEBUFFER); err != gl_FRAMEBUFFER_COMPLETE {
-			// todo this should maybe not panic
-			panic(fmt.Sprintf("Failed to set up framebuffer for offscreen texture: %x", err))
-		}
-
-		gli.Clear(gl_COLOR_BUFFER_BIT | gl_STENCIL_BUFFER_BIT)
-	} else {
-		gli.BindFramebuffer(gl_FRAMEBUFFER, offscr.frameBuf)
-	}
-}
-
-func (cv *Canvas) disableTextureRenderTarget() {
-	if cv.offscreen {
-		cv.enableTextureRenderTarget(&cv.offscrBuf)
-	} else {
-		gli.BindFramebuffer(gl_FRAMEBUFFER, 0)
-	}
-}
-
 // SetLineWidth sets the line width for any line drawing calls
 func (cv *Canvas) SetLineWidth(width float64) {
 	if width < 0 {
@@ -430,7 +291,7 @@ func (cv *Canvas) SetFont(src interface{}, size float64) {
 			if f, ok := fonts[v]; ok {
 				cv.state.font = f
 			} else {
-				f, err := LoadFont(v)
+				f, err := cv.LoadFont(v)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error loading font %s: %v\n", v, err)
 					fonts[v] = nil

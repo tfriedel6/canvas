@@ -124,13 +124,13 @@ func (img *Image) Replace(src interface{}) error {
 // source coordinates
 func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 	var img *Image
-	var flip bool
-	if cv2, ok := image.(*Canvas); ok && cv2.offscreen {
-		img = &cv2.offscrImg
-		flip = true
-	} else {
-		img = cv.getImage(image)
-	}
+	// var flip bool
+	// if cv2, ok := image.(*Canvas); ok && cv2.offscreen {
+	// 	img = &cv2.offscrImg
+	// 	flip = true
+	// } else {
+	img = cv.getImage(image)
+	// }
 
 	if img == nil {
 		return
@@ -139,8 +139,6 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 	if img.img.IsDeleted() {
 		return
 	}
-
-	cv.activate()
 
 	var sx, sy, sw, sh, dx, dy, dw, dh float64
 	sw, sh = float64(img.Width()), float64(img.Height())
@@ -157,10 +155,10 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 		dw, dh = coords[6], coords[7]
 	}
 
-	if flip {
-		dy += dh
-		dh = -dh
-	}
+	// if flip {
+	// 	dy += dh
+	// 	dh = -dh
+	// }
 
 	var data [4][2]float64
 	data[0] = cv.tf(vec{dx, dy})
