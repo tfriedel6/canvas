@@ -5,7 +5,6 @@ import (
 	"log"
 	"math"
 
-	"github.com/tfriedel6/canvas"
 	"github.com/tfriedel6/canvas/sdlcanvas"
 )
 
@@ -17,19 +16,15 @@ func main() {
 	}
 	defer wnd.Destroy()
 
-	lg := canvas.NewLinearGradient(320, 200, 480, 520)
+	lg := cv.CreateLinearGradient(320, 200, 480, 520)
 	lg.AddColorStop(0, "#ff000040")
 	lg.AddColorStop(1, "#00ff0040")
 	lg.AddColorStop(0.5, "#0000ff40")
 
-	rg := canvas.NewRadialGradient(540, 300, 80, 740, 300, 100)
+	rg := cv.CreateRadialGradient(540, 300, 80, 740, 300, 100)
 	rg.AddColorStop(0, "#ff0000")
 	rg.AddColorStop(1, "#00ff00")
 	rg.AddColorStop(0.5, "#0000ff")
-
-	wnd.SizeChange = func(w, h int) {
-		cv.SetBounds(0, 0, w, h)
-	}
 
 	wnd.MainLoop(func() {
 		w, h := float64(cv.Width()), float64(cv.Height())
