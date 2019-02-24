@@ -450,8 +450,8 @@ func (b *XMobileBackend) enableTextureRenderTarget(offscr *offscreenBuffer) {
 
 		offscr.renderStencilBuf = b.glctx.CreateRenderbuffer()
 		b.glctx.BindRenderbuffer(gl.RENDERBUFFER, offscr.renderStencilBuf)
-		b.glctx.RenderbufferStorage(gl.RENDERBUFFER, gl.DEPTH24_STENCIL8, b.w, b.h)
-		b.glctx.FramebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, offscr.renderStencilBuf)
+		b.glctx.RenderbufferStorage(gl.RENDERBUFFER, gl.STENCIL_INDEX8, b.w, b.h)
+		b.glctx.FramebufferRenderbuffer(gl.FRAMEBUFFER, gl.STENCIL_ATTACHMENT, gl.RENDERBUFFER, offscr.renderStencilBuf)
 
 		b.glctx.FramebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, offscr.tex, 0)
 

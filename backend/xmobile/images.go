@@ -124,7 +124,7 @@ func loadImageGray(b *XMobileBackend, src *image.Gray, tex gl.Texture) (*Image, 
 		return nil, err
 	}
 	if src.Stride == img.w {
-		b.glctx.TexImage2D(gl.TEXTURE_2D, 0, gl.RED, img.w, img.h, gl.RED, gl.UNSIGNED_BYTE, src.Pix[0:])
+		b.glctx.TexImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, img.w, img.h, gl.ALPHA, gl.UNSIGNED_BYTE, src.Pix[0:])
 	} else {
 		data := make([]uint8, 0, img.w*img.h)
 		for y := 0; y < img.h; y++ {
@@ -132,7 +132,7 @@ func loadImageGray(b *XMobileBackend, src *image.Gray, tex gl.Texture) (*Image, 
 			end := start + img.w
 			data = append(data, src.Pix[start:end]...)
 		}
-		b.glctx.TexImage2D(gl.TEXTURE_2D, 0, gl.RED, img.w, img.h, gl.RED, gl.UNSIGNED_BYTE, data[0:])
+		b.glctx.TexImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, img.w, img.h, gl.ALPHA, gl.UNSIGNED_BYTE, data[0:])
 	}
 	if err := glError(b); err != nil {
 		return nil, err

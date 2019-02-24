@@ -5,8 +5,8 @@ import (
 	"image/color"
 	"math"
 
-	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/tfriedel6/canvas/backend/backendbase"
+	"github.com/tfriedel6/canvas/backend/gogl/gl"
 )
 
 const alphaTexSize = 2048
@@ -447,8 +447,8 @@ func (b *GoGLBackend) enableTextureRenderTarget(offscr *offscreenBuffer) {
 
 		gl.GenRenderbuffers(1, &offscr.renderStencilBuf)
 		gl.BindRenderbuffer(gl.RENDERBUFFER, offscr.renderStencilBuf)
-		gl.RenderbufferStorage(gl.RENDERBUFFER, gl.DEPTH24_STENCIL8, int32(b.w), int32(b.h))
-		gl.FramebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, offscr.renderStencilBuf)
+		gl.RenderbufferStorage(gl.RENDERBUFFER, gl.STENCIL_INDEX8, int32(b.w), int32(b.h))
+		gl.FramebufferRenderbuffer(gl.FRAMEBUFFER, gl.STENCIL_ATTACHMENT, gl.RENDERBUFFER, offscr.renderStencilBuf)
 
 		gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, offscr.tex, 0)
 

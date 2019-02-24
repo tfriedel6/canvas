@@ -3,7 +3,7 @@ package goglbackend
 import (
 	"unsafe"
 
-	"github.com/go-gl/gl/v3.2-core/gl"
+	"github.com/tfriedel6/canvas/backend/gogl/gl"
 )
 
 func (b *GoGLBackend) ClearClip() {

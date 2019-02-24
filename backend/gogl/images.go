@@ -6,8 +6,8 @@ import (
 	"runtime"
 	"unsafe"
 
-	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/tfriedel6/canvas/backend/backendbase"
+	"github.com/tfriedel6/canvas/backend/gogl/gl"
 )
 
 // Image represents a loaded image that can be used in various drawing functions
@@ -124,7 +124,7 @@ func loadImageGray(src *image.Gray, tex uint32) (*Image, error) {
 		return nil, err
 	}
 	if src.Stride == img.w {
-		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RED, int32(img.w), int32(img.h), 0, gl.RED, gl.UNSIGNED_BYTE, gl.Ptr(&src.Pix[0]))
+		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, int32(img.w), int32(img.h), 0, gl.ALPHA, gl.UNSIGNED_BYTE, gl.Ptr(&src.Pix[0]))
 	} else {
 		data := make([]uint8, 0, img.w*img.h)
 		for y := 0; y < img.h; y++ {
@@ -132,7 +132,7 @@ func loadImageGray(src *image.Gray, tex uint32) (*Image, error) {
 			end := start + img.w
 			data = append(data, src.Pix[start:end]...)
 		}
-		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RED, int32(img.w), int32(img.h), 0, gl.RED, gl.UNSIGNED_BYTE, gl.Ptr(&data[0]))
+		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, int32(img.w), int32(img.h), 0, gl.ALPHA, gl.UNSIGNED_BYTE, gl.Ptr(&data[0]))
 	}
 	if err := glError(); err != nil {
 		return nil, err

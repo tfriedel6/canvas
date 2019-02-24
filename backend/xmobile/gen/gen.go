@@ -73,7 +73,7 @@ func main() {
 
 func rewrite(filename, src string) (string, string) {
 	src = strings.Replace(src, `package goglbackend`, `package xmobilebackend`, 1)
-	src = strings.Replace(src, `"github.com/go-gl/gl/v3.2-core/gl"`, `"golang.org/x/mobile/gl"`, 1)
+	src = strings.Replace(src, `"github.com/tfriedel6/canvas/backend/gogl/gl"`, `"golang.org/x/mobile/gl"`, 1)
 	src = strings.Replace(src, "\tgl.", "\tb.glctx.", -1)
 	src = strings.Replace(src, "GoGLBackend", "XMobileBackend", -1)
 	src = strings.Replace(src, "uint32(gl.TRIANGLES)", "gl.Enum(gl.TRIANGLES)", -1)

@@ -5,8 +5,8 @@ import (
 	"math"
 	"unsafe"
 
-	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/tfriedel6/canvas/backend/backendbase"
+	"github.com/tfriedel6/canvas/backend/gogl/gl"
 )
 
 func (b *GoGLBackend) Clear(pts [4][2]float64) {
