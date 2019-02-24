@@ -5,7 +5,6 @@ import (
 	_ "image/gif" // Imported here so that applications based on this package support these formats by default
 	_ "image/jpeg"
 	_ "image/png"
-	"log"
 	"math"
 	"runtime"
 	"time"
@@ -13,7 +12,7 @@ import (
 	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
 	"github.com/tfriedel6/canvas"
-	"github.com/tfriedel6/canvas/glimpl/gogl"
+	"github.com/tfriedel6/canvas/backend/gogl"
 )
 
 // Window represents the opened window with GL context. The Mouse* and Key*
@@ -43,7 +42,7 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 	// init GLFW
 	err := glfw.Init()
 	if err != nil {
-		log.Fatalf("Error initializing GLFW: %v", err)
+		return nil, nil, fmt.Errorf("Error initializing GLFW: %v", err)
 	}
 
 	// the stencil size setting is required for the canvas to work
@@ -53,32 +52,27 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 	// create window
 	window, err := glfw.CreateWindow(w, h, title, nil, nil)
 	if err != nil {
-		log.Fatalf("Error creating window: %v", err)
+		return nil, nil, fmt.Errorf("Error creating window: %v", err)
 	}
 	window.MakeContextCurrent()
 
 	// init GL
 	err = gl.Init()
 	if err != nil {
-		log.Fatalf("Error initializing GL: %v", err)
+		return nil, nil, fmt.Errorf("Error initializing GL: %v", err)
 	}
 
 	// set vsync on, enable multisample (if available)
 	glfw.SwapInterval(1)
 	gl.Enable(gl.MULTISAMPLE)
 
-	// load canvas GL assets
-	err = canvas.LoadGL(glimplgogl.GLImpl{})
+	// load canvas GL backend
+	backend, err := goglbackend.New(0, 0, w, h)
 	if err != nil {
-		log.Fatalf("Error loading canvas GL assets: %v", err)
+		return nil, nil, fmt.Errorf("Error loading GoGL backend: %v", err)
 	}
 
-	err = canvas.LoadGL(glimplgogl.GLImpl{})
-	if err != nil {
-		return nil, nil, fmt.Errorf("Error loading canvas GL assets: %v", err)
-	}
-
-	cv := canvas.New(0, 0, w, h)
+	cv := canvas.New(backend)
 	wnd := &Window{
 		Window: window,
 		canvas: cv,
@@ -120,7 +114,7 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 		if wnd.SizeChange != nil {
 			wnd.SizeChange(width, height)
 		} else {
-			cv.SetBounds(0, 0, width, height)
+			backend.SetBounds(0, 0, width, height)
 		}
 	})
 	window.SetCloseCallback(func(w *glfw.Window) {

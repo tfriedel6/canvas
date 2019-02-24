@@ -5,7 +5,6 @@ import (
 	_ "image/gif" // Imported here so that applications based on this package support these formats by default
 	_ "image/jpeg"
 	_ "image/png"
-	"log"
 	"runtime"
 	"time"
 	"unicode/utf8"
@@ -88,9 +87,10 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 		return nil, nil, fmt.Errorf("Error initializing GL: %v", err)
 	}
 
+	// load canvas GL backend
 	backend, err := goglbackend.New(0, 0, w, h)
 	if err != nil {
-		log.Fatalf("Error loading GoGL backend: %v", err)
+		return nil, nil, fmt.Errorf("Error loading GoGL backend: %v", err)
 	}
 
 	sdl.GLSetSwapInterval(1)
