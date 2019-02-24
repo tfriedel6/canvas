@@ -235,6 +235,7 @@ func (b *GoGLBackend) SetBounds(x, y, w, h int) {
 	b.fw, b.fh = float64(w), float64(h)
 	if b == activeContext {
 		gl.Viewport(0, 0, int32(b.w), int32(b.h))
+		gl.Clear(gl.STENCIL_BUFFER_BIT)
 	}
 }
 
