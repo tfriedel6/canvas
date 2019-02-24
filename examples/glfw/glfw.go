@@ -7,7 +7,7 @@ import (
 	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
 	"github.com/tfriedel6/canvas"
-	"github.com/tfriedel6/canvas/glimpl/gogl"
+	"github.com/tfriedel6/canvas/backend/gogl"
 )
 
 func main() {
@@ -41,8 +41,8 @@ func main() {
 	glfw.SwapInterval(1)
 	gl.Enable(gl.MULTISAMPLE)
 
-	// load canvas GL assets
-	err = canvas.LoadGL(glimplgogl.GLImpl{})
+	// load GL backend
+	backend, err := goglbackend.New(0, 0, 0, 0)
 	if err != nil {
 		log.Fatalf("Error loading canvas GL assets: %v", err)
 	}
@@ -52,7 +52,7 @@ func main() {
 	})
 
 	// initialize canvas with zero size, since size is set in main loop
-	cv := canvas.New(0, 0, 0, 0)
+	cv := canvas.New(backend)
 
 	for !window.ShouldClose() {
 		window.MakeContextCurrent()
@@ -60,7 +60,7 @@ func main() {
 
 		// set canvas size
 		ww, wh := window.GetSize()
-		cv.SetBounds(0, 0, ww, wh)
+		backend.SetBounds(0, 0, ww, wh)
 
 		// call the run function to do all the drawing
 		run(cv, float64(ww), float64(wh))

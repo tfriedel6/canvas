@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/tfriedel6/canvas"
-	"github.com/tfriedel6/canvas/glimpl/gogl"
+	"github.com/tfriedel6/canvas/backend/gogl"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -62,14 +62,14 @@ func main() {
 	sdl.GLSetSwapInterval(1)
 	gl.Enable(gl.MULTISAMPLE)
 
-	// load canvas GL assets
-	err = canvas.LoadGL(glimplgogl.GLImpl{})
+	// load GL backend
+	backend, err := goglbackend.New(0, 0, 0, 0)
 	if err != nil {
 		log.Fatalf("Error loading canvas GL assets: %v", err)
 	}
 
 	// initialize canvas with zero size, since size is set in main loop
-	cv := canvas.New(0, 0, 0, 0)
+	cv := canvas.New(backend)
 
 	for running := true; running; {
 		err := window.GLMakeCurrent(glContext)
@@ -92,6 +92,8 @@ func main() {
 				}
 			case *sdl.MouseMotionEvent:
 				mx, my = float64(e.X), float64(e.Y)
+			case *sdl.QuitEvent:
+				running = false
 			case *sdl.WindowEvent:
 				if e.Type == sdl.WINDOWEVENT_CLOSE {
 					running = false
@@ -101,7 +103,7 @@ func main() {
 
 		// set canvas size
 		ww, wh := window.GetSize()
-		cv.SetBounds(0, 0, int(ww), int(wh))
+		backend.SetBounds(0, 0, int(ww), int(wh))
 
 		// call the run function to do all the drawing
 		run(cv, float64(ww), float64(wh))
