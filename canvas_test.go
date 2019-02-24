@@ -178,7 +178,7 @@ func TestDrawPath(t *testing.T) {
 		cv.ClosePath()
 		cv.Stroke()
 
-		cv.SetLineEnd(canvas.Butt)
+		cv.SetLineCap(canvas.Butt)
 		cv.BeginPath()
 		cv.MoveTo(10, 40)
 		cv.LineTo(30, 40)
@@ -186,7 +186,7 @@ func TestDrawPath(t *testing.T) {
 		cv.LineTo(10, 60)
 		cv.Stroke()
 
-		cv.SetLineEnd(canvas.Round)
+		cv.SetLineCap(canvas.Round)
 		cv.BeginPath()
 		cv.MoveTo(40, 40)
 		cv.LineTo(60, 40)
@@ -194,7 +194,7 @@ func TestDrawPath(t *testing.T) {
 		cv.LineTo(40, 60)
 		cv.Stroke()
 
-		cv.SetLineEnd(canvas.Square)
+		cv.SetLineCap(canvas.Square)
 		cv.BeginPath()
 		cv.MoveTo(70, 40)
 		cv.LineTo(90, 40)
@@ -543,14 +543,14 @@ func TestGradient(t *testing.T) {
 		cv.Rotate(math.Pi * 0.1)
 		cv.Translate(-50, -50)
 
-		lg := cv.NewLinearGradient(10, 10, 40, 20)
+		lg := cv.CreateLinearGradient(10, 10, 40, 20)
 		lg.AddColorStop(0, 0.5, 0, 0)
 		lg.AddColorStop(0.5, "#008000")
 		lg.AddColorStop(1, 0, 0, 128)
 		cv.SetFillStyle(lg)
 		cv.FillRect(0, 0, 50, 100)
 
-		rg := cv.NewRadialGradient(75, 15, 10, 75, 75, 20)
+		rg := cv.CreateRadialGradient(75, 15, 10, 75, 75, 20)
 		rg.AddColorStop(0, 1.0, 0, 0, 0.5)
 		rg.AddColorStop(0.5, "#00FF0080")
 		rg.AddColorStop(1, 0, 0, 255, 128)
