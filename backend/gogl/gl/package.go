@@ -16,7 +16,7 @@
 //
 package gl
 
-// #cgo darwin           LDFLAGS: -framework OpenGL
+// #cgo darwin           LDFLAGS: -framework OpenGLES
 // #cgo linux,!android   LDFLAGS: -lGL
 // #cgo freebsd,!android LDFLAGS: -lGL
 // #cgo windows          LDFLAGS: -lopengl32
@@ -49,7 +49,7 @@ package gl
 // typedef float GLfloat;
 // typedef double GLdouble;
 // typedef char GLchar;
-// #include <KHR/khrplatform.h>
+// #include "khrplatform.h"
 // typedef unsigned int GLenum;
 // typedef unsigned char GLboolean;
 // typedef unsigned int GLbitfield;
