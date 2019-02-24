@@ -64,8 +64,6 @@ func New(x, y, w, h int) (*GoGLBackend, error) {
 		return nil, err
 	}
 
-	gl.GetError() // clear error state
-
 	b := &GoGLBackend{
 		w:      w,
 		h:      h,
@@ -73,6 +71,8 @@ func New(x, y, w, h int) (*GoGLBackend, error) {
 		fh:     float64(h),
 		ptsBuf: make([]float32, 0, 4096),
 	}
+
+	gl.GetError() // clear error state
 
 	err = loadShader(solidVS, solidFS, &b.sr.shaderProgram)
 	if err != nil {
@@ -450,7 +450,7 @@ func (b *GoGLBackend) enableTextureRenderTarget(offscr *offscreenBuffer) {
 		gl.RenderbufferStorage(gl.RENDERBUFFER, gl.DEPTH24_STENCIL8, int32(b.w), int32(b.h))
 		gl.FramebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, offscr.renderStencilBuf)
 
-		gl.FramebufferTexture(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, offscr.tex, 0)
+		gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, offscr.tex, 0)
 
 		if err := gl.CheckFramebufferStatus(gl.FRAMEBUFFER); err != gl.FRAMEBUFFER_COMPLETE {
 			// todo this should maybe not panic

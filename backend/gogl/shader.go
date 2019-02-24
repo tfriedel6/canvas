@@ -13,8 +13,9 @@ import (
 
 type shaderProgram struct {
 	ID, vs, fs uint32
-	attribs    map[string]uint32
-	uniforms   map[string]int32
+
+	attribs  map[string]uint32
+	uniforms map[string]int32
 }
 
 func loadShader(vs, fs string, sp *shaderProgram) error {

@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/tfriedel6/canvas"
-	"github.com/tfriedel6/canvas/glimpl/xmobile"
+	"github.com/tfriedel6/canvas/backend/xmobile"
 	"golang.org/x/exp/shiny/driver/gldriver"
 	"golang.org/x/exp/shiny/screen"
 	"golang.org/x/exp/shiny/widget"
@@ -19,10 +19,13 @@ func main() {
 	gldriver.Main(func(s screen.Screen) {
 		glw := glwidget.NewGL(draw)
 		sheet = widget.NewSheet(glw)
-		canvas.LoadGL(glimplxmobile.New(glw.Ctx))
-		cv = canvas.New(0, 0, 600, 600)
+		backend, err := xmobilebackend.New(glw.Ctx, 0, 0, 600, 600)
+		if err != nil {
+			log.Fatal(err)
+		}
+		cv = canvas.New(backend)
 
-		err := widget.RunWindow(s, sheet, &widget.RunWindowOptions{
+		err = widget.RunWindow(s, sheet, &widget.RunWindowOptions{
 			NewWindowOptions: screen.NewWindowOptions{
 				Title:  "Shiny Canvas Example",
 				Width:  600,
