@@ -43,9 +43,6 @@ func main() {
 			circles = append(circles, circle{x: mx, y: my, color: "#00F"})
 		}
 	}
-	wnd.SizeChange = func(w, h int) {
-		cv.SetBounds(0, 0, w, h)
-	}
 
 	lastTime := time.Now()
 
