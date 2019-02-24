@@ -2,10 +2,9 @@ package canvasandroidexample
 
 import (
 	"math"
-	"time"
 
 	"github.com/tfriedel6/canvas"
-	"github.com/tfriedel6/canvas/glimpl/android"
+	"github.com/tfriedel6/canvas/backend/gogl"
 )
 
 var cv *canvas.Canvas
@@ -19,12 +18,11 @@ func OnSurfaceCreated() {
 }
 
 func OnSurfaceChanged(w, h int) {
-	err := canvas.LoadGL(glimplandroid.GLImpl{})
+	backend, err := goglbackend.New(0, 0, w, h)
 	if err != nil {
-		time.Sleep(100 * time.Millisecond)
 		panic(err)
 	}
-	cv = canvas.New(0, 0, w, h)
+	cv = canvas.New(backend)
 }
 
 func OnDrawFrame() {

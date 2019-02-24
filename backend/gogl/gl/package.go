@@ -16,9 +16,10 @@
 //
 package gl
 
-// #cgo darwin        LDFLAGS: -framework OpenGL
-// #cgo linux freebsd LDFLAGS: -lGL
-// #cgo windows       LDFLAGS: -lopengl32
+// #cgo darwin           LDFLAGS: -framework OpenGL
+// #cgo linux,!android   LDFLAGS: -lGL
+// #cgo freebsd,!android LDFLAGS: -lGL
+// #cgo windows          LDFLAGS: -lopengl32
 // #if defined(_WIN32) && !defined(APIENTRY) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
 // #ifndef WIN32_LEAN_AND_MEAN
 // #define WIN32_LEAN_AND_MEAN 1
@@ -48,9 +49,7 @@ package gl
 // typedef float GLfloat;
 // typedef double GLdouble;
 // typedef char GLchar;
-// typedef ptrdiff_t GLintptr;
-// typedef ptrdiff_t GLsizeiptr;
-// #include "khrplatform.h"
+// #include <KHR/khrplatform.h>
 // typedef unsigned int GLenum;
 // typedef unsigned char GLboolean;
 // typedef unsigned int GLbitfield;
@@ -62,440 +61,99 @@ package gl
 // typedef khronos_float_t GLfloat;
 // typedef khronos_intptr_t GLintptr;
 // typedef khronos_ssize_t GLsizeiptr;
-// typedef void  (APIENTRYP GPACCUM)(GLenum  op, GLfloat  value);
 // typedef void  (APIENTRYP GPACTIVETEXTURE)(GLenum  texture);
-// typedef void  (APIENTRYP GPALPHAFUNC)(GLenum  func, GLfloat  ref);
-// typedef GLboolean  (APIENTRYP GPARETEXTURESRESIDENT)(GLsizei  n, const GLuint * textures, GLboolean * residences);
-// typedef void  (APIENTRYP GPARRAYELEMENT)(GLint  i);
 // typedef void  (APIENTRYP GPATTACHSHADER)(GLuint  program, GLuint  shader);
-// typedef void  (APIENTRYP GPBEGIN)(GLenum  mode);
-// typedef void  (APIENTRYP GPBEGINCONDITIONALRENDER)(GLuint  id, GLenum  mode);
-// typedef void  (APIENTRYP GPBEGINQUERY)(GLenum  target, GLuint  id);
-// typedef void  (APIENTRYP GPBEGINTRANSFORMFEEDBACK)(GLenum  primitiveMode);
 // typedef void  (APIENTRYP GPBINDATTRIBLOCATION)(GLuint  program, GLuint  index, const GLchar * name);
 // typedef void  (APIENTRYP GPBINDBUFFER)(GLenum  target, GLuint  buffer);
-// typedef void  (APIENTRYP GPBINDBUFFERBASE)(GLenum  target, GLuint  index, GLuint  buffer);
-// typedef void  (APIENTRYP GPBINDBUFFERRANGE)(GLenum  target, GLuint  index, GLuint  buffer, GLintptr  offset, GLsizeiptr  size);
-// typedef void  (APIENTRYP GPBINDFRAGDATALOCATION)(GLuint  program, GLuint  color, const GLchar * name);
 // typedef void  (APIENTRYP GPBINDFRAMEBUFFER)(GLenum  target, GLuint  framebuffer);
 // typedef void  (APIENTRYP GPBINDRENDERBUFFER)(GLenum  target, GLuint  renderbuffer);
 // typedef void  (APIENTRYP GPBINDTEXTURE)(GLenum  target, GLuint  texture);
-// typedef void  (APIENTRYP GPBINDVERTEXARRAY)(GLuint  array);
-// typedef void  (APIENTRYP GPBITMAP)(GLsizei  width, GLsizei  height, GLfloat  xorig, GLfloat  yorig, GLfloat  xmove, GLfloat  ymove, const GLubyte * bitmap);
 // typedef void  (APIENTRYP GPBLENDCOLOR)(GLfloat  red, GLfloat  green, GLfloat  blue, GLfloat  alpha);
 // typedef void  (APIENTRYP GPBLENDEQUATION)(GLenum  mode);
 // typedef void  (APIENTRYP GPBLENDEQUATIONSEPARATE)(GLenum  modeRGB, GLenum  modeAlpha);
 // typedef void  (APIENTRYP GPBLENDFUNC)(GLenum  sfactor, GLenum  dfactor);
 // typedef void  (APIENTRYP GPBLENDFUNCSEPARATE)(GLenum  sfactorRGB, GLenum  dfactorRGB, GLenum  sfactorAlpha, GLenum  dfactorAlpha);
-// typedef void  (APIENTRYP GPBLITFRAMEBUFFER)(GLint  srcX0, GLint  srcY0, GLint  srcX1, GLint  srcY1, GLint  dstX0, GLint  dstY0, GLint  dstX1, GLint  dstY1, GLbitfield  mask, GLenum  filter);
 // typedef void  (APIENTRYP GPBUFFERDATA)(GLenum  target, GLsizeiptr  size, const void * data, GLenum  usage);
 // typedef void  (APIENTRYP GPBUFFERSUBDATA)(GLenum  target, GLintptr  offset, GLsizeiptr  size, const void * data);
-// typedef void  (APIENTRYP GPCALLLIST)(GLuint  list);
-// typedef void  (APIENTRYP GPCALLLISTS)(GLsizei  n, GLenum  type, const void * lists);
 // typedef GLenum  (APIENTRYP GPCHECKFRAMEBUFFERSTATUS)(GLenum  target);
-// typedef void  (APIENTRYP GPCLAMPCOLOR)(GLenum  target, GLenum  clamp);
 // typedef void  (APIENTRYP GPCLEAR)(GLbitfield  mask);
-// typedef void  (APIENTRYP GPCLEARACCUM)(GLfloat  red, GLfloat  green, GLfloat  blue, GLfloat  alpha);
-// typedef void  (APIENTRYP GPCLEARBUFFERFI)(GLenum  buffer, GLint  drawbuffer, GLfloat  depth, GLint  stencil);
-// typedef void  (APIENTRYP GPCLEARBUFFERFV)(GLenum  buffer, GLint  drawbuffer, const GLfloat * value);
-// typedef void  (APIENTRYP GPCLEARBUFFERIV)(GLenum  buffer, GLint  drawbuffer, const GLint * value);
-// typedef void  (APIENTRYP GPCLEARBUFFERUIV)(GLenum  buffer, GLint  drawbuffer, const GLuint * value);
 // typedef void  (APIENTRYP GPCLEARCOLOR)(GLfloat  red, GLfloat  green, GLfloat  blue, GLfloat  alpha);
-// typedef void  (APIENTRYP GPCLEARDEPTH)(GLdouble  depth);
-// typedef void  (APIENTRYP GPCLEARINDEX)(GLfloat  c);
 // typedef void  (APIENTRYP GPCLEARSTENCIL)(GLint  s);
-// typedef void  (APIENTRYP GPCLIENTACTIVETEXTURE)(GLenum  texture);
-// typedef void  (APIENTRYP GPCLIPPLANE)(GLenum  plane, const GLdouble * equation);
-// typedef void  (APIENTRYP GPCOLOR3B)(GLbyte  red, GLbyte  green, GLbyte  blue);
-// typedef void  (APIENTRYP GPCOLOR3BV)(const GLbyte * v);
-// typedef void  (APIENTRYP GPCOLOR3D)(GLdouble  red, GLdouble  green, GLdouble  blue);
-// typedef void  (APIENTRYP GPCOLOR3DV)(const GLdouble * v);
-// typedef void  (APIENTRYP GPCOLOR3F)(GLfloat  red, GLfloat  green, GLfloat  blue);
-// typedef void  (APIENTRYP GPCOLOR3FV)(const GLfloat * v);
-// typedef void  (APIENTRYP GPCOLOR3I)(GLint  red, GLint  green, GLint  blue);
-// typedef void  (APIENTRYP GPCOLOR3IV)(const GLint * v);
-// typedef void  (APIENTRYP GPCOLOR3S)(GLshort  red, GLshort  green, GLshort  blue);
-// typedef void  (APIENTRYP GPCOLOR3SV)(const GLshort * v);
-// typedef void  (APIENTRYP GPCOLOR3UB)(GLubyte  red, GLubyte  green, GLubyte  blue);
-// typedef void  (APIENTRYP GPCOLOR3UBV)(const GLubyte * v);
-// typedef void  (APIENTRYP GPCOLOR3UI)(GLuint  red, GLuint  green, GLuint  blue);
-// typedef void  (APIENTRYP GPCOLOR3UIV)(const GLuint * v);
-// typedef void  (APIENTRYP GPCOLOR3US)(GLushort  red, GLushort  green, GLushort  blue);
-// typedef void  (APIENTRYP GPCOLOR3USV)(const GLushort * v);
-// typedef void  (APIENTRYP GPCOLOR4B)(GLbyte  red, GLbyte  green, GLbyte  blue, GLbyte  alpha);
-// typedef void  (APIENTRYP GPCOLOR4BV)(const GLbyte * v);
-// typedef void  (APIENTRYP GPCOLOR4D)(GLdouble  red, GLdouble  green, GLdouble  blue, GLdouble  alpha);
-// typedef void  (APIENTRYP GPCOLOR4DV)(const GLdouble * v);
-// typedef void  (APIENTRYP GPCOLOR4F)(GLfloat  red, GLfloat  green, GLfloat  blue, GLfloat  alpha);
-// typedef void  (APIENTRYP GPCOLOR4FV)(const GLfloat * v);
-// typedef void  (APIENTRYP GPCOLOR4I)(GLint  red, GLint  green, GLint  blue, GLint  alpha);
-// typedef void  (APIENTRYP GPCOLOR4IV)(const GLint * v);
-// typedef void  (APIENTRYP GPCOLOR4S)(GLshort  red, GLshort  green, GLshort  blue, GLshort  alpha);
-// typedef void  (APIENTRYP GPCOLOR4SV)(const GLshort * v);
-// typedef void  (APIENTRYP GPCOLOR4UB)(GLubyte  red, GLubyte  green, GLubyte  blue, GLubyte  alpha);
-// typedef void  (APIENTRYP GPCOLOR4UBV)(const GLubyte * v);
-// typedef void  (APIENTRYP GPCOLOR4UI)(GLuint  red, GLuint  green, GLuint  blue, GLuint  alpha);
-// typedef void  (APIENTRYP GPCOLOR4UIV)(const GLuint * v);
-// typedef void  (APIENTRYP GPCOLOR4US)(GLushort  red, GLushort  green, GLushort  blue, GLushort  alpha);
-// typedef void  (APIENTRYP GPCOLOR4USV)(const GLushort * v);
 // typedef void  (APIENTRYP GPCOLORMASK)(GLboolean  red, GLboolean  green, GLboolean  blue, GLboolean  alpha);
-// typedef void  (APIENTRYP GPCOLORMASKI)(GLuint  index, GLboolean  r, GLboolean  g, GLboolean  b, GLboolean  a);
-// typedef void  (APIENTRYP GPCOLORMATERIAL)(GLenum  face, GLenum  mode);
-// typedef void  (APIENTRYP GPCOLORPOINTER)(GLint  size, GLenum  type, GLsizei  stride, const void * pointer);
 // typedef void  (APIENTRYP GPCOMPILESHADER)(GLuint  shader);
-// typedef void  (APIENTRYP GPCOMPRESSEDTEXIMAGE1D)(GLenum  target, GLint  level, GLenum  internalformat, GLsizei  width, GLint  border, GLsizei  imageSize, const void * data);
 // typedef void  (APIENTRYP GPCOMPRESSEDTEXIMAGE2D)(GLenum  target, GLint  level, GLenum  internalformat, GLsizei  width, GLsizei  height, GLint  border, GLsizei  imageSize, const void * data);
-// typedef void  (APIENTRYP GPCOMPRESSEDTEXIMAGE3D)(GLenum  target, GLint  level, GLenum  internalformat, GLsizei  width, GLsizei  height, GLsizei  depth, GLint  border, GLsizei  imageSize, const void * data);
-// typedef void  (APIENTRYP GPCOMPRESSEDTEXSUBIMAGE1D)(GLenum  target, GLint  level, GLint  xoffset, GLsizei  width, GLenum  format, GLsizei  imageSize, const void * data);
 // typedef void  (APIENTRYP GPCOMPRESSEDTEXSUBIMAGE2D)(GLenum  target, GLint  level, GLint  xoffset, GLint  yoffset, GLsizei  width, GLsizei  height, GLenum  format, GLsizei  imageSize, const void * data);
-// typedef void  (APIENTRYP GPCOMPRESSEDTEXSUBIMAGE3D)(GLenum  target, GLint  level, GLint  xoffset, GLint  yoffset, GLint  zoffset, GLsizei  width, GLsizei  height, GLsizei  depth, GLenum  format, GLsizei  imageSize, const void * data);
-// typedef void  (APIENTRYP GPCOPYPIXELS)(GLint  x, GLint  y, GLsizei  width, GLsizei  height, GLenum  type);
-// typedef void  (APIENTRYP GPCOPYTEXIMAGE1D)(GLenum  target, GLint  level, GLenum  internalformat, GLint  x, GLint  y, GLsizei  width, GLint  border);
 // typedef void  (APIENTRYP GPCOPYTEXIMAGE2D)(GLenum  target, GLint  level, GLenum  internalformat, GLint  x, GLint  y, GLsizei  width, GLsizei  height, GLint  border);
-// typedef void  (APIENTRYP GPCOPYTEXSUBIMAGE1D)(GLenum  target, GLint  level, GLint  xoffset, GLint  x, GLint  y, GLsizei  width);
 // typedef void  (APIENTRYP GPCOPYTEXSUBIMAGE2D)(GLenum  target, GLint  level, GLint  xoffset, GLint  yoffset, GLint  x, GLint  y, GLsizei  width, GLsizei  height);
-// typedef void  (APIENTRYP GPCOPYTEXSUBIMAGE3D)(GLenum  target, GLint  level, GLint  xoffset, GLint  yoffset, GLint  zoffset, GLint  x, GLint  y, GLsizei  width, GLsizei  height);
 // typedef GLuint  (APIENTRYP GPCREATEPROGRAM)();
 // typedef GLuint  (APIENTRYP GPCREATESHADER)(GLenum  type);
 // typedef void  (APIENTRYP GPCULLFACE)(GLenum  mode);
 // typedef void  (APIENTRYP GPDELETEBUFFERS)(GLsizei  n, const GLuint * buffers);
 // typedef void  (APIENTRYP GPDELETEFRAMEBUFFERS)(GLsizei  n, const GLuint * framebuffers);
-// typedef void  (APIENTRYP GPDELETELISTS)(GLuint  list, GLsizei  range);
 // typedef void  (APIENTRYP GPDELETEPROGRAM)(GLuint  program);
-// typedef void  (APIENTRYP GPDELETEQUERIES)(GLsizei  n, const GLuint * ids);
 // typedef void  (APIENTRYP GPDELETERENDERBUFFERS)(GLsizei  n, const GLuint * renderbuffers);
 // typedef void  (APIENTRYP GPDELETESHADER)(GLuint  shader);
 // typedef void  (APIENTRYP GPDELETETEXTURES)(GLsizei  n, const GLuint * textures);
-// typedef void  (APIENTRYP GPDELETEVERTEXARRAYS)(GLsizei  n, const GLuint * arrays);
 // typedef void  (APIENTRYP GPDEPTHFUNC)(GLenum  func);
 // typedef void  (APIENTRYP GPDEPTHMASK)(GLboolean  flag);
-// typedef void  (APIENTRYP GPDEPTHRANGE)(GLdouble  xnear, GLdouble  xfar);
 // typedef void  (APIENTRYP GPDETACHSHADER)(GLuint  program, GLuint  shader);
 // typedef void  (APIENTRYP GPDISABLE)(GLenum  cap);
-// typedef void  (APIENTRYP GPDISABLECLIENTSTATE)(GLenum  array);
 // typedef void  (APIENTRYP GPDISABLEVERTEXATTRIBARRAY)(GLuint  index);
-// typedef void  (APIENTRYP GPDISABLEI)(GLenum  target, GLuint  index);
 // typedef void  (APIENTRYP GPDRAWARRAYS)(GLenum  mode, GLint  first, GLsizei  count);
-// typedef void  (APIENTRYP GPDRAWBUFFER)(GLenum  buf);
-// typedef void  (APIENTRYP GPDRAWBUFFERS)(GLsizei  n, const GLenum * bufs);
 // typedef void  (APIENTRYP GPDRAWELEMENTS)(GLenum  mode, GLsizei  count, GLenum  type, const void * indices);
-// typedef void  (APIENTRYP GPDRAWPIXELS)(GLsizei  width, GLsizei  height, GLenum  format, GLenum  type, const void * pixels);
-// typedef void  (APIENTRYP GPDRAWRANGEELEMENTS)(GLenum  mode, GLuint  start, GLuint  end, GLsizei  count, GLenum  type, const void * indices);
-// typedef void  (APIENTRYP GPEDGEFLAG)(GLboolean  flag);
-// typedef void  (APIENTRYP GPEDGEFLAGPOINTER)(GLsizei  stride, const void * pointer);
-// typedef void  (APIENTRYP GPEDGEFLAGV)(const GLboolean * flag);
 // typedef void  (APIENTRYP GPENABLE)(GLenum  cap);
-// typedef void  (APIENTRYP GPENABLECLIENTSTATE)(GLenum  array);
 // typedef void  (APIENTRYP GPENABLEVERTEXATTRIBARRAY)(GLuint  index);
-// typedef void  (APIENTRYP GPENABLEI)(GLenum  target, GLuint  index);
-// typedef void  (APIENTRYP GPEND)();
-// typedef void  (APIENTRYP GPENDCONDITIONALRENDER)();
-// typedef void  (APIENTRYP GPENDLIST)();
-// typedef void  (APIENTRYP GPENDQUERY)(GLenum  target);
-// typedef void  (APIENTRYP GPENDTRANSFORMFEEDBACK)();
-// typedef void  (APIENTRYP GPEVALCOORD1D)(GLdouble  u);
-// typedef void  (APIENTRYP GPEVALCOORD1DV)(const GLdouble * u);
-// typedef void  (APIENTRYP GPEVALCOORD1F)(GLfloat  u);
-// typedef void  (APIENTRYP GPEVALCOORD1FV)(const GLfloat * u);
-// typedef void  (APIENTRYP GPEVALCOORD2D)(GLdouble  u, GLdouble  v);
-// typedef void  (APIENTRYP GPEVALCOORD2DV)(const GLdouble * u);
-// typedef void  (APIENTRYP GPEVALCOORD2F)(GLfloat  u, GLfloat  v);
-// typedef void  (APIENTRYP GPEVALCOORD2FV)(const GLfloat * u);
-// typedef void  (APIENTRYP GPEVALMESH1)(GLenum  mode, GLint  i1, GLint  i2);
-// typedef void  (APIENTRYP GPEVALMESH2)(GLenum  mode, GLint  i1, GLint  i2, GLint  j1, GLint  j2);
-// typedef void  (APIENTRYP GPEVALPOINT1)(GLint  i);
-// typedef void  (APIENTRYP GPEVALPOINT2)(GLint  i, GLint  j);
-// typedef void  (APIENTRYP GPFEEDBACKBUFFER)(GLsizei  size, GLenum  type, GLfloat * buffer);
 // typedef void  (APIENTRYP GPFINISH)();
 // typedef void  (APIENTRYP GPFLUSH)();
-// typedef void  (APIENTRYP GPFLUSHMAPPEDBUFFERRANGE)(GLenum  target, GLintptr  offset, GLsizeiptr  length);
-// typedef void  (APIENTRYP GPFOGCOORDPOINTER)(GLenum  type, GLsizei  stride, const void * pointer);
-// typedef void  (APIENTRYP GPFOGCOORDD)(GLdouble  coord);
-// typedef void  (APIENTRYP GPFOGCOORDDV)(const GLdouble * coord);
-// typedef void  (APIENTRYP GPFOGCOORDF)(GLfloat  coord);
-// typedef void  (APIENTRYP GPFOGCOORDFV)(const GLfloat * coord);
-// typedef void  (APIENTRYP GPFOGF)(GLenum  pname, GLfloat  param);
-// typedef void  (APIENTRYP GPFOGFV)(GLenum  pname, const GLfloat * params);
-// typedef void  (APIENTRYP GPFOGI)(GLenum  pname, GLint  param);
-// typedef void  (APIENTRYP GPFOGIV)(GLenum  pname, const GLint * params);
 // typedef void  (APIENTRYP GPFRAMEBUFFERRENDERBUFFER)(GLenum  target, GLenum  attachment, GLenum  renderbuffertarget, GLuint  renderbuffer);
-// typedef void  (APIENTRYP GPFRAMEBUFFERTEXTURE1D)(GLenum  target, GLenum  attachment, GLenum  textarget, GLuint  texture, GLint  level);
 // typedef void  (APIENTRYP GPFRAMEBUFFERTEXTURE2D)(GLenum  target, GLenum  attachment, GLenum  textarget, GLuint  texture, GLint  level);
-// typedef void  (APIENTRYP GPFRAMEBUFFERTEXTURE3D)(GLenum  target, GLenum  attachment, GLenum  textarget, GLuint  texture, GLint  level, GLint  zoffset);
-// typedef void  (APIENTRYP GPFRAMEBUFFERTEXTURELAYER)(GLenum  target, GLenum  attachment, GLuint  texture, GLint  level, GLint  layer);
 // typedef void  (APIENTRYP GPFRONTFACE)(GLenum  mode);
-// typedef void  (APIENTRYP GPFRUSTUM)(GLdouble  left, GLdouble  right, GLdouble  bottom, GLdouble  top, GLdouble  zNear, GLdouble  zFar);
 // typedef void  (APIENTRYP GPGENBUFFERS)(GLsizei  n, GLuint * buffers);
 // typedef void  (APIENTRYP GPGENFRAMEBUFFERS)(GLsizei  n, GLuint * framebuffers);
-// typedef GLuint  (APIENTRYP GPGENLISTS)(GLsizei  range);
-// typedef void  (APIENTRYP GPGENQUERIES)(GLsizei  n, GLuint * ids);
 // typedef void  (APIENTRYP GPGENRENDERBUFFERS)(GLsizei  n, GLuint * renderbuffers);
 // typedef void  (APIENTRYP GPGENTEXTURES)(GLsizei  n, GLuint * textures);
-// typedef void  (APIENTRYP GPGENVERTEXARRAYS)(GLsizei  n, GLuint * arrays);
 // typedef void  (APIENTRYP GPGENERATEMIPMAP)(GLenum  target);
 // typedef void  (APIENTRYP GPGETACTIVEATTRIB)(GLuint  program, GLuint  index, GLsizei  bufSize, GLsizei * length, GLint * size, GLenum * type, GLchar * name);
 // typedef void  (APIENTRYP GPGETACTIVEUNIFORM)(GLuint  program, GLuint  index, GLsizei  bufSize, GLsizei * length, GLint * size, GLenum * type, GLchar * name);
 // typedef void  (APIENTRYP GPGETATTACHEDSHADERS)(GLuint  program, GLsizei  maxCount, GLsizei * count, GLuint * shaders);
 // typedef GLint  (APIENTRYP GPGETATTRIBLOCATION)(GLuint  program, const GLchar * name);
-// typedef void  (APIENTRYP GPGETBOOLEANI_V)(GLenum  target, GLuint  index, GLboolean * data);
 // typedef void  (APIENTRYP GPGETBOOLEANV)(GLenum  pname, GLboolean * data);
 // typedef void  (APIENTRYP GPGETBUFFERPARAMETERIV)(GLenum  target, GLenum  pname, GLint * params);
-// typedef void  (APIENTRYP GPGETBUFFERPOINTERV)(GLenum  target, GLenum  pname, void ** params);
-// typedef void  (APIENTRYP GPGETBUFFERSUBDATA)(GLenum  target, GLintptr  offset, GLsizeiptr  size, void * data);
-// typedef void  (APIENTRYP GPGETCLIPPLANE)(GLenum  plane, GLdouble * equation);
-// typedef void  (APIENTRYP GPGETCOMPRESSEDTEXIMAGE)(GLenum  target, GLint  level, void * img);
-// typedef void  (APIENTRYP GPGETDOUBLEV)(GLenum  pname, GLdouble * data);
 // typedef GLenum  (APIENTRYP GPGETERROR)();
 // typedef void  (APIENTRYP GPGETFLOATV)(GLenum  pname, GLfloat * data);
-// typedef GLint  (APIENTRYP GPGETFRAGDATALOCATION)(GLuint  program, const GLchar * name);
 // typedef void  (APIENTRYP GPGETFRAMEBUFFERATTACHMENTPARAMETERIV)(GLenum  target, GLenum  attachment, GLenum  pname, GLint * params);
-// typedef void  (APIENTRYP GPGETINTEGERI_V)(GLenum  target, GLuint  index, GLint * data);
 // typedef void  (APIENTRYP GPGETINTEGERV)(GLenum  pname, GLint * data);
-// typedef void  (APIENTRYP GPGETLIGHTFV)(GLenum  light, GLenum  pname, GLfloat * params);
-// typedef void  (APIENTRYP GPGETLIGHTIV)(GLenum  light, GLenum  pname, GLint * params);
-// typedef void  (APIENTRYP GPGETMAPDV)(GLenum  target, GLenum  query, GLdouble * v);
-// typedef void  (APIENTRYP GPGETMAPFV)(GLenum  target, GLenum  query, GLfloat * v);
-// typedef void  (APIENTRYP GPGETMAPIV)(GLenum  target, GLenum  query, GLint * v);
-// typedef void  (APIENTRYP GPGETMATERIALFV)(GLenum  face, GLenum  pname, GLfloat * params);
-// typedef void  (APIENTRYP GPGETMATERIALIV)(GLenum  face, GLenum  pname, GLint * params);
-// typedef void  (APIENTRYP GPGETPIXELMAPFV)(GLenum  map, GLfloat * values);
-// typedef void  (APIENTRYP GPGETPIXELMAPUIV)(GLenum  map, GLuint * values);
-// typedef void  (APIENTRYP GPGETPIXELMAPUSV)(GLenum  map, GLushort * values);
-// typedef void  (APIENTRYP GPGETPOINTERV)(GLenum  pname, void ** params);
-// typedef void  (APIENTRYP GPGETPOLYGONSTIPPLE)(GLubyte * mask);
 // typedef void  (APIENTRYP GPGETPROGRAMINFOLOG)(GLuint  program, GLsizei  bufSize, GLsizei * length, GLchar * infoLog);
 // typedef void  (APIENTRYP GPGETPROGRAMIV)(GLuint  program, GLenum  pname, GLint * params);
-// typedef void  (APIENTRYP GPGETQUERYOBJECTIV)(GLuint  id, GLenum  pname, GLint * params);
-// typedef void  (APIENTRYP GPGETQUERYOBJECTUIV)(GLuint  id, GLenum  pname, GLuint * params);
-// typedef void  (APIENTRYP GPGETQUERYIV)(GLenum  target, GLenum  pname, GLint * params);
 // typedef void  (APIENTRYP GPGETRENDERBUFFERPARAMETERIV)(GLenum  target, GLenum  pname, GLint * params);
 // typedef void  (APIENTRYP GPGETSHADERINFOLOG)(GLuint  shader, GLsizei  bufSize, GLsizei * length, GLchar * infoLog);
 // typedef void  (APIENTRYP GPGETSHADERSOURCE)(GLuint  shader, GLsizei  bufSize, GLsizei * length, GLchar * source);
 // typedef void  (APIENTRYP GPGETSHADERIV)(GLuint  shader, GLenum  pname, GLint * params);
 // typedef const GLubyte * (APIENTRYP GPGETSTRING)(GLenum  name);
-// typedef const GLubyte * (APIENTRYP GPGETSTRINGI)(GLenum  name, GLuint  index);
-// typedef void  (APIENTRYP GPGETTEXENVFV)(GLenum  target, GLenum  pname, GLfloat * params);
-// typedef void  (APIENTRYP GPGETTEXENVIV)(GLenum  target, GLenum  pname, GLint * params);
-// typedef void  (APIENTRYP GPGETTEXGENDV)(GLenum  coord, GLenum  pname, GLdouble * params);
-// typedef void  (APIENTRYP GPGETTEXGENFV)(GLenum  coord, GLenum  pname, GLfloat * params);
-// typedef void  (APIENTRYP GPGETTEXGENIV)(GLenum  coord, GLenum  pname, GLint * params);
-// typedef void  (APIENTRYP GPGETTEXIMAGE)(GLenum  target, GLint  level, GLenum  format, GLenum  type, void * pixels);
-// typedef void  (APIENTRYP GPGETTEXLEVELPARAMETERFV)(GLenum  target, GLint  level, GLenum  pname, GLfloat * params);
-// typedef void  (APIENTRYP GPGETTEXLEVELPARAMETERIV)(GLenum  target, GLint  level, GLenum  pname, GLint * params);
-// typedef void  (APIENTRYP GPGETTEXPARAMETERIIV)(GLenum  target, GLenum  pname, GLint * params);
-// typedef void  (APIENTRYP GPGETTEXPARAMETERIUIV)(GLenum  target, GLenum  pname, GLuint * params);
 // typedef void  (APIENTRYP GPGETTEXPARAMETERFV)(GLenum  target, GLenum  pname, GLfloat * params);
 // typedef void  (APIENTRYP GPGETTEXPARAMETERIV)(GLenum  target, GLenum  pname, GLint * params);
-// typedef void  (APIENTRYP GPGETTRANSFORMFEEDBACKVARYING)(GLuint  program, GLuint  index, GLsizei  bufSize, GLsizei * length, GLsizei * size, GLenum * type, GLchar * name);
 // typedef GLint  (APIENTRYP GPGETUNIFORMLOCATION)(GLuint  program, const GLchar * name);
 // typedef void  (APIENTRYP GPGETUNIFORMFV)(GLuint  program, GLint  location, GLfloat * params);
 // typedef void  (APIENTRYP GPGETUNIFORMIV)(GLuint  program, GLint  location, GLint * params);
-// typedef void  (APIENTRYP GPGETUNIFORMUIV)(GLuint  program, GLint  location, GLuint * params);
-// typedef void  (APIENTRYP GPGETVERTEXATTRIBIIV)(GLuint  index, GLenum  pname, GLint * params);
-// typedef void  (APIENTRYP GPGETVERTEXATTRIBIUIV)(GLuint  index, GLenum  pname, GLuint * params);
 // typedef void  (APIENTRYP GPGETVERTEXATTRIBPOINTERV)(GLuint  index, GLenum  pname, void ** pointer);
-// typedef void  (APIENTRYP GPGETVERTEXATTRIBDV)(GLuint  index, GLenum  pname, GLdouble * params);
 // typedef void  (APIENTRYP GPGETVERTEXATTRIBFV)(GLuint  index, GLenum  pname, GLfloat * params);
 // typedef void  (APIENTRYP GPGETVERTEXATTRIBIV)(GLuint  index, GLenum  pname, GLint * params);
 // typedef void  (APIENTRYP GPHINT)(GLenum  target, GLenum  mode);
-// typedef void  (APIENTRYP GPINDEXMASK)(GLuint  mask);
-// typedef void  (APIENTRYP GPINDEXPOINTER)(GLenum  type, GLsizei  stride, const void * pointer);
-// typedef void  (APIENTRYP GPINDEXD)(GLdouble  c);
-// typedef void  (APIENTRYP GPINDEXDV)(const GLdouble * c);
-// typedef void  (APIENTRYP GPINDEXF)(GLfloat  c);
-// typedef void  (APIENTRYP GPINDEXFV)(const GLfloat * c);
-// typedef void  (APIENTRYP GPINDEXI)(GLint  c);
-// typedef void  (APIENTRYP GPINDEXIV)(const GLint * c);
-// typedef void  (APIENTRYP GPINDEXS)(GLshort  c);
-// typedef void  (APIENTRYP GPINDEXSV)(const GLshort * c);
-// typedef void  (APIENTRYP GPINDEXUB)(GLubyte  c);
-// typedef void  (APIENTRYP GPINDEXUBV)(const GLubyte * c);
-// typedef void  (APIENTRYP GPINITNAMES)();
-// typedef void  (APIENTRYP GPINTERLEAVEDARRAYS)(GLenum  format, GLsizei  stride, const void * pointer);
 // typedef GLboolean  (APIENTRYP GPISBUFFER)(GLuint  buffer);
 // typedef GLboolean  (APIENTRYP GPISENABLED)(GLenum  cap);
-// typedef GLboolean  (APIENTRYP GPISENABLEDI)(GLenum  target, GLuint  index);
 // typedef GLboolean  (APIENTRYP GPISFRAMEBUFFER)(GLuint  framebuffer);
-// typedef GLboolean  (APIENTRYP GPISLIST)(GLuint  list);
 // typedef GLboolean  (APIENTRYP GPISPROGRAM)(GLuint  program);
-// typedef GLboolean  (APIENTRYP GPISQUERY)(GLuint  id);
 // typedef GLboolean  (APIENTRYP GPISRENDERBUFFER)(GLuint  renderbuffer);
 // typedef GLboolean  (APIENTRYP GPISSHADER)(GLuint  shader);
 // typedef GLboolean  (APIENTRYP GPISTEXTURE)(GLuint  texture);
-// typedef GLboolean  (APIENTRYP GPISVERTEXARRAY)(GLuint  array);
-// typedef void  (APIENTRYP GPLIGHTMODELF)(GLenum  pname, GLfloat  param);
-// typedef void  (APIENTRYP GPLIGHTMODELFV)(GLenum  pname, const GLfloat * params);
-// typedef void  (APIENTRYP GPLIGHTMODELI)(GLenum  pname, GLint  param);
-// typedef void  (APIENTRYP GPLIGHTMODELIV)(GLenum  pname, const GLint * params);
-// typedef void  (APIENTRYP GPLIGHTF)(GLenum  light, GLenum  pname, GLfloat  param);
-// typedef void  (APIENTRYP GPLIGHTFV)(GLenum  light, GLenum  pname, const GLfloat * params);
-// typedef void  (APIENTRYP GPLIGHTI)(GLenum  light, GLenum  pname, GLint  param);
-// typedef void  (APIENTRYP GPLIGHTIV)(GLenum  light, GLenum  pname, const GLint * params);
-// typedef void  (APIENTRYP GPLINESTIPPLE)(GLint  factor, GLushort  pattern);
 // typedef void  (APIENTRYP GPLINEWIDTH)(GLfloat  width);
 // typedef void  (APIENTRYP GPLINKPROGRAM)(GLuint  program);
-// typedef void  (APIENTRYP GPLISTBASE)(GLuint  base);
-// typedef void  (APIENTRYP GPLOADIDENTITY)();
-// typedef void  (APIENTRYP GPLOADMATRIXD)(const GLdouble * m);
-// typedef void  (APIENTRYP GPLOADMATRIXF)(const GLfloat * m);
-// typedef void  (APIENTRYP GPLOADNAME)(GLuint  name);
-// typedef void  (APIENTRYP GPLOADTRANSPOSEMATRIXD)(const GLdouble * m);
-// typedef void  (APIENTRYP GPLOADTRANSPOSEMATRIXF)(const GLfloat * m);
-// typedef void  (APIENTRYP GPLOGICOP)(GLenum  opcode);
-// typedef void  (APIENTRYP GPMAP1D)(GLenum  target, GLdouble  u1, GLdouble  u2, GLint  stride, GLint  order, const GLdouble * points);
-// typedef void  (APIENTRYP GPMAP1F)(GLenum  target, GLfloat  u1, GLfloat  u2, GLint  stride, GLint  order, const GLfloat * points);
-// typedef void  (APIENTRYP GPMAP2D)(GLenum  target, GLdouble  u1, GLdouble  u2, GLint  ustride, GLint  uorder, GLdouble  v1, GLdouble  v2, GLint  vstride, GLint  vorder, const GLdouble * points);
-// typedef void  (APIENTRYP GPMAP2F)(GLenum  target, GLfloat  u1, GLfloat  u2, GLint  ustride, GLint  uorder, GLfloat  v1, GLfloat  v2, GLint  vstride, GLint  vorder, const GLfloat * points);
-// typedef void * (APIENTRYP GPMAPBUFFER)(GLenum  target, GLenum  access);
-// typedef void * (APIENTRYP GPMAPBUFFERRANGE)(GLenum  target, GLintptr  offset, GLsizeiptr  length, GLbitfield  access);
-// typedef void  (APIENTRYP GPMAPGRID1D)(GLint  un, GLdouble  u1, GLdouble  u2);
-// typedef void  (APIENTRYP GPMAPGRID1F)(GLint  un, GLfloat  u1, GLfloat  u2);
-// typedef void  (APIENTRYP GPMAPGRID2D)(GLint  un, GLdouble  u1, GLdouble  u2, GLint  vn, GLdouble  v1, GLdouble  v2);
-// typedef void  (APIENTRYP GPMAPGRID2F)(GLint  un, GLfloat  u1, GLfloat  u2, GLint  vn, GLfloat  v1, GLfloat  v2);
-// typedef void  (APIENTRYP GPMATERIALF)(GLenum  face, GLenum  pname, GLfloat  param);
-// typedef void  (APIENTRYP GPMATERIALFV)(GLenum  face, GLenum  pname, const GLfloat * params);
-// typedef void  (APIENTRYP GPMATERIALI)(GLenum  face, GLenum  pname, GLint  param);
-// typedef void  (APIENTRYP GPMATERIALIV)(GLenum  face, GLenum  pname, const GLint * params);
-// typedef void  (APIENTRYP GPMATRIXMODE)(GLenum  mode);
-// typedef void  (APIENTRYP GPMULTMATRIXD)(const GLdouble * m);
-// typedef void  (APIENTRYP GPMULTMATRIXF)(const GLfloat * m);
-// typedef void  (APIENTRYP GPMULTTRANSPOSEMATRIXD)(const GLdouble * m);
-// typedef void  (APIENTRYP GPMULTTRANSPOSEMATRIXF)(const GLfloat * m);
-// typedef void  (APIENTRYP GPMULTIDRAWARRAYS)(GLenum  mode, const GLint * first, const GLsizei * count, GLsizei  drawcount);
-// typedef void  (APIENTRYP GPMULTIDRAWELEMENTS)(GLenum  mode, const GLsizei * count, GLenum  type, const void *const* indices, GLsizei  drawcount);
-// typedef void  (APIENTRYP GPMULTITEXCOORD1D)(GLenum  target, GLdouble  s);
-// typedef void  (APIENTRYP GPMULTITEXCOORD1DV)(GLenum  target, const GLdouble * v);
-// typedef void  (APIENTRYP GPMULTITEXCOORD1F)(GLenum  target, GLfloat  s);
-// typedef void  (APIENTRYP GPMULTITEXCOORD1FV)(GLenum  target, const GLfloat * v);
-// typedef void  (APIENTRYP GPMULTITEXCOORD1I)(GLenum  target, GLint  s);
-// typedef void  (APIENTRYP GPMULTITEXCOORD1IV)(GLenum  target, const GLint * v);
-// typedef void  (APIENTRYP GPMULTITEXCOORD1S)(GLenum  target, GLshort  s);
-// typedef void  (APIENTRYP GPMULTITEXCOORD1SV)(GLenum  target, const GLshort * v);
-// typedef void  (APIENTRYP GPMULTITEXCOORD2D)(GLenum  target, GLdouble  s, GLdouble  t);
-// typedef void  (APIENTRYP GPMULTITEXCOORD2DV)(GLenum  target, const GLdouble * v);
-// typedef void  (APIENTRYP GPMULTITEXCOORD2F)(GLenum  target, GLfloat  s, GLfloat  t);
-// typedef void  (APIENTRYP GPMULTITEXCOORD2FV)(GLenum  target, const GLfloat * v);
-// typedef void  (APIENTRYP GPMULTITEXCOORD2I)(GLenum  target, GLint  s, GLint  t);
-// typedef void  (APIENTRYP GPMULTITEXCOORD2IV)(GLenum  target, const GLint * v);
-// typedef void  (APIENTRYP GPMULTITEXCOORD2S)(GLenum  target, GLshort  s, GLshort  t);
-// typedef void  (APIENTRYP GPMULTITEXCOORD2SV)(GLenum  target, const GLshort * v);
-// typedef void  (APIENTRYP GPMULTITEXCOORD3D)(GLenum  target, GLdouble  s, GLdouble  t, GLdouble  r);
-// typedef void  (APIENTRYP GPMULTITEXCOORD3DV)(GLenum  target, const GLdouble * v);
-// typedef void  (APIENTRYP GPMULTITEXCOORD3F)(GLenum  target, GLfloat  s, GLfloat  t, GLfloat  r);
-// typedef void  (APIENTRYP GPMULTITEXCOORD3FV)(GLenum  target, const GLfloat * v);
-// typedef void  (APIENTRYP GPMULTITEXCOORD3I)(GLenum  target, GLint  s, GLint  t, GLint  r);
-// typedef void  (APIENTRYP GPMULTITEXCOORD3IV)(GLenum  target, const GLint * v);
-// typedef void  (APIENTRYP GPMULTITEXCOORD3S)(GLenum  target, GLshort  s, GLshort  t, GLshort  r);
-// typedef void  (APIENTRYP GPMULTITEXCOORD3SV)(GLenum  target, const GLshort * v);
-// typedef void  (APIENTRYP GPMULTITEXCOORD4D)(GLenum  target, GLdouble  s, GLdouble  t, GLdouble  r, GLdouble  q);
-// typedef void  (APIENTRYP GPMULTITEXCOORD4DV)(GLenum  target, const GLdouble * v);
-// typedef void  (APIENTRYP GPMULTITEXCOORD4F)(GLenum  target, GLfloat  s, GLfloat  t, GLfloat  r, GLfloat  q);
-// typedef void  (APIENTRYP GPMULTITEXCOORD4FV)(GLenum  target, const GLfloat * v);
-// typedef void  (APIENTRYP GPMULTITEXCOORD4I)(GLenum  target, GLint  s, GLint  t, GLint  r, GLint  q);
-// typedef void  (APIENTRYP GPMULTITEXCOORD4IV)(GLenum  target, const GLint * v);
-// typedef void  (APIENTRYP GPMULTITEXCOORD4S)(GLenum  target, GLshort  s, GLshort  t, GLshort  r, GLshort  q);
-// typedef void  (APIENTRYP GPMULTITEXCOORD4SV)(GLenum  target, const GLshort * v);
-// typedef void  (APIENTRYP GPNEWLIST)(GLuint  list, GLenum  mode);
-// typedef void  (APIENTRYP GPNORMAL3B)(GLbyte  nx, GLbyte  ny, GLbyte  nz);
-// typedef void  (APIENTRYP GPNORMAL3BV)(const GLbyte * v);
-// typedef void  (APIENTRYP GPNORMAL3D)(GLdouble  nx, GLdouble  ny, GLdouble  nz);
-// typedef void  (APIENTRYP GPNORMAL3DV)(const GLdouble * v);
-// typedef void  (APIENTRYP GPNORMAL3F)(GLfloat  nx, GLfloat  ny, GLfloat  nz);
-// typedef void  (APIENTRYP GPNORMAL3FV)(const GLfloat * v);
-// typedef void  (APIENTRYP GPNORMAL3I)(GLint  nx, GLint  ny, GLint  nz);
-// typedef void  (APIENTRYP GPNORMAL3IV)(const GLint * v);
-// typedef void  (APIENTRYP GPNORMAL3S)(GLshort  nx, GLshort  ny, GLshort  nz);
-// typedef void  (APIENTRYP GPNORMAL3SV)(const GLshort * v);
-// typedef void  (APIENTRYP GPNORMALPOINTER)(GLenum  type, GLsizei  stride, const void * pointer);
-// typedef void  (APIENTRYP GPORTHO)(GLdouble  left, GLdouble  right, GLdouble  bottom, GLdouble  top, GLdouble  zNear, GLdouble  zFar);
-// typedef void  (APIENTRYP GPPASSTHROUGH)(GLfloat  token);
-// typedef void  (APIENTRYP GPPIXELMAPFV)(GLenum  map, GLsizei  mapsize, const GLfloat * values);
-// typedef void  (APIENTRYP GPPIXELMAPUIV)(GLenum  map, GLsizei  mapsize, const GLuint * values);
-// typedef void  (APIENTRYP GPPIXELMAPUSV)(GLenum  map, GLsizei  mapsize, const GLushort * values);
-// typedef void  (APIENTRYP GPPIXELSTOREF)(GLenum  pname, GLfloat  param);
 // typedef void  (APIENTRYP GPPIXELSTOREI)(GLenum  pname, GLint  param);
-// typedef void  (APIENTRYP GPPIXELTRANSFERF)(GLenum  pname, GLfloat  param);
-// typedef void  (APIENTRYP GPPIXELTRANSFERI)(GLenum  pname, GLint  param);
-// typedef void  (APIENTRYP GPPIXELZOOM)(GLfloat  xfactor, GLfloat  yfactor);
-// typedef void  (APIENTRYP GPPOINTPARAMETERF)(GLenum  pname, GLfloat  param);
-// typedef void  (APIENTRYP GPPOINTPARAMETERFV)(GLenum  pname, const GLfloat * params);
-// typedef void  (APIENTRYP GPPOINTPARAMETERI)(GLenum  pname, GLint  param);
-// typedef void  (APIENTRYP GPPOINTPARAMETERIV)(GLenum  pname, const GLint * params);
-// typedef void  (APIENTRYP GPPOINTSIZE)(GLfloat  size);
-// typedef void  (APIENTRYP GPPOLYGONMODE)(GLenum  face, GLenum  mode);
 // typedef void  (APIENTRYP GPPOLYGONOFFSET)(GLfloat  factor, GLfloat  units);
-// typedef void  (APIENTRYP GPPOLYGONSTIPPLE)(const GLubyte * mask);
-// typedef void  (APIENTRYP GPPOPATTRIB)();
-// typedef void  (APIENTRYP GPPOPCLIENTATTRIB)();
-// typedef void  (APIENTRYP GPPOPMATRIX)();
-// typedef void  (APIENTRYP GPPOPNAME)();
-// typedef void  (APIENTRYP GPPRIORITIZETEXTURES)(GLsizei  n, const GLuint * textures, const GLfloat * priorities);
-// typedef void  (APIENTRYP GPPUSHATTRIB)(GLbitfield  mask);
-// typedef void  (APIENTRYP GPPUSHCLIENTATTRIB)(GLbitfield  mask);
-// typedef void  (APIENTRYP GPPUSHMATRIX)();
-// typedef void  (APIENTRYP GPPUSHNAME)(GLuint  name);
-// typedef void  (APIENTRYP GPRASTERPOS2D)(GLdouble  x, GLdouble  y);
-// typedef void  (APIENTRYP GPRASTERPOS2DV)(const GLdouble * v);
-// typedef void  (APIENTRYP GPRASTERPOS2F)(GLfloat  x, GLfloat  y);
-// typedef void  (APIENTRYP GPRASTERPOS2FV)(const GLfloat * v);
-// typedef void  (APIENTRYP GPRASTERPOS2I)(GLint  x, GLint  y);
-// typedef void  (APIENTRYP GPRASTERPOS2IV)(const GLint * v);
-// typedef void  (APIENTRYP GPRASTERPOS2S)(GLshort  x, GLshort  y);
-// typedef void  (APIENTRYP GPRASTERPOS2SV)(const GLshort * v);
-// typedef void  (APIENTRYP GPRASTERPOS3D)(GLdouble  x, GLdouble  y, GLdouble  z);
-// typedef void  (APIENTRYP GPRASTERPOS3DV)(const GLdouble * v);
-// typedef void  (APIENTRYP GPRASTERPOS3F)(GLfloat  x, GLfloat  y, GLfloat  z);
-// typedef void  (APIENTRYP GPRASTERPOS3FV)(const GLfloat * v);
-// typedef void  (APIENTRYP GPRASTERPOS3I)(GLint  x, GLint  y, GLint  z);
-// typedef void  (APIENTRYP GPRASTERPOS3IV)(const GLint * v);
-// typedef void  (APIENTRYP GPRASTERPOS3S)(GLshort  x, GLshort  y, GLshort  z);
-// typedef void  (APIENTRYP GPRASTERPOS3SV)(const GLshort * v);
-// typedef void  (APIENTRYP GPRASTERPOS4D)(GLdouble  x, GLdouble  y, GLdouble  z, GLdouble  w);
-// typedef void  (APIENTRYP GPRASTERPOS4DV)(const GLdouble * v);
-// typedef void  (APIENTRYP GPRASTERPOS4F)(GLfloat  x, GLfloat  y, GLfloat  z, GLfloat  w);
-// typedef void  (APIENTRYP GPRASTERPOS4FV)(const GLfloat * v);
-// typedef void  (APIENTRYP GPRASTERPOS4I)(GLint  x, GLint  y, GLint  z, GLint  w);
-// typedef void  (APIENTRYP GPRASTERPOS4IV)(const GLint * v);
-// typedef void  (APIENTRYP GPRASTERPOS4S)(GLshort  x, GLshort  y, GLshort  z, GLshort  w);
-// typedef void  (APIENTRYP GPRASTERPOS4SV)(const GLshort * v);
-// typedef void  (APIENTRYP GPREADBUFFER)(GLenum  src);
 // typedef void  (APIENTRYP GPREADPIXELS)(GLint  x, GLint  y, GLsizei  width, GLsizei  height, GLenum  format, GLenum  type, void * pixels);
-// typedef void  (APIENTRYP GPRECTD)(GLdouble  x1, GLdouble  y1, GLdouble  x2, GLdouble  y2);
-// typedef void  (APIENTRYP GPRECTDV)(const GLdouble * v1, const GLdouble * v2);
-// typedef void  (APIENTRYP GPRECTF)(GLfloat  x1, GLfloat  y1, GLfloat  x2, GLfloat  y2);
-// typedef void  (APIENTRYP GPRECTFV)(const GLfloat * v1, const GLfloat * v2);
-// typedef void  (APIENTRYP GPRECTI)(GLint  x1, GLint  y1, GLint  x2, GLint  y2);
-// typedef void  (APIENTRYP GPRECTIV)(const GLint * v1, const GLint * v2);
-// typedef void  (APIENTRYP GPRECTS)(GLshort  x1, GLshort  y1, GLshort  x2, GLshort  y2);
-// typedef void  (APIENTRYP GPRECTSV)(const GLshort * v1, const GLshort * v2);
-// typedef GLint  (APIENTRYP GPRENDERMODE)(GLenum  mode);
 // typedef void  (APIENTRYP GPRENDERBUFFERSTORAGE)(GLenum  target, GLenum  internalformat, GLsizei  width, GLsizei  height);
-// typedef void  (APIENTRYP GPRENDERBUFFERSTORAGEMULTISAMPLE)(GLenum  target, GLsizei  samples, GLenum  internalformat, GLsizei  width, GLsizei  height);
-// typedef void  (APIENTRYP GPROTATED)(GLdouble  angle, GLdouble  x, GLdouble  y, GLdouble  z);
-// typedef void  (APIENTRYP GPROTATEF)(GLfloat  angle, GLfloat  x, GLfloat  y, GLfloat  z);
 // typedef void  (APIENTRYP GPSAMPLECOVERAGE)(GLfloat  value, GLboolean  invert);
-// typedef void  (APIENTRYP GPSCALED)(GLdouble  x, GLdouble  y, GLdouble  z);
-// typedef void  (APIENTRYP GPSCALEF)(GLfloat  x, GLfloat  y, GLfloat  z);
 // typedef void  (APIENTRYP GPSCISSOR)(GLint  x, GLint  y, GLsizei  width, GLsizei  height);
-// typedef void  (APIENTRYP GPSECONDARYCOLOR3B)(GLbyte  red, GLbyte  green, GLbyte  blue);
-// typedef void  (APIENTRYP GPSECONDARYCOLOR3BV)(const GLbyte * v);
-// typedef void  (APIENTRYP GPSECONDARYCOLOR3D)(GLdouble  red, GLdouble  green, GLdouble  blue);
-// typedef void  (APIENTRYP GPSECONDARYCOLOR3DV)(const GLdouble * v);
-// typedef void  (APIENTRYP GPSECONDARYCOLOR3F)(GLfloat  red, GLfloat  green, GLfloat  blue);
-// typedef void  (APIENTRYP GPSECONDARYCOLOR3FV)(const GLfloat * v);
-// typedef void  (APIENTRYP GPSECONDARYCOLOR3I)(GLint  red, GLint  green, GLint  blue);
-// typedef void  (APIENTRYP GPSECONDARYCOLOR3IV)(const GLint * v);
-// typedef void  (APIENTRYP GPSECONDARYCOLOR3S)(GLshort  red, GLshort  green, GLshort  blue);
-// typedef void  (APIENTRYP GPSECONDARYCOLOR3SV)(const GLshort * v);
-// typedef void  (APIENTRYP GPSECONDARYCOLOR3UB)(GLubyte  red, GLubyte  green, GLubyte  blue);
-// typedef void  (APIENTRYP GPSECONDARYCOLOR3UBV)(const GLubyte * v);
-// typedef void  (APIENTRYP GPSECONDARYCOLOR3UI)(GLuint  red, GLuint  green, GLuint  blue);
-// typedef void  (APIENTRYP GPSECONDARYCOLOR3UIV)(const GLuint * v);
-// typedef void  (APIENTRYP GPSECONDARYCOLOR3US)(GLushort  red, GLushort  green, GLushort  blue);
-// typedef void  (APIENTRYP GPSECONDARYCOLOR3USV)(const GLushort * v);
-// typedef void  (APIENTRYP GPSECONDARYCOLORPOINTER)(GLint  size, GLenum  type, GLsizei  stride, const void * pointer);
-// typedef void  (APIENTRYP GPSELECTBUFFER)(GLsizei  size, GLuint * buffer);
-// typedef void  (APIENTRYP GPSHADEMODEL)(GLenum  mode);
 // typedef void  (APIENTRYP GPSHADERSOURCE)(GLuint  shader, GLsizei  count, const GLchar *const* string, const GLint * length);
 // typedef void  (APIENTRYP GPSTENCILFUNC)(GLenum  func, GLint  ref, GLuint  mask);
 // typedef void  (APIENTRYP GPSTENCILFUNCSEPARATE)(GLenum  face, GLenum  func, GLint  ref, GLuint  mask);
@@ -503,244 +161,54 @@ package gl
 // typedef void  (APIENTRYP GPSTENCILMASKSEPARATE)(GLenum  face, GLuint  mask);
 // typedef void  (APIENTRYP GPSTENCILOP)(GLenum  fail, GLenum  zfail, GLenum  zpass);
 // typedef void  (APIENTRYP GPSTENCILOPSEPARATE)(GLenum  face, GLenum  sfail, GLenum  dpfail, GLenum  dppass);
-// typedef void  (APIENTRYP GPTEXCOORD1D)(GLdouble  s);
-// typedef void  (APIENTRYP GPTEXCOORD1DV)(const GLdouble * v);
-// typedef void  (APIENTRYP GPTEXCOORD1F)(GLfloat  s);
-// typedef void  (APIENTRYP GPTEXCOORD1FV)(const GLfloat * v);
-// typedef void  (APIENTRYP GPTEXCOORD1I)(GLint  s);
-// typedef void  (APIENTRYP GPTEXCOORD1IV)(const GLint * v);
-// typedef void  (APIENTRYP GPTEXCOORD1S)(GLshort  s);
-// typedef void  (APIENTRYP GPTEXCOORD1SV)(const GLshort * v);
-// typedef void  (APIENTRYP GPTEXCOORD2D)(GLdouble  s, GLdouble  t);
-// typedef void  (APIENTRYP GPTEXCOORD2DV)(const GLdouble * v);
-// typedef void  (APIENTRYP GPTEXCOORD2F)(GLfloat  s, GLfloat  t);
-// typedef void  (APIENTRYP GPTEXCOORD2FV)(const GLfloat * v);
-// typedef void  (APIENTRYP GPTEXCOORD2I)(GLint  s, GLint  t);
-// typedef void  (APIENTRYP GPTEXCOORD2IV)(const GLint * v);
-// typedef void  (APIENTRYP GPTEXCOORD2S)(GLshort  s, GLshort  t);
-// typedef void  (APIENTRYP GPTEXCOORD2SV)(const GLshort * v);
-// typedef void  (APIENTRYP GPTEXCOORD3D)(GLdouble  s, GLdouble  t, GLdouble  r);
-// typedef void  (APIENTRYP GPTEXCOORD3DV)(const GLdouble * v);
-// typedef void  (APIENTRYP GPTEXCOORD3F)(GLfloat  s, GLfloat  t, GLfloat  r);
-// typedef void  (APIENTRYP GPTEXCOORD3FV)(const GLfloat * v);
-// typedef void  (APIENTRYP GPTEXCOORD3I)(GLint  s, GLint  t, GLint  r);
-// typedef void  (APIENTRYP GPTEXCOORD3IV)(const GLint * v);
-// typedef void  (APIENTRYP GPTEXCOORD3S)(GLshort  s, GLshort  t, GLshort  r);
-// typedef void  (APIENTRYP GPTEXCOORD3SV)(const GLshort * v);
-// typedef void  (APIENTRYP GPTEXCOORD4D)(GLdouble  s, GLdouble  t, GLdouble  r, GLdouble  q);
-// typedef void  (APIENTRYP GPTEXCOORD4DV)(const GLdouble * v);
-// typedef void  (APIENTRYP GPTEXCOORD4F)(GLfloat  s, GLfloat  t, GLfloat  r, GLfloat  q);
-// typedef void  (APIENTRYP GPTEXCOORD4FV)(const GLfloat * v);
-// typedef void  (APIENTRYP GPTEXCOORD4I)(GLint  s, GLint  t, GLint  r, GLint  q);
-// typedef void  (APIENTRYP GPTEXCOORD4IV)(const GLint * v);
-// typedef void  (APIENTRYP GPTEXCOORD4S)(GLshort  s, GLshort  t, GLshort  r, GLshort  q);
-// typedef void  (APIENTRYP GPTEXCOORD4SV)(const GLshort * v);
-// typedef void  (APIENTRYP GPTEXCOORDPOINTER)(GLint  size, GLenum  type, GLsizei  stride, const void * pointer);
-// typedef void  (APIENTRYP GPTEXENVF)(GLenum  target, GLenum  pname, GLfloat  param);
-// typedef void  (APIENTRYP GPTEXENVFV)(GLenum  target, GLenum  pname, const GLfloat * params);
-// typedef void  (APIENTRYP GPTEXENVI)(GLenum  target, GLenum  pname, GLint  param);
-// typedef void  (APIENTRYP GPTEXENVIV)(GLenum  target, GLenum  pname, const GLint * params);
-// typedef void  (APIENTRYP GPTEXGEND)(GLenum  coord, GLenum  pname, GLdouble  param);
-// typedef void  (APIENTRYP GPTEXGENDV)(GLenum  coord, GLenum  pname, const GLdouble * params);
-// typedef void  (APIENTRYP GPTEXGENF)(GLenum  coord, GLenum  pname, GLfloat  param);
-// typedef void  (APIENTRYP GPTEXGENFV)(GLenum  coord, GLenum  pname, const GLfloat * params);
-// typedef void  (APIENTRYP GPTEXGENI)(GLenum  coord, GLenum  pname, GLint  param);
-// typedef void  (APIENTRYP GPTEXGENIV)(GLenum  coord, GLenum  pname, const GLint * params);
-// typedef void  (APIENTRYP GPTEXIMAGE1D)(GLenum  target, GLint  level, GLint  internalformat, GLsizei  width, GLint  border, GLenum  format, GLenum  type, const void * pixels);
 // typedef void  (APIENTRYP GPTEXIMAGE2D)(GLenum  target, GLint  level, GLint  internalformat, GLsizei  width, GLsizei  height, GLint  border, GLenum  format, GLenum  type, const void * pixels);
-// typedef void  (APIENTRYP GPTEXIMAGE3D)(GLenum  target, GLint  level, GLint  internalformat, GLsizei  width, GLsizei  height, GLsizei  depth, GLint  border, GLenum  format, GLenum  type, const void * pixels);
-// typedef void  (APIENTRYP GPTEXPARAMETERIIV)(GLenum  target, GLenum  pname, const GLint * params);
-// typedef void  (APIENTRYP GPTEXPARAMETERIUIV)(GLenum  target, GLenum  pname, const GLuint * params);
 // typedef void  (APIENTRYP GPTEXPARAMETERF)(GLenum  target, GLenum  pname, GLfloat  param);
 // typedef void  (APIENTRYP GPTEXPARAMETERFV)(GLenum  target, GLenum  pname, const GLfloat * params);
 // typedef void  (APIENTRYP GPTEXPARAMETERI)(GLenum  target, GLenum  pname, GLint  param);
 // typedef void  (APIENTRYP GPTEXPARAMETERIV)(GLenum  target, GLenum  pname, const GLint * params);
-// typedef void  (APIENTRYP GPTEXSUBIMAGE1D)(GLenum  target, GLint  level, GLint  xoffset, GLsizei  width, GLenum  format, GLenum  type, const void * pixels);
 // typedef void  (APIENTRYP GPTEXSUBIMAGE2D)(GLenum  target, GLint  level, GLint  xoffset, GLint  yoffset, GLsizei  width, GLsizei  height, GLenum  format, GLenum  type, const void * pixels);
-// typedef void  (APIENTRYP GPTEXSUBIMAGE3D)(GLenum  target, GLint  level, GLint  xoffset, GLint  yoffset, GLint  zoffset, GLsizei  width, GLsizei  height, GLsizei  depth, GLenum  format, GLenum  type, const void * pixels);
-// typedef void  (APIENTRYP GPTRANSFORMFEEDBACKVARYINGS)(GLuint  program, GLsizei  count, const GLchar *const* varyings, GLenum  bufferMode);
-// typedef void  (APIENTRYP GPTRANSLATED)(GLdouble  x, GLdouble  y, GLdouble  z);
-// typedef void  (APIENTRYP GPTRANSLATEF)(GLfloat  x, GLfloat  y, GLfloat  z);
 // typedef void  (APIENTRYP GPUNIFORM1F)(GLint  location, GLfloat  v0);
 // typedef void  (APIENTRYP GPUNIFORM1FV)(GLint  location, GLsizei  count, const GLfloat * value);
 // typedef void  (APIENTRYP GPUNIFORM1I)(GLint  location, GLint  v0);
 // typedef void  (APIENTRYP GPUNIFORM1IV)(GLint  location, GLsizei  count, const GLint * value);
-// typedef void  (APIENTRYP GPUNIFORM1UI)(GLint  location, GLuint  v0);
-// typedef void  (APIENTRYP GPUNIFORM1UIV)(GLint  location, GLsizei  count, const GLuint * value);
 // typedef void  (APIENTRYP GPUNIFORM2F)(GLint  location, GLfloat  v0, GLfloat  v1);
 // typedef void  (APIENTRYP GPUNIFORM2FV)(GLint  location, GLsizei  count, const GLfloat * value);
 // typedef void  (APIENTRYP GPUNIFORM2I)(GLint  location, GLint  v0, GLint  v1);
 // typedef void  (APIENTRYP GPUNIFORM2IV)(GLint  location, GLsizei  count, const GLint * value);
-// typedef void  (APIENTRYP GPUNIFORM2UI)(GLint  location, GLuint  v0, GLuint  v1);
-// typedef void  (APIENTRYP GPUNIFORM2UIV)(GLint  location, GLsizei  count, const GLuint * value);
 // typedef void  (APIENTRYP GPUNIFORM3F)(GLint  location, GLfloat  v0, GLfloat  v1, GLfloat  v2);
 // typedef void  (APIENTRYP GPUNIFORM3FV)(GLint  location, GLsizei  count, const GLfloat * value);
 // typedef void  (APIENTRYP GPUNIFORM3I)(GLint  location, GLint  v0, GLint  v1, GLint  v2);
 // typedef void  (APIENTRYP GPUNIFORM3IV)(GLint  location, GLsizei  count, const GLint * value);
-// typedef void  (APIENTRYP GPUNIFORM3UI)(GLint  location, GLuint  v0, GLuint  v1, GLuint  v2);
-// typedef void  (APIENTRYP GPUNIFORM3UIV)(GLint  location, GLsizei  count, const GLuint * value);
 // typedef void  (APIENTRYP GPUNIFORM4F)(GLint  location, GLfloat  v0, GLfloat  v1, GLfloat  v2, GLfloat  v3);
 // typedef void  (APIENTRYP GPUNIFORM4FV)(GLint  location, GLsizei  count, const GLfloat * value);
 // typedef void  (APIENTRYP GPUNIFORM4I)(GLint  location, GLint  v0, GLint  v1, GLint  v2, GLint  v3);
 // typedef void  (APIENTRYP GPUNIFORM4IV)(GLint  location, GLsizei  count, const GLint * value);
-// typedef void  (APIENTRYP GPUNIFORM4UI)(GLint  location, GLuint  v0, GLuint  v1, GLuint  v2, GLuint  v3);
-// typedef void  (APIENTRYP GPUNIFORM4UIV)(GLint  location, GLsizei  count, const GLuint * value);
 // typedef void  (APIENTRYP GPUNIFORMMATRIX2FV)(GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value);
-// typedef void  (APIENTRYP GPUNIFORMMATRIX2X3FV)(GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value);
-// typedef void  (APIENTRYP GPUNIFORMMATRIX2X4FV)(GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value);
 // typedef void  (APIENTRYP GPUNIFORMMATRIX3FV)(GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value);
-// typedef void  (APIENTRYP GPUNIFORMMATRIX3X2FV)(GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value);
-// typedef void  (APIENTRYP GPUNIFORMMATRIX3X4FV)(GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value);
 // typedef void  (APIENTRYP GPUNIFORMMATRIX4FV)(GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value);
-// typedef void  (APIENTRYP GPUNIFORMMATRIX4X2FV)(GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value);
-// typedef void  (APIENTRYP GPUNIFORMMATRIX4X3FV)(GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value);
-// typedef GLboolean  (APIENTRYP GPUNMAPBUFFER)(GLenum  target);
 // typedef void  (APIENTRYP GPUSEPROGRAM)(GLuint  program);
 // typedef void  (APIENTRYP GPVALIDATEPROGRAM)(GLuint  program);
-// typedef void  (APIENTRYP GPVERTEX2D)(GLdouble  x, GLdouble  y);
-// typedef void  (APIENTRYP GPVERTEX2DV)(const GLdouble * v);
-// typedef void  (APIENTRYP GPVERTEX2F)(GLfloat  x, GLfloat  y);
-// typedef void  (APIENTRYP GPVERTEX2FV)(const GLfloat * v);
-// typedef void  (APIENTRYP GPVERTEX2I)(GLint  x, GLint  y);
-// typedef void  (APIENTRYP GPVERTEX2IV)(const GLint * v);
-// typedef void  (APIENTRYP GPVERTEX2S)(GLshort  x, GLshort  y);
-// typedef void  (APIENTRYP GPVERTEX2SV)(const GLshort * v);
-// typedef void  (APIENTRYP GPVERTEX3D)(GLdouble  x, GLdouble  y, GLdouble  z);
-// typedef void  (APIENTRYP GPVERTEX3DV)(const GLdouble * v);
-// typedef void  (APIENTRYP GPVERTEX3F)(GLfloat  x, GLfloat  y, GLfloat  z);
-// typedef void  (APIENTRYP GPVERTEX3FV)(const GLfloat * v);
-// typedef void  (APIENTRYP GPVERTEX3I)(GLint  x, GLint  y, GLint  z);
-// typedef void  (APIENTRYP GPVERTEX3IV)(const GLint * v);
-// typedef void  (APIENTRYP GPVERTEX3S)(GLshort  x, GLshort  y, GLshort  z);
-// typedef void  (APIENTRYP GPVERTEX3SV)(const GLshort * v);
-// typedef void  (APIENTRYP GPVERTEX4D)(GLdouble  x, GLdouble  y, GLdouble  z, GLdouble  w);
-// typedef void  (APIENTRYP GPVERTEX4DV)(const GLdouble * v);
-// typedef void  (APIENTRYP GPVERTEX4F)(GLfloat  x, GLfloat  y, GLfloat  z, GLfloat  w);
-// typedef void  (APIENTRYP GPVERTEX4FV)(const GLfloat * v);
-// typedef void  (APIENTRYP GPVERTEX4I)(GLint  x, GLint  y, GLint  z, GLint  w);
-// typedef void  (APIENTRYP GPVERTEX4IV)(const GLint * v);
-// typedef void  (APIENTRYP GPVERTEX4S)(GLshort  x, GLshort  y, GLshort  z, GLshort  w);
-// typedef void  (APIENTRYP GPVERTEX4SV)(const GLshort * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB1D)(GLuint  index, GLdouble  x);
-// typedef void  (APIENTRYP GPVERTEXATTRIB1DV)(GLuint  index, const GLdouble * v);
 // typedef void  (APIENTRYP GPVERTEXATTRIB1F)(GLuint  index, GLfloat  x);
 // typedef void  (APIENTRYP GPVERTEXATTRIB1FV)(GLuint  index, const GLfloat * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB1S)(GLuint  index, GLshort  x);
-// typedef void  (APIENTRYP GPVERTEXATTRIB1SV)(GLuint  index, const GLshort * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB2D)(GLuint  index, GLdouble  x, GLdouble  y);
-// typedef void  (APIENTRYP GPVERTEXATTRIB2DV)(GLuint  index, const GLdouble * v);
 // typedef void  (APIENTRYP GPVERTEXATTRIB2F)(GLuint  index, GLfloat  x, GLfloat  y);
 // typedef void  (APIENTRYP GPVERTEXATTRIB2FV)(GLuint  index, const GLfloat * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB2S)(GLuint  index, GLshort  x, GLshort  y);
-// typedef void  (APIENTRYP GPVERTEXATTRIB2SV)(GLuint  index, const GLshort * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB3D)(GLuint  index, GLdouble  x, GLdouble  y, GLdouble  z);
-// typedef void  (APIENTRYP GPVERTEXATTRIB3DV)(GLuint  index, const GLdouble * v);
 // typedef void  (APIENTRYP GPVERTEXATTRIB3F)(GLuint  index, GLfloat  x, GLfloat  y, GLfloat  z);
 // typedef void  (APIENTRYP GPVERTEXATTRIB3FV)(GLuint  index, const GLfloat * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB3S)(GLuint  index, GLshort  x, GLshort  y, GLshort  z);
-// typedef void  (APIENTRYP GPVERTEXATTRIB3SV)(GLuint  index, const GLshort * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB4NBV)(GLuint  index, const GLbyte * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB4NIV)(GLuint  index, const GLint * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB4NSV)(GLuint  index, const GLshort * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB4NUB)(GLuint  index, GLubyte  x, GLubyte  y, GLubyte  z, GLubyte  w);
-// typedef void  (APIENTRYP GPVERTEXATTRIB4NUBV)(GLuint  index, const GLubyte * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB4NUIV)(GLuint  index, const GLuint * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB4NUSV)(GLuint  index, const GLushort * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB4BV)(GLuint  index, const GLbyte * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB4D)(GLuint  index, GLdouble  x, GLdouble  y, GLdouble  z, GLdouble  w);
-// typedef void  (APIENTRYP GPVERTEXATTRIB4DV)(GLuint  index, const GLdouble * v);
 // typedef void  (APIENTRYP GPVERTEXATTRIB4F)(GLuint  index, GLfloat  x, GLfloat  y, GLfloat  z, GLfloat  w);
 // typedef void  (APIENTRYP GPVERTEXATTRIB4FV)(GLuint  index, const GLfloat * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB4IV)(GLuint  index, const GLint * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB4S)(GLuint  index, GLshort  x, GLshort  y, GLshort  z, GLshort  w);
-// typedef void  (APIENTRYP GPVERTEXATTRIB4SV)(GLuint  index, const GLshort * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB4UBV)(GLuint  index, const GLubyte * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB4UIV)(GLuint  index, const GLuint * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIB4USV)(GLuint  index, const GLushort * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI1I)(GLuint  index, GLint  x);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI1IV)(GLuint  index, const GLint * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI1UI)(GLuint  index, GLuint  x);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI1UIV)(GLuint  index, const GLuint * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI2I)(GLuint  index, GLint  x, GLint  y);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI2IV)(GLuint  index, const GLint * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI2UI)(GLuint  index, GLuint  x, GLuint  y);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI2UIV)(GLuint  index, const GLuint * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI3I)(GLuint  index, GLint  x, GLint  y, GLint  z);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI3IV)(GLuint  index, const GLint * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI3UI)(GLuint  index, GLuint  x, GLuint  y, GLuint  z);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI3UIV)(GLuint  index, const GLuint * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI4BV)(GLuint  index, const GLbyte * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI4I)(GLuint  index, GLint  x, GLint  y, GLint  z, GLint  w);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI4IV)(GLuint  index, const GLint * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI4SV)(GLuint  index, const GLshort * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI4UBV)(GLuint  index, const GLubyte * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI4UI)(GLuint  index, GLuint  x, GLuint  y, GLuint  z, GLuint  w);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI4UIV)(GLuint  index, const GLuint * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIBI4USV)(GLuint  index, const GLushort * v);
-// typedef void  (APIENTRYP GPVERTEXATTRIBIPOINTER)(GLuint  index, GLint  size, GLenum  type, GLsizei  stride, const void * pointer);
 // typedef void  (APIENTRYP GPVERTEXATTRIBPOINTER)(GLuint  index, GLint  size, GLenum  type, GLboolean  normalized, GLsizei  stride, const void * pointer);
-// typedef void  (APIENTRYP GPVERTEXPOINTER)(GLint  size, GLenum  type, GLsizei  stride, const void * pointer);
 // typedef void  (APIENTRYP GPVIEWPORT)(GLint  x, GLint  y, GLsizei  width, GLsizei  height);
-// typedef void  (APIENTRYP GPWINDOWPOS2D)(GLdouble  x, GLdouble  y);
-// typedef void  (APIENTRYP GPWINDOWPOS2DV)(const GLdouble * v);
-// typedef void  (APIENTRYP GPWINDOWPOS2F)(GLfloat  x, GLfloat  y);
-// typedef void  (APIENTRYP GPWINDOWPOS2FV)(const GLfloat * v);
-// typedef void  (APIENTRYP GPWINDOWPOS2I)(GLint  x, GLint  y);
-// typedef void  (APIENTRYP GPWINDOWPOS2IV)(const GLint * v);
-// typedef void  (APIENTRYP GPWINDOWPOS2S)(GLshort  x, GLshort  y);
-// typedef void  (APIENTRYP GPWINDOWPOS2SV)(const GLshort * v);
-// typedef void  (APIENTRYP GPWINDOWPOS3D)(GLdouble  x, GLdouble  y, GLdouble  z);
-// typedef void  (APIENTRYP GPWINDOWPOS3DV)(const GLdouble * v);
-// typedef void  (APIENTRYP GPWINDOWPOS3F)(GLfloat  x, GLfloat  y, GLfloat  z);
-// typedef void  (APIENTRYP GPWINDOWPOS3FV)(const GLfloat * v);
-// typedef void  (APIENTRYP GPWINDOWPOS3I)(GLint  x, GLint  y, GLint  z);
-// typedef void  (APIENTRYP GPWINDOWPOS3IV)(const GLint * v);
-// typedef void  (APIENTRYP GPWINDOWPOS3S)(GLshort  x, GLshort  y, GLshort  z);
-// typedef void  (APIENTRYP GPWINDOWPOS3SV)(const GLshort * v);
-// static void  glowAccum(GPACCUM fnptr, GLenum  op, GLfloat  value) {
-//   (*fnptr)(op, value);
-// }
 // static void  glowActiveTexture(GPACTIVETEXTURE fnptr, GLenum  texture) {
 //   (*fnptr)(texture);
 // }
-// static void  glowAlphaFunc(GPALPHAFUNC fnptr, GLenum  func, GLfloat  ref) {
-//   (*fnptr)(func, ref);
-// }
-// static GLboolean  glowAreTexturesResident(GPARETEXTURESRESIDENT fnptr, GLsizei  n, const GLuint * textures, GLboolean * residences) {
-//   return (*fnptr)(n, textures, residences);
-// }
-// static void  glowArrayElement(GPARRAYELEMENT fnptr, GLint  i) {
-//   (*fnptr)(i);
-// }
 // static void  glowAttachShader(GPATTACHSHADER fnptr, GLuint  program, GLuint  shader) {
 //   (*fnptr)(program, shader);
-// }
-// static void  glowBegin(GPBEGIN fnptr, GLenum  mode) {
-//   (*fnptr)(mode);
-// }
-// static void  glowBeginConditionalRender(GPBEGINCONDITIONALRENDER fnptr, GLuint  id, GLenum  mode) {
-//   (*fnptr)(id, mode);
-// }
-// static void  glowBeginQuery(GPBEGINQUERY fnptr, GLenum  target, GLuint  id) {
-//   (*fnptr)(target, id);
-// }
-// static void  glowBeginTransformFeedback(GPBEGINTRANSFORMFEEDBACK fnptr, GLenum  primitiveMode) {
-//   (*fnptr)(primitiveMode);
 // }
 // static void  glowBindAttribLocation(GPBINDATTRIBLOCATION fnptr, GLuint  program, GLuint  index, const GLchar * name) {
 //   (*fnptr)(program, index, name);
 // }
 // static void  glowBindBuffer(GPBINDBUFFER fnptr, GLenum  target, GLuint  buffer) {
 //   (*fnptr)(target, buffer);
-// }
-// static void  glowBindBufferBase(GPBINDBUFFERBASE fnptr, GLenum  target, GLuint  index, GLuint  buffer) {
-//   (*fnptr)(target, index, buffer);
-// }
-// static void  glowBindBufferRange(GPBINDBUFFERRANGE fnptr, GLenum  target, GLuint  index, GLuint  buffer, GLintptr  offset, GLsizeiptr  size) {
-//   (*fnptr)(target, index, buffer, offset, size);
-// }
-// static void  glowBindFragDataLocation(GPBINDFRAGDATALOCATION fnptr, GLuint  program, GLuint  color, const GLchar * name) {
-//   (*fnptr)(program, color, name);
 // }
 // static void  glowBindFramebuffer(GPBINDFRAMEBUFFER fnptr, GLenum  target, GLuint  framebuffer) {
 //   (*fnptr)(target, framebuffer);
@@ -750,12 +218,6 @@ package gl
 // }
 // static void  glowBindTexture(GPBINDTEXTURE fnptr, GLenum  target, GLuint  texture) {
 //   (*fnptr)(target, texture);
-// }
-// static void  glowBindVertexArray(GPBINDVERTEXARRAY fnptr, GLuint  array) {
-//   (*fnptr)(array);
-// }
-// static void  glowBitmap(GPBITMAP fnptr, GLsizei  width, GLsizei  height, GLfloat  xorig, GLfloat  yorig, GLfloat  xmove, GLfloat  ymove, const GLubyte * bitmap) {
-//   (*fnptr)(width, height, xorig, yorig, xmove, ymove, bitmap);
 // }
 // static void  glowBlendColor(GPBLENDCOLOR fnptr, GLfloat  red, GLfloat  green, GLfloat  blue, GLfloat  alpha) {
 //   (*fnptr)(red, green, blue, alpha);
@@ -772,209 +234,41 @@ package gl
 // static void  glowBlendFuncSeparate(GPBLENDFUNCSEPARATE fnptr, GLenum  sfactorRGB, GLenum  dfactorRGB, GLenum  sfactorAlpha, GLenum  dfactorAlpha) {
 //   (*fnptr)(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
 // }
-// static void  glowBlitFramebuffer(GPBLITFRAMEBUFFER fnptr, GLint  srcX0, GLint  srcY0, GLint  srcX1, GLint  srcY1, GLint  dstX0, GLint  dstY0, GLint  dstX1, GLint  dstY1, GLbitfield  mask, GLenum  filter) {
-//   (*fnptr)(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
-// }
 // static void  glowBufferData(GPBUFFERDATA fnptr, GLenum  target, GLsizeiptr  size, const void * data, GLenum  usage) {
 //   (*fnptr)(target, size, data, usage);
 // }
 // static void  glowBufferSubData(GPBUFFERSUBDATA fnptr, GLenum  target, GLintptr  offset, GLsizeiptr  size, const void * data) {
 //   (*fnptr)(target, offset, size, data);
 // }
-// static void  glowCallList(GPCALLLIST fnptr, GLuint  list) {
-//   (*fnptr)(list);
-// }
-// static void  glowCallLists(GPCALLLISTS fnptr, GLsizei  n, GLenum  type, const void * lists) {
-//   (*fnptr)(n, type, lists);
-// }
 // static GLenum  glowCheckFramebufferStatus(GPCHECKFRAMEBUFFERSTATUS fnptr, GLenum  target) {
 //   return (*fnptr)(target);
-// }
-// static void  glowClampColor(GPCLAMPCOLOR fnptr, GLenum  target, GLenum  clamp) {
-//   (*fnptr)(target, clamp);
 // }
 // static void  glowClear(GPCLEAR fnptr, GLbitfield  mask) {
 //   (*fnptr)(mask);
 // }
-// static void  glowClearAccum(GPCLEARACCUM fnptr, GLfloat  red, GLfloat  green, GLfloat  blue, GLfloat  alpha) {
-//   (*fnptr)(red, green, blue, alpha);
-// }
-// static void  glowClearBufferfi(GPCLEARBUFFERFI fnptr, GLenum  buffer, GLint  drawbuffer, GLfloat  depth, GLint  stencil) {
-//   (*fnptr)(buffer, drawbuffer, depth, stencil);
-// }
-// static void  glowClearBufferfv(GPCLEARBUFFERFV fnptr, GLenum  buffer, GLint  drawbuffer, const GLfloat * value) {
-//   (*fnptr)(buffer, drawbuffer, value);
-// }
-// static void  glowClearBufferiv(GPCLEARBUFFERIV fnptr, GLenum  buffer, GLint  drawbuffer, const GLint * value) {
-//   (*fnptr)(buffer, drawbuffer, value);
-// }
-// static void  glowClearBufferuiv(GPCLEARBUFFERUIV fnptr, GLenum  buffer, GLint  drawbuffer, const GLuint * value) {
-//   (*fnptr)(buffer, drawbuffer, value);
-// }
 // static void  glowClearColor(GPCLEARCOLOR fnptr, GLfloat  red, GLfloat  green, GLfloat  blue, GLfloat  alpha) {
 //   (*fnptr)(red, green, blue, alpha);
-// }
-// static void  glowClearDepth(GPCLEARDEPTH fnptr, GLdouble  depth) {
-//   (*fnptr)(depth);
-// }
-// static void  glowClearIndex(GPCLEARINDEX fnptr, GLfloat  c) {
-//   (*fnptr)(c);
 // }
 // static void  glowClearStencil(GPCLEARSTENCIL fnptr, GLint  s) {
 //   (*fnptr)(s);
 // }
-// static void  glowClientActiveTexture(GPCLIENTACTIVETEXTURE fnptr, GLenum  texture) {
-//   (*fnptr)(texture);
-// }
-// static void  glowClipPlane(GPCLIPPLANE fnptr, GLenum  plane, const GLdouble * equation) {
-//   (*fnptr)(plane, equation);
-// }
-// static void  glowColor3b(GPCOLOR3B fnptr, GLbyte  red, GLbyte  green, GLbyte  blue) {
-//   (*fnptr)(red, green, blue);
-// }
-// static void  glowColor3bv(GPCOLOR3BV fnptr, const GLbyte * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowColor3d(GPCOLOR3D fnptr, GLdouble  red, GLdouble  green, GLdouble  blue) {
-//   (*fnptr)(red, green, blue);
-// }
-// static void  glowColor3dv(GPCOLOR3DV fnptr, const GLdouble * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowColor3f(GPCOLOR3F fnptr, GLfloat  red, GLfloat  green, GLfloat  blue) {
-//   (*fnptr)(red, green, blue);
-// }
-// static void  glowColor3fv(GPCOLOR3FV fnptr, const GLfloat * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowColor3i(GPCOLOR3I fnptr, GLint  red, GLint  green, GLint  blue) {
-//   (*fnptr)(red, green, blue);
-// }
-// static void  glowColor3iv(GPCOLOR3IV fnptr, const GLint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowColor3s(GPCOLOR3S fnptr, GLshort  red, GLshort  green, GLshort  blue) {
-//   (*fnptr)(red, green, blue);
-// }
-// static void  glowColor3sv(GPCOLOR3SV fnptr, const GLshort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowColor3ub(GPCOLOR3UB fnptr, GLubyte  red, GLubyte  green, GLubyte  blue) {
-//   (*fnptr)(red, green, blue);
-// }
-// static void  glowColor3ubv(GPCOLOR3UBV fnptr, const GLubyte * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowColor3ui(GPCOLOR3UI fnptr, GLuint  red, GLuint  green, GLuint  blue) {
-//   (*fnptr)(red, green, blue);
-// }
-// static void  glowColor3uiv(GPCOLOR3UIV fnptr, const GLuint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowColor3us(GPCOLOR3US fnptr, GLushort  red, GLushort  green, GLushort  blue) {
-//   (*fnptr)(red, green, blue);
-// }
-// static void  glowColor3usv(GPCOLOR3USV fnptr, const GLushort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowColor4b(GPCOLOR4B fnptr, GLbyte  red, GLbyte  green, GLbyte  blue, GLbyte  alpha) {
-//   (*fnptr)(red, green, blue, alpha);
-// }
-// static void  glowColor4bv(GPCOLOR4BV fnptr, const GLbyte * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowColor4d(GPCOLOR4D fnptr, GLdouble  red, GLdouble  green, GLdouble  blue, GLdouble  alpha) {
-//   (*fnptr)(red, green, blue, alpha);
-// }
-// static void  glowColor4dv(GPCOLOR4DV fnptr, const GLdouble * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowColor4f(GPCOLOR4F fnptr, GLfloat  red, GLfloat  green, GLfloat  blue, GLfloat  alpha) {
-//   (*fnptr)(red, green, blue, alpha);
-// }
-// static void  glowColor4fv(GPCOLOR4FV fnptr, const GLfloat * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowColor4i(GPCOLOR4I fnptr, GLint  red, GLint  green, GLint  blue, GLint  alpha) {
-//   (*fnptr)(red, green, blue, alpha);
-// }
-// static void  glowColor4iv(GPCOLOR4IV fnptr, const GLint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowColor4s(GPCOLOR4S fnptr, GLshort  red, GLshort  green, GLshort  blue, GLshort  alpha) {
-//   (*fnptr)(red, green, blue, alpha);
-// }
-// static void  glowColor4sv(GPCOLOR4SV fnptr, const GLshort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowColor4ub(GPCOLOR4UB fnptr, GLubyte  red, GLubyte  green, GLubyte  blue, GLubyte  alpha) {
-//   (*fnptr)(red, green, blue, alpha);
-// }
-// static void  glowColor4ubv(GPCOLOR4UBV fnptr, const GLubyte * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowColor4ui(GPCOLOR4UI fnptr, GLuint  red, GLuint  green, GLuint  blue, GLuint  alpha) {
-//   (*fnptr)(red, green, blue, alpha);
-// }
-// static void  glowColor4uiv(GPCOLOR4UIV fnptr, const GLuint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowColor4us(GPCOLOR4US fnptr, GLushort  red, GLushort  green, GLushort  blue, GLushort  alpha) {
-//   (*fnptr)(red, green, blue, alpha);
-// }
-// static void  glowColor4usv(GPCOLOR4USV fnptr, const GLushort * v) {
-//   (*fnptr)(v);
-// }
 // static void  glowColorMask(GPCOLORMASK fnptr, GLboolean  red, GLboolean  green, GLboolean  blue, GLboolean  alpha) {
 //   (*fnptr)(red, green, blue, alpha);
-// }
-// static void  glowColorMaski(GPCOLORMASKI fnptr, GLuint  index, GLboolean  r, GLboolean  g, GLboolean  b, GLboolean  a) {
-//   (*fnptr)(index, r, g, b, a);
-// }
-// static void  glowColorMaterial(GPCOLORMATERIAL fnptr, GLenum  face, GLenum  mode) {
-//   (*fnptr)(face, mode);
-// }
-// static void  glowColorPointer(GPCOLORPOINTER fnptr, GLint  size, GLenum  type, GLsizei  stride, const void * pointer) {
-//   (*fnptr)(size, type, stride, pointer);
 // }
 // static void  glowCompileShader(GPCOMPILESHADER fnptr, GLuint  shader) {
 //   (*fnptr)(shader);
 // }
-// static void  glowCompressedTexImage1D(GPCOMPRESSEDTEXIMAGE1D fnptr, GLenum  target, GLint  level, GLenum  internalformat, GLsizei  width, GLint  border, GLsizei  imageSize, const void * data) {
-//   (*fnptr)(target, level, internalformat, width, border, imageSize, data);
-// }
 // static void  glowCompressedTexImage2D(GPCOMPRESSEDTEXIMAGE2D fnptr, GLenum  target, GLint  level, GLenum  internalformat, GLsizei  width, GLsizei  height, GLint  border, GLsizei  imageSize, const void * data) {
 //   (*fnptr)(target, level, internalformat, width, height, border, imageSize, data);
-// }
-// static void  glowCompressedTexImage3D(GPCOMPRESSEDTEXIMAGE3D fnptr, GLenum  target, GLint  level, GLenum  internalformat, GLsizei  width, GLsizei  height, GLsizei  depth, GLint  border, GLsizei  imageSize, const void * data) {
-//   (*fnptr)(target, level, internalformat, width, height, depth, border, imageSize, data);
-// }
-// static void  glowCompressedTexSubImage1D(GPCOMPRESSEDTEXSUBIMAGE1D fnptr, GLenum  target, GLint  level, GLint  xoffset, GLsizei  width, GLenum  format, GLsizei  imageSize, const void * data) {
-//   (*fnptr)(target, level, xoffset, width, format, imageSize, data);
 // }
 // static void  glowCompressedTexSubImage2D(GPCOMPRESSEDTEXSUBIMAGE2D fnptr, GLenum  target, GLint  level, GLint  xoffset, GLint  yoffset, GLsizei  width, GLsizei  height, GLenum  format, GLsizei  imageSize, const void * data) {
 //   (*fnptr)(target, level, xoffset, yoffset, width, height, format, imageSize, data);
 // }
-// static void  glowCompressedTexSubImage3D(GPCOMPRESSEDTEXSUBIMAGE3D fnptr, GLenum  target, GLint  level, GLint  xoffset, GLint  yoffset, GLint  zoffset, GLsizei  width, GLsizei  height, GLsizei  depth, GLenum  format, GLsizei  imageSize, const void * data) {
-//   (*fnptr)(target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
-// }
-// static void  glowCopyPixels(GPCOPYPIXELS fnptr, GLint  x, GLint  y, GLsizei  width, GLsizei  height, GLenum  type) {
-//   (*fnptr)(x, y, width, height, type);
-// }
-// static void  glowCopyTexImage1D(GPCOPYTEXIMAGE1D fnptr, GLenum  target, GLint  level, GLenum  internalformat, GLint  x, GLint  y, GLsizei  width, GLint  border) {
-//   (*fnptr)(target, level, internalformat, x, y, width, border);
-// }
 // static void  glowCopyTexImage2D(GPCOPYTEXIMAGE2D fnptr, GLenum  target, GLint  level, GLenum  internalformat, GLint  x, GLint  y, GLsizei  width, GLsizei  height, GLint  border) {
 //   (*fnptr)(target, level, internalformat, x, y, width, height, border);
 // }
-// static void  glowCopyTexSubImage1D(GPCOPYTEXSUBIMAGE1D fnptr, GLenum  target, GLint  level, GLint  xoffset, GLint  x, GLint  y, GLsizei  width) {
-//   (*fnptr)(target, level, xoffset, x, y, width);
-// }
 // static void  glowCopyTexSubImage2D(GPCOPYTEXSUBIMAGE2D fnptr, GLenum  target, GLint  level, GLint  xoffset, GLint  yoffset, GLint  x, GLint  y, GLsizei  width, GLsizei  height) {
 //   (*fnptr)(target, level, xoffset, yoffset, x, y, width, height);
-// }
-// static void  glowCopyTexSubImage3D(GPCOPYTEXSUBIMAGE3D fnptr, GLenum  target, GLint  level, GLint  xoffset, GLint  yoffset, GLint  zoffset, GLint  x, GLint  y, GLsizei  width, GLsizei  height) {
-//   (*fnptr)(target, level, xoffset, yoffset, zoffset, x, y, width, height);
 // }
 // static GLuint  glowCreateProgram(GPCREATEPROGRAM fnptr) {
 //   return (*fnptr)();
@@ -991,14 +285,8 @@ package gl
 // static void  glowDeleteFramebuffers(GPDELETEFRAMEBUFFERS fnptr, GLsizei  n, const GLuint * framebuffers) {
 //   (*fnptr)(n, framebuffers);
 // }
-// static void  glowDeleteLists(GPDELETELISTS fnptr, GLuint  list, GLsizei  range) {
-//   (*fnptr)(list, range);
-// }
 // static void  glowDeleteProgram(GPDELETEPROGRAM fnptr, GLuint  program) {
 //   (*fnptr)(program);
-// }
-// static void  glowDeleteQueries(GPDELETEQUERIES fnptr, GLsizei  n, const GLuint * ids) {
-//   (*fnptr)(n, ids);
 // }
 // static void  glowDeleteRenderbuffers(GPDELETERENDERBUFFERS fnptr, GLsizei  n, const GLuint * renderbuffers) {
 //   (*fnptr)(n, renderbuffers);
@@ -1009,17 +297,11 @@ package gl
 // static void  glowDeleteTextures(GPDELETETEXTURES fnptr, GLsizei  n, const GLuint * textures) {
 //   (*fnptr)(n, textures);
 // }
-// static void  glowDeleteVertexArrays(GPDELETEVERTEXARRAYS fnptr, GLsizei  n, const GLuint * arrays) {
-//   (*fnptr)(n, arrays);
-// }
 // static void  glowDepthFunc(GPDEPTHFUNC fnptr, GLenum  func) {
 //   (*fnptr)(func);
 // }
 // static void  glowDepthMask(GPDEPTHMASK fnptr, GLboolean  flag) {
 //   (*fnptr)(flag);
-// }
-// static void  glowDepthRange(GPDEPTHRANGE fnptr, GLdouble  xnear, GLdouble  xfar) {
-//   (*fnptr)(xnear, xfar);
 // }
 // static void  glowDetachShader(GPDETACHSHADER fnptr, GLuint  program, GLuint  shader) {
 //   (*fnptr)(program, shader);
@@ -1027,107 +309,20 @@ package gl
 // static void  glowDisable(GPDISABLE fnptr, GLenum  cap) {
 //   (*fnptr)(cap);
 // }
-// static void  glowDisableClientState(GPDISABLECLIENTSTATE fnptr, GLenum  array) {
-//   (*fnptr)(array);
-// }
 // static void  glowDisableVertexAttribArray(GPDISABLEVERTEXATTRIBARRAY fnptr, GLuint  index) {
 //   (*fnptr)(index);
-// }
-// static void  glowDisablei(GPDISABLEI fnptr, GLenum  target, GLuint  index) {
-//   (*fnptr)(target, index);
 // }
 // static void  glowDrawArrays(GPDRAWARRAYS fnptr, GLenum  mode, GLint  first, GLsizei  count) {
 //   (*fnptr)(mode, first, count);
 // }
-// static void  glowDrawBuffer(GPDRAWBUFFER fnptr, GLenum  buf) {
-//   (*fnptr)(buf);
-// }
-// static void  glowDrawBuffers(GPDRAWBUFFERS fnptr, GLsizei  n, const GLenum * bufs) {
-//   (*fnptr)(n, bufs);
-// }
 // static void  glowDrawElements(GPDRAWELEMENTS fnptr, GLenum  mode, GLsizei  count, GLenum  type, const void * indices) {
 //   (*fnptr)(mode, count, type, indices);
-// }
-// static void  glowDrawPixels(GPDRAWPIXELS fnptr, GLsizei  width, GLsizei  height, GLenum  format, GLenum  type, const void * pixels) {
-//   (*fnptr)(width, height, format, type, pixels);
-// }
-// static void  glowDrawRangeElements(GPDRAWRANGEELEMENTS fnptr, GLenum  mode, GLuint  start, GLuint  end, GLsizei  count, GLenum  type, const void * indices) {
-//   (*fnptr)(mode, start, end, count, type, indices);
-// }
-// static void  glowEdgeFlag(GPEDGEFLAG fnptr, GLboolean  flag) {
-//   (*fnptr)(flag);
-// }
-// static void  glowEdgeFlagPointer(GPEDGEFLAGPOINTER fnptr, GLsizei  stride, const void * pointer) {
-//   (*fnptr)(stride, pointer);
-// }
-// static void  glowEdgeFlagv(GPEDGEFLAGV fnptr, const GLboolean * flag) {
-//   (*fnptr)(flag);
 // }
 // static void  glowEnable(GPENABLE fnptr, GLenum  cap) {
 //   (*fnptr)(cap);
 // }
-// static void  glowEnableClientState(GPENABLECLIENTSTATE fnptr, GLenum  array) {
-//   (*fnptr)(array);
-// }
 // static void  glowEnableVertexAttribArray(GPENABLEVERTEXATTRIBARRAY fnptr, GLuint  index) {
 //   (*fnptr)(index);
-// }
-// static void  glowEnablei(GPENABLEI fnptr, GLenum  target, GLuint  index) {
-//   (*fnptr)(target, index);
-// }
-// static void  glowEnd(GPEND fnptr) {
-//   (*fnptr)();
-// }
-// static void  glowEndConditionalRender(GPENDCONDITIONALRENDER fnptr) {
-//   (*fnptr)();
-// }
-// static void  glowEndList(GPENDLIST fnptr) {
-//   (*fnptr)();
-// }
-// static void  glowEndQuery(GPENDQUERY fnptr, GLenum  target) {
-//   (*fnptr)(target);
-// }
-// static void  glowEndTransformFeedback(GPENDTRANSFORMFEEDBACK fnptr) {
-//   (*fnptr)();
-// }
-// static void  glowEvalCoord1d(GPEVALCOORD1D fnptr, GLdouble  u) {
-//   (*fnptr)(u);
-// }
-// static void  glowEvalCoord1dv(GPEVALCOORD1DV fnptr, const GLdouble * u) {
-//   (*fnptr)(u);
-// }
-// static void  glowEvalCoord1f(GPEVALCOORD1F fnptr, GLfloat  u) {
-//   (*fnptr)(u);
-// }
-// static void  glowEvalCoord1fv(GPEVALCOORD1FV fnptr, const GLfloat * u) {
-//   (*fnptr)(u);
-// }
-// static void  glowEvalCoord2d(GPEVALCOORD2D fnptr, GLdouble  u, GLdouble  v) {
-//   (*fnptr)(u, v);
-// }
-// static void  glowEvalCoord2dv(GPEVALCOORD2DV fnptr, const GLdouble * u) {
-//   (*fnptr)(u);
-// }
-// static void  glowEvalCoord2f(GPEVALCOORD2F fnptr, GLfloat  u, GLfloat  v) {
-//   (*fnptr)(u, v);
-// }
-// static void  glowEvalCoord2fv(GPEVALCOORD2FV fnptr, const GLfloat * u) {
-//   (*fnptr)(u);
-// }
-// static void  glowEvalMesh1(GPEVALMESH1 fnptr, GLenum  mode, GLint  i1, GLint  i2) {
-//   (*fnptr)(mode, i1, i2);
-// }
-// static void  glowEvalMesh2(GPEVALMESH2 fnptr, GLenum  mode, GLint  i1, GLint  i2, GLint  j1, GLint  j2) {
-//   (*fnptr)(mode, i1, i2, j1, j2);
-// }
-// static void  glowEvalPoint1(GPEVALPOINT1 fnptr, GLint  i) {
-//   (*fnptr)(i);
-// }
-// static void  glowEvalPoint2(GPEVALPOINT2 fnptr, GLint  i, GLint  j) {
-//   (*fnptr)(i, j);
-// }
-// static void  glowFeedbackBuffer(GPFEEDBACKBUFFER fnptr, GLsizei  size, GLenum  type, GLfloat * buffer) {
-//   (*fnptr)(size, type, buffer);
 // }
 // static void  glowFinish(GPFINISH fnptr) {
 //   (*fnptr)();
@@ -1135,56 +330,14 @@ package gl
 // static void  glowFlush(GPFLUSH fnptr) {
 //   (*fnptr)();
 // }
-// static void  glowFlushMappedBufferRange(GPFLUSHMAPPEDBUFFERRANGE fnptr, GLenum  target, GLintptr  offset, GLsizeiptr  length) {
-//   (*fnptr)(target, offset, length);
-// }
-// static void  glowFogCoordPointer(GPFOGCOORDPOINTER fnptr, GLenum  type, GLsizei  stride, const void * pointer) {
-//   (*fnptr)(type, stride, pointer);
-// }
-// static void  glowFogCoordd(GPFOGCOORDD fnptr, GLdouble  coord) {
-//   (*fnptr)(coord);
-// }
-// static void  glowFogCoorddv(GPFOGCOORDDV fnptr, const GLdouble * coord) {
-//   (*fnptr)(coord);
-// }
-// static void  glowFogCoordf(GPFOGCOORDF fnptr, GLfloat  coord) {
-//   (*fnptr)(coord);
-// }
-// static void  glowFogCoordfv(GPFOGCOORDFV fnptr, const GLfloat * coord) {
-//   (*fnptr)(coord);
-// }
-// static void  glowFogf(GPFOGF fnptr, GLenum  pname, GLfloat  param) {
-//   (*fnptr)(pname, param);
-// }
-// static void  glowFogfv(GPFOGFV fnptr, GLenum  pname, const GLfloat * params) {
-//   (*fnptr)(pname, params);
-// }
-// static void  glowFogi(GPFOGI fnptr, GLenum  pname, GLint  param) {
-//   (*fnptr)(pname, param);
-// }
-// static void  glowFogiv(GPFOGIV fnptr, GLenum  pname, const GLint * params) {
-//   (*fnptr)(pname, params);
-// }
 // static void  glowFramebufferRenderbuffer(GPFRAMEBUFFERRENDERBUFFER fnptr, GLenum  target, GLenum  attachment, GLenum  renderbuffertarget, GLuint  renderbuffer) {
 //   (*fnptr)(target, attachment, renderbuffertarget, renderbuffer);
-// }
-// static void  glowFramebufferTexture1D(GPFRAMEBUFFERTEXTURE1D fnptr, GLenum  target, GLenum  attachment, GLenum  textarget, GLuint  texture, GLint  level) {
-//   (*fnptr)(target, attachment, textarget, texture, level);
 // }
 // static void  glowFramebufferTexture2D(GPFRAMEBUFFERTEXTURE2D fnptr, GLenum  target, GLenum  attachment, GLenum  textarget, GLuint  texture, GLint  level) {
 //   (*fnptr)(target, attachment, textarget, texture, level);
 // }
-// static void  glowFramebufferTexture3D(GPFRAMEBUFFERTEXTURE3D fnptr, GLenum  target, GLenum  attachment, GLenum  textarget, GLuint  texture, GLint  level, GLint  zoffset) {
-//   (*fnptr)(target, attachment, textarget, texture, level, zoffset);
-// }
-// static void  glowFramebufferTextureLayer(GPFRAMEBUFFERTEXTURELAYER fnptr, GLenum  target, GLenum  attachment, GLuint  texture, GLint  level, GLint  layer) {
-//   (*fnptr)(target, attachment, texture, level, layer);
-// }
 // static void  glowFrontFace(GPFRONTFACE fnptr, GLenum  mode) {
 //   (*fnptr)(mode);
-// }
-// static void  glowFrustum(GPFRUSTUM fnptr, GLdouble  left, GLdouble  right, GLdouble  bottom, GLdouble  top, GLdouble  zNear, GLdouble  zFar) {
-//   (*fnptr)(left, right, bottom, top, zNear, zFar);
 // }
 // static void  glowGenBuffers(GPGENBUFFERS fnptr, GLsizei  n, GLuint * buffers) {
 //   (*fnptr)(n, buffers);
@@ -1192,20 +345,11 @@ package gl
 // static void  glowGenFramebuffers(GPGENFRAMEBUFFERS fnptr, GLsizei  n, GLuint * framebuffers) {
 //   (*fnptr)(n, framebuffers);
 // }
-// static GLuint  glowGenLists(GPGENLISTS fnptr, GLsizei  range) {
-//   return (*fnptr)(range);
-// }
-// static void  glowGenQueries(GPGENQUERIES fnptr, GLsizei  n, GLuint * ids) {
-//   (*fnptr)(n, ids);
-// }
 // static void  glowGenRenderbuffers(GPGENRENDERBUFFERS fnptr, GLsizei  n, GLuint * renderbuffers) {
 //   (*fnptr)(n, renderbuffers);
 // }
 // static void  glowGenTextures(GPGENTEXTURES fnptr, GLsizei  n, GLuint * textures) {
 //   (*fnptr)(n, textures);
-// }
-// static void  glowGenVertexArrays(GPGENVERTEXARRAYS fnptr, GLsizei  n, GLuint * arrays) {
-//   (*fnptr)(n, arrays);
 // }
 // static void  glowGenerateMipmap(GPGENERATEMIPMAP fnptr, GLenum  target) {
 //   (*fnptr)(target);
@@ -1222,29 +366,11 @@ package gl
 // static GLint  glowGetAttribLocation(GPGETATTRIBLOCATION fnptr, GLuint  program, const GLchar * name) {
 //   return (*fnptr)(program, name);
 // }
-// static void  glowGetBooleani_v(GPGETBOOLEANI_V fnptr, GLenum  target, GLuint  index, GLboolean * data) {
-//   (*fnptr)(target, index, data);
-// }
 // static void  glowGetBooleanv(GPGETBOOLEANV fnptr, GLenum  pname, GLboolean * data) {
 //   (*fnptr)(pname, data);
 // }
 // static void  glowGetBufferParameteriv(GPGETBUFFERPARAMETERIV fnptr, GLenum  target, GLenum  pname, GLint * params) {
 //   (*fnptr)(target, pname, params);
-// }
-// static void  glowGetBufferPointerv(GPGETBUFFERPOINTERV fnptr, GLenum  target, GLenum  pname, void ** params) {
-//   (*fnptr)(target, pname, params);
-// }
-// static void  glowGetBufferSubData(GPGETBUFFERSUBDATA fnptr, GLenum  target, GLintptr  offset, GLsizeiptr  size, void * data) {
-//   (*fnptr)(target, offset, size, data);
-// }
-// static void  glowGetClipPlane(GPGETCLIPPLANE fnptr, GLenum  plane, GLdouble * equation) {
-//   (*fnptr)(plane, equation);
-// }
-// static void  glowGetCompressedTexImage(GPGETCOMPRESSEDTEXIMAGE fnptr, GLenum  target, GLint  level, void * img) {
-//   (*fnptr)(target, level, img);
-// }
-// static void  glowGetDoublev(GPGETDOUBLEV fnptr, GLenum  pname, GLdouble * data) {
-//   (*fnptr)(pname, data);
 // }
 // static GLenum  glowGetError(GPGETERROR fnptr) {
 //   return (*fnptr)();
@@ -1252,68 +378,17 @@ package gl
 // static void  glowGetFloatv(GPGETFLOATV fnptr, GLenum  pname, GLfloat * data) {
 //   (*fnptr)(pname, data);
 // }
-// static GLint  glowGetFragDataLocation(GPGETFRAGDATALOCATION fnptr, GLuint  program, const GLchar * name) {
-//   return (*fnptr)(program, name);
-// }
 // static void  glowGetFramebufferAttachmentParameteriv(GPGETFRAMEBUFFERATTACHMENTPARAMETERIV fnptr, GLenum  target, GLenum  attachment, GLenum  pname, GLint * params) {
 //   (*fnptr)(target, attachment, pname, params);
 // }
-// static void  glowGetIntegeri_v(GPGETINTEGERI_V fnptr, GLenum  target, GLuint  index, GLint * data) {
-//   (*fnptr)(target, index, data);
-// }
 // static void  glowGetIntegerv(GPGETINTEGERV fnptr, GLenum  pname, GLint * data) {
 //   (*fnptr)(pname, data);
-// }
-// static void  glowGetLightfv(GPGETLIGHTFV fnptr, GLenum  light, GLenum  pname, GLfloat * params) {
-//   (*fnptr)(light, pname, params);
-// }
-// static void  glowGetLightiv(GPGETLIGHTIV fnptr, GLenum  light, GLenum  pname, GLint * params) {
-//   (*fnptr)(light, pname, params);
-// }
-// static void  glowGetMapdv(GPGETMAPDV fnptr, GLenum  target, GLenum  query, GLdouble * v) {
-//   (*fnptr)(target, query, v);
-// }
-// static void  glowGetMapfv(GPGETMAPFV fnptr, GLenum  target, GLenum  query, GLfloat * v) {
-//   (*fnptr)(target, query, v);
-// }
-// static void  glowGetMapiv(GPGETMAPIV fnptr, GLenum  target, GLenum  query, GLint * v) {
-//   (*fnptr)(target, query, v);
-// }
-// static void  glowGetMaterialfv(GPGETMATERIALFV fnptr, GLenum  face, GLenum  pname, GLfloat * params) {
-//   (*fnptr)(face, pname, params);
-// }
-// static void  glowGetMaterialiv(GPGETMATERIALIV fnptr, GLenum  face, GLenum  pname, GLint * params) {
-//   (*fnptr)(face, pname, params);
-// }
-// static void  glowGetPixelMapfv(GPGETPIXELMAPFV fnptr, GLenum  map, GLfloat * values) {
-//   (*fnptr)(map, values);
-// }
-// static void  glowGetPixelMapuiv(GPGETPIXELMAPUIV fnptr, GLenum  map, GLuint * values) {
-//   (*fnptr)(map, values);
-// }
-// static void  glowGetPixelMapusv(GPGETPIXELMAPUSV fnptr, GLenum  map, GLushort * values) {
-//   (*fnptr)(map, values);
-// }
-// static void  glowGetPointerv(GPGETPOINTERV fnptr, GLenum  pname, void ** params) {
-//   (*fnptr)(pname, params);
-// }
-// static void  glowGetPolygonStipple(GPGETPOLYGONSTIPPLE fnptr, GLubyte * mask) {
-//   (*fnptr)(mask);
 // }
 // static void  glowGetProgramInfoLog(GPGETPROGRAMINFOLOG fnptr, GLuint  program, GLsizei  bufSize, GLsizei * length, GLchar * infoLog) {
 //   (*fnptr)(program, bufSize, length, infoLog);
 // }
 // static void  glowGetProgramiv(GPGETPROGRAMIV fnptr, GLuint  program, GLenum  pname, GLint * params) {
 //   (*fnptr)(program, pname, params);
-// }
-// static void  glowGetQueryObjectiv(GPGETQUERYOBJECTIV fnptr, GLuint  id, GLenum  pname, GLint * params) {
-//   (*fnptr)(id, pname, params);
-// }
-// static void  glowGetQueryObjectuiv(GPGETQUERYOBJECTUIV fnptr, GLuint  id, GLenum  pname, GLuint * params) {
-//   (*fnptr)(id, pname, params);
-// }
-// static void  glowGetQueryiv(GPGETQUERYIV fnptr, GLenum  target, GLenum  pname, GLint * params) {
-//   (*fnptr)(target, pname, params);
 // }
 // static void  glowGetRenderbufferParameteriv(GPGETRENDERBUFFERPARAMETERIV fnptr, GLenum  target, GLenum  pname, GLint * params) {
 //   (*fnptr)(target, pname, params);
@@ -1330,47 +405,11 @@ package gl
 // static const GLubyte * glowGetString(GPGETSTRING fnptr, GLenum  name) {
 //   return (*fnptr)(name);
 // }
-// static const GLubyte * glowGetStringi(GPGETSTRINGI fnptr, GLenum  name, GLuint  index) {
-//   return (*fnptr)(name, index);
-// }
-// static void  glowGetTexEnvfv(GPGETTEXENVFV fnptr, GLenum  target, GLenum  pname, GLfloat * params) {
-//   (*fnptr)(target, pname, params);
-// }
-// static void  glowGetTexEnviv(GPGETTEXENVIV fnptr, GLenum  target, GLenum  pname, GLint * params) {
-//   (*fnptr)(target, pname, params);
-// }
-// static void  glowGetTexGendv(GPGETTEXGENDV fnptr, GLenum  coord, GLenum  pname, GLdouble * params) {
-//   (*fnptr)(coord, pname, params);
-// }
-// static void  glowGetTexGenfv(GPGETTEXGENFV fnptr, GLenum  coord, GLenum  pname, GLfloat * params) {
-//   (*fnptr)(coord, pname, params);
-// }
-// static void  glowGetTexGeniv(GPGETTEXGENIV fnptr, GLenum  coord, GLenum  pname, GLint * params) {
-//   (*fnptr)(coord, pname, params);
-// }
-// static void  glowGetTexImage(GPGETTEXIMAGE fnptr, GLenum  target, GLint  level, GLenum  format, GLenum  type, void * pixels) {
-//   (*fnptr)(target, level, format, type, pixels);
-// }
-// static void  glowGetTexLevelParameterfv(GPGETTEXLEVELPARAMETERFV fnptr, GLenum  target, GLint  level, GLenum  pname, GLfloat * params) {
-//   (*fnptr)(target, level, pname, params);
-// }
-// static void  glowGetTexLevelParameteriv(GPGETTEXLEVELPARAMETERIV fnptr, GLenum  target, GLint  level, GLenum  pname, GLint * params) {
-//   (*fnptr)(target, level, pname, params);
-// }
-// static void  glowGetTexParameterIiv(GPGETTEXPARAMETERIIV fnptr, GLenum  target, GLenum  pname, GLint * params) {
-//   (*fnptr)(target, pname, params);
-// }
-// static void  glowGetTexParameterIuiv(GPGETTEXPARAMETERIUIV fnptr, GLenum  target, GLenum  pname, GLuint * params) {
-//   (*fnptr)(target, pname, params);
-// }
 // static void  glowGetTexParameterfv(GPGETTEXPARAMETERFV fnptr, GLenum  target, GLenum  pname, GLfloat * params) {
 //   (*fnptr)(target, pname, params);
 // }
 // static void  glowGetTexParameteriv(GPGETTEXPARAMETERIV fnptr, GLenum  target, GLenum  pname, GLint * params) {
 //   (*fnptr)(target, pname, params);
-// }
-// static void  glowGetTransformFeedbackVarying(GPGETTRANSFORMFEEDBACKVARYING fnptr, GLuint  program, GLuint  index, GLsizei  bufSize, GLsizei * length, GLsizei * size, GLenum * type, GLchar * name) {
-//   (*fnptr)(program, index, bufSize, length, size, type, name);
 // }
 // static GLint  glowGetUniformLocation(GPGETUNIFORMLOCATION fnptr, GLuint  program, const GLchar * name) {
 //   return (*fnptr)(program, name);
@@ -1381,20 +420,8 @@ package gl
 // static void  glowGetUniformiv(GPGETUNIFORMIV fnptr, GLuint  program, GLint  location, GLint * params) {
 //   (*fnptr)(program, location, params);
 // }
-// static void  glowGetUniformuiv(GPGETUNIFORMUIV fnptr, GLuint  program, GLint  location, GLuint * params) {
-//   (*fnptr)(program, location, params);
-// }
-// static void  glowGetVertexAttribIiv(GPGETVERTEXATTRIBIIV fnptr, GLuint  index, GLenum  pname, GLint * params) {
-//   (*fnptr)(index, pname, params);
-// }
-// static void  glowGetVertexAttribIuiv(GPGETVERTEXATTRIBIUIV fnptr, GLuint  index, GLenum  pname, GLuint * params) {
-//   (*fnptr)(index, pname, params);
-// }
 // static void  glowGetVertexAttribPointerv(GPGETVERTEXATTRIBPOINTERV fnptr, GLuint  index, GLenum  pname, void ** pointer) {
 //   (*fnptr)(index, pname, pointer);
-// }
-// static void  glowGetVertexAttribdv(GPGETVERTEXATTRIBDV fnptr, GLuint  index, GLenum  pname, GLdouble * params) {
-//   (*fnptr)(index, pname, params);
 // }
 // static void  glowGetVertexAttribfv(GPGETVERTEXATTRIBFV fnptr, GLuint  index, GLenum  pname, GLfloat * params) {
 //   (*fnptr)(index, pname, params);
@@ -1405,68 +432,17 @@ package gl
 // static void  glowHint(GPHINT fnptr, GLenum  target, GLenum  mode) {
 //   (*fnptr)(target, mode);
 // }
-// static void  glowIndexMask(GPINDEXMASK fnptr, GLuint  mask) {
-//   (*fnptr)(mask);
-// }
-// static void  glowIndexPointer(GPINDEXPOINTER fnptr, GLenum  type, GLsizei  stride, const void * pointer) {
-//   (*fnptr)(type, stride, pointer);
-// }
-// static void  glowIndexd(GPINDEXD fnptr, GLdouble  c) {
-//   (*fnptr)(c);
-// }
-// static void  glowIndexdv(GPINDEXDV fnptr, const GLdouble * c) {
-//   (*fnptr)(c);
-// }
-// static void  glowIndexf(GPINDEXF fnptr, GLfloat  c) {
-//   (*fnptr)(c);
-// }
-// static void  glowIndexfv(GPINDEXFV fnptr, const GLfloat * c) {
-//   (*fnptr)(c);
-// }
-// static void  glowIndexi(GPINDEXI fnptr, GLint  c) {
-//   (*fnptr)(c);
-// }
-// static void  glowIndexiv(GPINDEXIV fnptr, const GLint * c) {
-//   (*fnptr)(c);
-// }
-// static void  glowIndexs(GPINDEXS fnptr, GLshort  c) {
-//   (*fnptr)(c);
-// }
-// static void  glowIndexsv(GPINDEXSV fnptr, const GLshort * c) {
-//   (*fnptr)(c);
-// }
-// static void  glowIndexub(GPINDEXUB fnptr, GLubyte  c) {
-//   (*fnptr)(c);
-// }
-// static void  glowIndexubv(GPINDEXUBV fnptr, const GLubyte * c) {
-//   (*fnptr)(c);
-// }
-// static void  glowInitNames(GPINITNAMES fnptr) {
-//   (*fnptr)();
-// }
-// static void  glowInterleavedArrays(GPINTERLEAVEDARRAYS fnptr, GLenum  format, GLsizei  stride, const void * pointer) {
-//   (*fnptr)(format, stride, pointer);
-// }
 // static GLboolean  glowIsBuffer(GPISBUFFER fnptr, GLuint  buffer) {
 //   return (*fnptr)(buffer);
 // }
 // static GLboolean  glowIsEnabled(GPISENABLED fnptr, GLenum  cap) {
 //   return (*fnptr)(cap);
 // }
-// static GLboolean  glowIsEnabledi(GPISENABLEDI fnptr, GLenum  target, GLuint  index) {
-//   return (*fnptr)(target, index);
-// }
 // static GLboolean  glowIsFramebuffer(GPISFRAMEBUFFER fnptr, GLuint  framebuffer) {
 //   return (*fnptr)(framebuffer);
 // }
-// static GLboolean  glowIsList(GPISLIST fnptr, GLuint  list) {
-//   return (*fnptr)(list);
-// }
 // static GLboolean  glowIsProgram(GPISPROGRAM fnptr, GLuint  program) {
 //   return (*fnptr)(program);
-// }
-// static GLboolean  glowIsQuery(GPISQUERY fnptr, GLuint  id) {
-//   return (*fnptr)(id);
 // }
 // static GLboolean  glowIsRenderbuffer(GPISRENDERBUFFER fnptr, GLuint  renderbuffer) {
 //   return (*fnptr)(renderbuffer);
@@ -1477,527 +453,29 @@ package gl
 // static GLboolean  glowIsTexture(GPISTEXTURE fnptr, GLuint  texture) {
 //   return (*fnptr)(texture);
 // }
-// static GLboolean  glowIsVertexArray(GPISVERTEXARRAY fnptr, GLuint  array) {
-//   return (*fnptr)(array);
-// }
-// static void  glowLightModelf(GPLIGHTMODELF fnptr, GLenum  pname, GLfloat  param) {
-//   (*fnptr)(pname, param);
-// }
-// static void  glowLightModelfv(GPLIGHTMODELFV fnptr, GLenum  pname, const GLfloat * params) {
-//   (*fnptr)(pname, params);
-// }
-// static void  glowLightModeli(GPLIGHTMODELI fnptr, GLenum  pname, GLint  param) {
-//   (*fnptr)(pname, param);
-// }
-// static void  glowLightModeliv(GPLIGHTMODELIV fnptr, GLenum  pname, const GLint * params) {
-//   (*fnptr)(pname, params);
-// }
-// static void  glowLightf(GPLIGHTF fnptr, GLenum  light, GLenum  pname, GLfloat  param) {
-//   (*fnptr)(light, pname, param);
-// }
-// static void  glowLightfv(GPLIGHTFV fnptr, GLenum  light, GLenum  pname, const GLfloat * params) {
-//   (*fnptr)(light, pname, params);
-// }
-// static void  glowLighti(GPLIGHTI fnptr, GLenum  light, GLenum  pname, GLint  param) {
-//   (*fnptr)(light, pname, param);
-// }
-// static void  glowLightiv(GPLIGHTIV fnptr, GLenum  light, GLenum  pname, const GLint * params) {
-//   (*fnptr)(light, pname, params);
-// }
-// static void  glowLineStipple(GPLINESTIPPLE fnptr, GLint  factor, GLushort  pattern) {
-//   (*fnptr)(factor, pattern);
-// }
 // static void  glowLineWidth(GPLINEWIDTH fnptr, GLfloat  width) {
 //   (*fnptr)(width);
 // }
 // static void  glowLinkProgram(GPLINKPROGRAM fnptr, GLuint  program) {
 //   (*fnptr)(program);
 // }
-// static void  glowListBase(GPLISTBASE fnptr, GLuint  base) {
-//   (*fnptr)(base);
-// }
-// static void  glowLoadIdentity(GPLOADIDENTITY fnptr) {
-//   (*fnptr)();
-// }
-// static void  glowLoadMatrixd(GPLOADMATRIXD fnptr, const GLdouble * m) {
-//   (*fnptr)(m);
-// }
-// static void  glowLoadMatrixf(GPLOADMATRIXF fnptr, const GLfloat * m) {
-//   (*fnptr)(m);
-// }
-// static void  glowLoadName(GPLOADNAME fnptr, GLuint  name) {
-//   (*fnptr)(name);
-// }
-// static void  glowLoadTransposeMatrixd(GPLOADTRANSPOSEMATRIXD fnptr, const GLdouble * m) {
-//   (*fnptr)(m);
-// }
-// static void  glowLoadTransposeMatrixf(GPLOADTRANSPOSEMATRIXF fnptr, const GLfloat * m) {
-//   (*fnptr)(m);
-// }
-// static void  glowLogicOp(GPLOGICOP fnptr, GLenum  opcode) {
-//   (*fnptr)(opcode);
-// }
-// static void  glowMap1d(GPMAP1D fnptr, GLenum  target, GLdouble  u1, GLdouble  u2, GLint  stride, GLint  order, const GLdouble * points) {
-//   (*fnptr)(target, u1, u2, stride, order, points);
-// }
-// static void  glowMap1f(GPMAP1F fnptr, GLenum  target, GLfloat  u1, GLfloat  u2, GLint  stride, GLint  order, const GLfloat * points) {
-//   (*fnptr)(target, u1, u2, stride, order, points);
-// }
-// static void  glowMap2d(GPMAP2D fnptr, GLenum  target, GLdouble  u1, GLdouble  u2, GLint  ustride, GLint  uorder, GLdouble  v1, GLdouble  v2, GLint  vstride, GLint  vorder, const GLdouble * points) {
-//   (*fnptr)(target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
-// }
-// static void  glowMap2f(GPMAP2F fnptr, GLenum  target, GLfloat  u1, GLfloat  u2, GLint  ustride, GLint  uorder, GLfloat  v1, GLfloat  v2, GLint  vstride, GLint  vorder, const GLfloat * points) {
-//   (*fnptr)(target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
-// }
-// static void * glowMapBuffer(GPMAPBUFFER fnptr, GLenum  target, GLenum  access) {
-//   return (*fnptr)(target, access);
-// }
-// static void * glowMapBufferRange(GPMAPBUFFERRANGE fnptr, GLenum  target, GLintptr  offset, GLsizeiptr  length, GLbitfield  access) {
-//   return (*fnptr)(target, offset, length, access);
-// }
-// static void  glowMapGrid1d(GPMAPGRID1D fnptr, GLint  un, GLdouble  u1, GLdouble  u2) {
-//   (*fnptr)(un, u1, u2);
-// }
-// static void  glowMapGrid1f(GPMAPGRID1F fnptr, GLint  un, GLfloat  u1, GLfloat  u2) {
-//   (*fnptr)(un, u1, u2);
-// }
-// static void  glowMapGrid2d(GPMAPGRID2D fnptr, GLint  un, GLdouble  u1, GLdouble  u2, GLint  vn, GLdouble  v1, GLdouble  v2) {
-//   (*fnptr)(un, u1, u2, vn, v1, v2);
-// }
-// static void  glowMapGrid2f(GPMAPGRID2F fnptr, GLint  un, GLfloat  u1, GLfloat  u2, GLint  vn, GLfloat  v1, GLfloat  v2) {
-//   (*fnptr)(un, u1, u2, vn, v1, v2);
-// }
-// static void  glowMaterialf(GPMATERIALF fnptr, GLenum  face, GLenum  pname, GLfloat  param) {
-//   (*fnptr)(face, pname, param);
-// }
-// static void  glowMaterialfv(GPMATERIALFV fnptr, GLenum  face, GLenum  pname, const GLfloat * params) {
-//   (*fnptr)(face, pname, params);
-// }
-// static void  glowMateriali(GPMATERIALI fnptr, GLenum  face, GLenum  pname, GLint  param) {
-//   (*fnptr)(face, pname, param);
-// }
-// static void  glowMaterialiv(GPMATERIALIV fnptr, GLenum  face, GLenum  pname, const GLint * params) {
-//   (*fnptr)(face, pname, params);
-// }
-// static void  glowMatrixMode(GPMATRIXMODE fnptr, GLenum  mode) {
-//   (*fnptr)(mode);
-// }
-// static void  glowMultMatrixd(GPMULTMATRIXD fnptr, const GLdouble * m) {
-//   (*fnptr)(m);
-// }
-// static void  glowMultMatrixf(GPMULTMATRIXF fnptr, const GLfloat * m) {
-//   (*fnptr)(m);
-// }
-// static void  glowMultTransposeMatrixd(GPMULTTRANSPOSEMATRIXD fnptr, const GLdouble * m) {
-//   (*fnptr)(m);
-// }
-// static void  glowMultTransposeMatrixf(GPMULTTRANSPOSEMATRIXF fnptr, const GLfloat * m) {
-//   (*fnptr)(m);
-// }
-// static void  glowMultiDrawArrays(GPMULTIDRAWARRAYS fnptr, GLenum  mode, const GLint * first, const GLsizei * count, GLsizei  drawcount) {
-//   (*fnptr)(mode, first, count, drawcount);
-// }
-// static void  glowMultiDrawElements(GPMULTIDRAWELEMENTS fnptr, GLenum  mode, const GLsizei * count, GLenum  type, const void *const* indices, GLsizei  drawcount) {
-//   (*fnptr)(mode, count, type, indices, drawcount);
-// }
-// static void  glowMultiTexCoord1d(GPMULTITEXCOORD1D fnptr, GLenum  target, GLdouble  s) {
-//   (*fnptr)(target, s);
-// }
-// static void  glowMultiTexCoord1dv(GPMULTITEXCOORD1DV fnptr, GLenum  target, const GLdouble * v) {
-//   (*fnptr)(target, v);
-// }
-// static void  glowMultiTexCoord1f(GPMULTITEXCOORD1F fnptr, GLenum  target, GLfloat  s) {
-//   (*fnptr)(target, s);
-// }
-// static void  glowMultiTexCoord1fv(GPMULTITEXCOORD1FV fnptr, GLenum  target, const GLfloat * v) {
-//   (*fnptr)(target, v);
-// }
-// static void  glowMultiTexCoord1i(GPMULTITEXCOORD1I fnptr, GLenum  target, GLint  s) {
-//   (*fnptr)(target, s);
-// }
-// static void  glowMultiTexCoord1iv(GPMULTITEXCOORD1IV fnptr, GLenum  target, const GLint * v) {
-//   (*fnptr)(target, v);
-// }
-// static void  glowMultiTexCoord1s(GPMULTITEXCOORD1S fnptr, GLenum  target, GLshort  s) {
-//   (*fnptr)(target, s);
-// }
-// static void  glowMultiTexCoord1sv(GPMULTITEXCOORD1SV fnptr, GLenum  target, const GLshort * v) {
-//   (*fnptr)(target, v);
-// }
-// static void  glowMultiTexCoord2d(GPMULTITEXCOORD2D fnptr, GLenum  target, GLdouble  s, GLdouble  t) {
-//   (*fnptr)(target, s, t);
-// }
-// static void  glowMultiTexCoord2dv(GPMULTITEXCOORD2DV fnptr, GLenum  target, const GLdouble * v) {
-//   (*fnptr)(target, v);
-// }
-// static void  glowMultiTexCoord2f(GPMULTITEXCOORD2F fnptr, GLenum  target, GLfloat  s, GLfloat  t) {
-//   (*fnptr)(target, s, t);
-// }
-// static void  glowMultiTexCoord2fv(GPMULTITEXCOORD2FV fnptr, GLenum  target, const GLfloat * v) {
-//   (*fnptr)(target, v);
-// }
-// static void  glowMultiTexCoord2i(GPMULTITEXCOORD2I fnptr, GLenum  target, GLint  s, GLint  t) {
-//   (*fnptr)(target, s, t);
-// }
-// static void  glowMultiTexCoord2iv(GPMULTITEXCOORD2IV fnptr, GLenum  target, const GLint * v) {
-//   (*fnptr)(target, v);
-// }
-// static void  glowMultiTexCoord2s(GPMULTITEXCOORD2S fnptr, GLenum  target, GLshort  s, GLshort  t) {
-//   (*fnptr)(target, s, t);
-// }
-// static void  glowMultiTexCoord2sv(GPMULTITEXCOORD2SV fnptr, GLenum  target, const GLshort * v) {
-//   (*fnptr)(target, v);
-// }
-// static void  glowMultiTexCoord3d(GPMULTITEXCOORD3D fnptr, GLenum  target, GLdouble  s, GLdouble  t, GLdouble  r) {
-//   (*fnptr)(target, s, t, r);
-// }
-// static void  glowMultiTexCoord3dv(GPMULTITEXCOORD3DV fnptr, GLenum  target, const GLdouble * v) {
-//   (*fnptr)(target, v);
-// }
-// static void  glowMultiTexCoord3f(GPMULTITEXCOORD3F fnptr, GLenum  target, GLfloat  s, GLfloat  t, GLfloat  r) {
-//   (*fnptr)(target, s, t, r);
-// }
-// static void  glowMultiTexCoord3fv(GPMULTITEXCOORD3FV fnptr, GLenum  target, const GLfloat * v) {
-//   (*fnptr)(target, v);
-// }
-// static void  glowMultiTexCoord3i(GPMULTITEXCOORD3I fnptr, GLenum  target, GLint  s, GLint  t, GLint  r) {
-//   (*fnptr)(target, s, t, r);
-// }
-// static void  glowMultiTexCoord3iv(GPMULTITEXCOORD3IV fnptr, GLenum  target, const GLint * v) {
-//   (*fnptr)(target, v);
-// }
-// static void  glowMultiTexCoord3s(GPMULTITEXCOORD3S fnptr, GLenum  target, GLshort  s, GLshort  t, GLshort  r) {
-//   (*fnptr)(target, s, t, r);
-// }
-// static void  glowMultiTexCoord3sv(GPMULTITEXCOORD3SV fnptr, GLenum  target, const GLshort * v) {
-//   (*fnptr)(target, v);
-// }
-// static void  glowMultiTexCoord4d(GPMULTITEXCOORD4D fnptr, GLenum  target, GLdouble  s, GLdouble  t, GLdouble  r, GLdouble  q) {
-//   (*fnptr)(target, s, t, r, q);
-// }
-// static void  glowMultiTexCoord4dv(GPMULTITEXCOORD4DV fnptr, GLenum  target, const GLdouble * v) {
-//   (*fnptr)(target, v);
-// }
-// static void  glowMultiTexCoord4f(GPMULTITEXCOORD4F fnptr, GLenum  target, GLfloat  s, GLfloat  t, GLfloat  r, GLfloat  q) {
-//   (*fnptr)(target, s, t, r, q);
-// }
-// static void  glowMultiTexCoord4fv(GPMULTITEXCOORD4FV fnptr, GLenum  target, const GLfloat * v) {
-//   (*fnptr)(target, v);
-// }
-// static void  glowMultiTexCoord4i(GPMULTITEXCOORD4I fnptr, GLenum  target, GLint  s, GLint  t, GLint  r, GLint  q) {
-//   (*fnptr)(target, s, t, r, q);
-// }
-// static void  glowMultiTexCoord4iv(GPMULTITEXCOORD4IV fnptr, GLenum  target, const GLint * v) {
-//   (*fnptr)(target, v);
-// }
-// static void  glowMultiTexCoord4s(GPMULTITEXCOORD4S fnptr, GLenum  target, GLshort  s, GLshort  t, GLshort  r, GLshort  q) {
-//   (*fnptr)(target, s, t, r, q);
-// }
-// static void  glowMultiTexCoord4sv(GPMULTITEXCOORD4SV fnptr, GLenum  target, const GLshort * v) {
-//   (*fnptr)(target, v);
-// }
-// static void  glowNewList(GPNEWLIST fnptr, GLuint  list, GLenum  mode) {
-//   (*fnptr)(list, mode);
-// }
-// static void  glowNormal3b(GPNORMAL3B fnptr, GLbyte  nx, GLbyte  ny, GLbyte  nz) {
-//   (*fnptr)(nx, ny, nz);
-// }
-// static void  glowNormal3bv(GPNORMAL3BV fnptr, const GLbyte * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowNormal3d(GPNORMAL3D fnptr, GLdouble  nx, GLdouble  ny, GLdouble  nz) {
-//   (*fnptr)(nx, ny, nz);
-// }
-// static void  glowNormal3dv(GPNORMAL3DV fnptr, const GLdouble * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowNormal3f(GPNORMAL3F fnptr, GLfloat  nx, GLfloat  ny, GLfloat  nz) {
-//   (*fnptr)(nx, ny, nz);
-// }
-// static void  glowNormal3fv(GPNORMAL3FV fnptr, const GLfloat * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowNormal3i(GPNORMAL3I fnptr, GLint  nx, GLint  ny, GLint  nz) {
-//   (*fnptr)(nx, ny, nz);
-// }
-// static void  glowNormal3iv(GPNORMAL3IV fnptr, const GLint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowNormal3s(GPNORMAL3S fnptr, GLshort  nx, GLshort  ny, GLshort  nz) {
-//   (*fnptr)(nx, ny, nz);
-// }
-// static void  glowNormal3sv(GPNORMAL3SV fnptr, const GLshort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowNormalPointer(GPNORMALPOINTER fnptr, GLenum  type, GLsizei  stride, const void * pointer) {
-//   (*fnptr)(type, stride, pointer);
-// }
-// static void  glowOrtho(GPORTHO fnptr, GLdouble  left, GLdouble  right, GLdouble  bottom, GLdouble  top, GLdouble  zNear, GLdouble  zFar) {
-//   (*fnptr)(left, right, bottom, top, zNear, zFar);
-// }
-// static void  glowPassThrough(GPPASSTHROUGH fnptr, GLfloat  token) {
-//   (*fnptr)(token);
-// }
-// static void  glowPixelMapfv(GPPIXELMAPFV fnptr, GLenum  map, GLsizei  mapsize, const GLfloat * values) {
-//   (*fnptr)(map, mapsize, values);
-// }
-// static void  glowPixelMapuiv(GPPIXELMAPUIV fnptr, GLenum  map, GLsizei  mapsize, const GLuint * values) {
-//   (*fnptr)(map, mapsize, values);
-// }
-// static void  glowPixelMapusv(GPPIXELMAPUSV fnptr, GLenum  map, GLsizei  mapsize, const GLushort * values) {
-//   (*fnptr)(map, mapsize, values);
-// }
-// static void  glowPixelStoref(GPPIXELSTOREF fnptr, GLenum  pname, GLfloat  param) {
-//   (*fnptr)(pname, param);
-// }
 // static void  glowPixelStorei(GPPIXELSTOREI fnptr, GLenum  pname, GLint  param) {
 //   (*fnptr)(pname, param);
-// }
-// static void  glowPixelTransferf(GPPIXELTRANSFERF fnptr, GLenum  pname, GLfloat  param) {
-//   (*fnptr)(pname, param);
-// }
-// static void  glowPixelTransferi(GPPIXELTRANSFERI fnptr, GLenum  pname, GLint  param) {
-//   (*fnptr)(pname, param);
-// }
-// static void  glowPixelZoom(GPPIXELZOOM fnptr, GLfloat  xfactor, GLfloat  yfactor) {
-//   (*fnptr)(xfactor, yfactor);
-// }
-// static void  glowPointParameterf(GPPOINTPARAMETERF fnptr, GLenum  pname, GLfloat  param) {
-//   (*fnptr)(pname, param);
-// }
-// static void  glowPointParameterfv(GPPOINTPARAMETERFV fnptr, GLenum  pname, const GLfloat * params) {
-//   (*fnptr)(pname, params);
-// }
-// static void  glowPointParameteri(GPPOINTPARAMETERI fnptr, GLenum  pname, GLint  param) {
-//   (*fnptr)(pname, param);
-// }
-// static void  glowPointParameteriv(GPPOINTPARAMETERIV fnptr, GLenum  pname, const GLint * params) {
-//   (*fnptr)(pname, params);
-// }
-// static void  glowPointSize(GPPOINTSIZE fnptr, GLfloat  size) {
-//   (*fnptr)(size);
-// }
-// static void  glowPolygonMode(GPPOLYGONMODE fnptr, GLenum  face, GLenum  mode) {
-//   (*fnptr)(face, mode);
 // }
 // static void  glowPolygonOffset(GPPOLYGONOFFSET fnptr, GLfloat  factor, GLfloat  units) {
 //   (*fnptr)(factor, units);
 // }
-// static void  glowPolygonStipple(GPPOLYGONSTIPPLE fnptr, const GLubyte * mask) {
-//   (*fnptr)(mask);
-// }
-// static void  glowPopAttrib(GPPOPATTRIB fnptr) {
-//   (*fnptr)();
-// }
-// static void  glowPopClientAttrib(GPPOPCLIENTATTRIB fnptr) {
-//   (*fnptr)();
-// }
-// static void  glowPopMatrix(GPPOPMATRIX fnptr) {
-//   (*fnptr)();
-// }
-// static void  glowPopName(GPPOPNAME fnptr) {
-//   (*fnptr)();
-// }
-// static void  glowPrioritizeTextures(GPPRIORITIZETEXTURES fnptr, GLsizei  n, const GLuint * textures, const GLfloat * priorities) {
-//   (*fnptr)(n, textures, priorities);
-// }
-// static void  glowPushAttrib(GPPUSHATTRIB fnptr, GLbitfield  mask) {
-//   (*fnptr)(mask);
-// }
-// static void  glowPushClientAttrib(GPPUSHCLIENTATTRIB fnptr, GLbitfield  mask) {
-//   (*fnptr)(mask);
-// }
-// static void  glowPushMatrix(GPPUSHMATRIX fnptr) {
-//   (*fnptr)();
-// }
-// static void  glowPushName(GPPUSHNAME fnptr, GLuint  name) {
-//   (*fnptr)(name);
-// }
-// static void  glowRasterPos2d(GPRASTERPOS2D fnptr, GLdouble  x, GLdouble  y) {
-//   (*fnptr)(x, y);
-// }
-// static void  glowRasterPos2dv(GPRASTERPOS2DV fnptr, const GLdouble * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowRasterPos2f(GPRASTERPOS2F fnptr, GLfloat  x, GLfloat  y) {
-//   (*fnptr)(x, y);
-// }
-// static void  glowRasterPos2fv(GPRASTERPOS2FV fnptr, const GLfloat * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowRasterPos2i(GPRASTERPOS2I fnptr, GLint  x, GLint  y) {
-//   (*fnptr)(x, y);
-// }
-// static void  glowRasterPos2iv(GPRASTERPOS2IV fnptr, const GLint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowRasterPos2s(GPRASTERPOS2S fnptr, GLshort  x, GLshort  y) {
-//   (*fnptr)(x, y);
-// }
-// static void  glowRasterPos2sv(GPRASTERPOS2SV fnptr, const GLshort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowRasterPos3d(GPRASTERPOS3D fnptr, GLdouble  x, GLdouble  y, GLdouble  z) {
-//   (*fnptr)(x, y, z);
-// }
-// static void  glowRasterPos3dv(GPRASTERPOS3DV fnptr, const GLdouble * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowRasterPos3f(GPRASTERPOS3F fnptr, GLfloat  x, GLfloat  y, GLfloat  z) {
-//   (*fnptr)(x, y, z);
-// }
-// static void  glowRasterPos3fv(GPRASTERPOS3FV fnptr, const GLfloat * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowRasterPos3i(GPRASTERPOS3I fnptr, GLint  x, GLint  y, GLint  z) {
-//   (*fnptr)(x, y, z);
-// }
-// static void  glowRasterPos3iv(GPRASTERPOS3IV fnptr, const GLint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowRasterPos3s(GPRASTERPOS3S fnptr, GLshort  x, GLshort  y, GLshort  z) {
-//   (*fnptr)(x, y, z);
-// }
-// static void  glowRasterPos3sv(GPRASTERPOS3SV fnptr, const GLshort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowRasterPos4d(GPRASTERPOS4D fnptr, GLdouble  x, GLdouble  y, GLdouble  z, GLdouble  w) {
-//   (*fnptr)(x, y, z, w);
-// }
-// static void  glowRasterPos4dv(GPRASTERPOS4DV fnptr, const GLdouble * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowRasterPos4f(GPRASTERPOS4F fnptr, GLfloat  x, GLfloat  y, GLfloat  z, GLfloat  w) {
-//   (*fnptr)(x, y, z, w);
-// }
-// static void  glowRasterPos4fv(GPRASTERPOS4FV fnptr, const GLfloat * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowRasterPos4i(GPRASTERPOS4I fnptr, GLint  x, GLint  y, GLint  z, GLint  w) {
-//   (*fnptr)(x, y, z, w);
-// }
-// static void  glowRasterPos4iv(GPRASTERPOS4IV fnptr, const GLint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowRasterPos4s(GPRASTERPOS4S fnptr, GLshort  x, GLshort  y, GLshort  z, GLshort  w) {
-//   (*fnptr)(x, y, z, w);
-// }
-// static void  glowRasterPos4sv(GPRASTERPOS4SV fnptr, const GLshort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowReadBuffer(GPREADBUFFER fnptr, GLenum  src) {
-//   (*fnptr)(src);
-// }
 // static void  glowReadPixels(GPREADPIXELS fnptr, GLint  x, GLint  y, GLsizei  width, GLsizei  height, GLenum  format, GLenum  type, void * pixels) {
 //   (*fnptr)(x, y, width, height, format, type, pixels);
-// }
-// static void  glowRectd(GPRECTD fnptr, GLdouble  x1, GLdouble  y1, GLdouble  x2, GLdouble  y2) {
-//   (*fnptr)(x1, y1, x2, y2);
-// }
-// static void  glowRectdv(GPRECTDV fnptr, const GLdouble * v1, const GLdouble * v2) {
-//   (*fnptr)(v1, v2);
-// }
-// static void  glowRectf(GPRECTF fnptr, GLfloat  x1, GLfloat  y1, GLfloat  x2, GLfloat  y2) {
-//   (*fnptr)(x1, y1, x2, y2);
-// }
-// static void  glowRectfv(GPRECTFV fnptr, const GLfloat * v1, const GLfloat * v2) {
-//   (*fnptr)(v1, v2);
-// }
-// static void  glowRecti(GPRECTI fnptr, GLint  x1, GLint  y1, GLint  x2, GLint  y2) {
-//   (*fnptr)(x1, y1, x2, y2);
-// }
-// static void  glowRectiv(GPRECTIV fnptr, const GLint * v1, const GLint * v2) {
-//   (*fnptr)(v1, v2);
-// }
-// static void  glowRects(GPRECTS fnptr, GLshort  x1, GLshort  y1, GLshort  x2, GLshort  y2) {
-//   (*fnptr)(x1, y1, x2, y2);
-// }
-// static void  glowRectsv(GPRECTSV fnptr, const GLshort * v1, const GLshort * v2) {
-//   (*fnptr)(v1, v2);
-// }
-// static GLint  glowRenderMode(GPRENDERMODE fnptr, GLenum  mode) {
-//   return (*fnptr)(mode);
 // }
 // static void  glowRenderbufferStorage(GPRENDERBUFFERSTORAGE fnptr, GLenum  target, GLenum  internalformat, GLsizei  width, GLsizei  height) {
 //   (*fnptr)(target, internalformat, width, height);
 // }
-// static void  glowRenderbufferStorageMultisample(GPRENDERBUFFERSTORAGEMULTISAMPLE fnptr, GLenum  target, GLsizei  samples, GLenum  internalformat, GLsizei  width, GLsizei  height) {
-//   (*fnptr)(target, samples, internalformat, width, height);
-// }
-// static void  glowRotated(GPROTATED fnptr, GLdouble  angle, GLdouble  x, GLdouble  y, GLdouble  z) {
-//   (*fnptr)(angle, x, y, z);
-// }
-// static void  glowRotatef(GPROTATEF fnptr, GLfloat  angle, GLfloat  x, GLfloat  y, GLfloat  z) {
-//   (*fnptr)(angle, x, y, z);
-// }
 // static void  glowSampleCoverage(GPSAMPLECOVERAGE fnptr, GLfloat  value, GLboolean  invert) {
 //   (*fnptr)(value, invert);
 // }
-// static void  glowScaled(GPSCALED fnptr, GLdouble  x, GLdouble  y, GLdouble  z) {
-//   (*fnptr)(x, y, z);
-// }
-// static void  glowScalef(GPSCALEF fnptr, GLfloat  x, GLfloat  y, GLfloat  z) {
-//   (*fnptr)(x, y, z);
-// }
 // static void  glowScissor(GPSCISSOR fnptr, GLint  x, GLint  y, GLsizei  width, GLsizei  height) {
 //   (*fnptr)(x, y, width, height);
-// }
-// static void  glowSecondaryColor3b(GPSECONDARYCOLOR3B fnptr, GLbyte  red, GLbyte  green, GLbyte  blue) {
-//   (*fnptr)(red, green, blue);
-// }
-// static void  glowSecondaryColor3bv(GPSECONDARYCOLOR3BV fnptr, const GLbyte * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowSecondaryColor3d(GPSECONDARYCOLOR3D fnptr, GLdouble  red, GLdouble  green, GLdouble  blue) {
-//   (*fnptr)(red, green, blue);
-// }
-// static void  glowSecondaryColor3dv(GPSECONDARYCOLOR3DV fnptr, const GLdouble * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowSecondaryColor3f(GPSECONDARYCOLOR3F fnptr, GLfloat  red, GLfloat  green, GLfloat  blue) {
-//   (*fnptr)(red, green, blue);
-// }
-// static void  glowSecondaryColor3fv(GPSECONDARYCOLOR3FV fnptr, const GLfloat * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowSecondaryColor3i(GPSECONDARYCOLOR3I fnptr, GLint  red, GLint  green, GLint  blue) {
-//   (*fnptr)(red, green, blue);
-// }
-// static void  glowSecondaryColor3iv(GPSECONDARYCOLOR3IV fnptr, const GLint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowSecondaryColor3s(GPSECONDARYCOLOR3S fnptr, GLshort  red, GLshort  green, GLshort  blue) {
-//   (*fnptr)(red, green, blue);
-// }
-// static void  glowSecondaryColor3sv(GPSECONDARYCOLOR3SV fnptr, const GLshort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowSecondaryColor3ub(GPSECONDARYCOLOR3UB fnptr, GLubyte  red, GLubyte  green, GLubyte  blue) {
-//   (*fnptr)(red, green, blue);
-// }
-// static void  glowSecondaryColor3ubv(GPSECONDARYCOLOR3UBV fnptr, const GLubyte * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowSecondaryColor3ui(GPSECONDARYCOLOR3UI fnptr, GLuint  red, GLuint  green, GLuint  blue) {
-//   (*fnptr)(red, green, blue);
-// }
-// static void  glowSecondaryColor3uiv(GPSECONDARYCOLOR3UIV fnptr, const GLuint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowSecondaryColor3us(GPSECONDARYCOLOR3US fnptr, GLushort  red, GLushort  green, GLushort  blue) {
-//   (*fnptr)(red, green, blue);
-// }
-// static void  glowSecondaryColor3usv(GPSECONDARYCOLOR3USV fnptr, const GLushort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowSecondaryColorPointer(GPSECONDARYCOLORPOINTER fnptr, GLint  size, GLenum  type, GLsizei  stride, const void * pointer) {
-//   (*fnptr)(size, type, stride, pointer);
-// }
-// static void  glowSelectBuffer(GPSELECTBUFFER fnptr, GLsizei  size, GLuint * buffer) {
-//   (*fnptr)(size, buffer);
-// }
-// static void  glowShadeModel(GPSHADEMODEL fnptr, GLenum  mode) {
-//   (*fnptr)(mode);
 // }
 // static void  glowShaderSource(GPSHADERSOURCE fnptr, GLuint  shader, GLsizei  count, const GLchar *const* string, const GLint * length) {
 //   (*fnptr)(shader, count, string, length);
@@ -2020,149 +498,8 @@ package gl
 // static void  glowStencilOpSeparate(GPSTENCILOPSEPARATE fnptr, GLenum  face, GLenum  sfail, GLenum  dpfail, GLenum  dppass) {
 //   (*fnptr)(face, sfail, dpfail, dppass);
 // }
-// static void  glowTexCoord1d(GPTEXCOORD1D fnptr, GLdouble  s) {
-//   (*fnptr)(s);
-// }
-// static void  glowTexCoord1dv(GPTEXCOORD1DV fnptr, const GLdouble * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowTexCoord1f(GPTEXCOORD1F fnptr, GLfloat  s) {
-//   (*fnptr)(s);
-// }
-// static void  glowTexCoord1fv(GPTEXCOORD1FV fnptr, const GLfloat * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowTexCoord1i(GPTEXCOORD1I fnptr, GLint  s) {
-//   (*fnptr)(s);
-// }
-// static void  glowTexCoord1iv(GPTEXCOORD1IV fnptr, const GLint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowTexCoord1s(GPTEXCOORD1S fnptr, GLshort  s) {
-//   (*fnptr)(s);
-// }
-// static void  glowTexCoord1sv(GPTEXCOORD1SV fnptr, const GLshort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowTexCoord2d(GPTEXCOORD2D fnptr, GLdouble  s, GLdouble  t) {
-//   (*fnptr)(s, t);
-// }
-// static void  glowTexCoord2dv(GPTEXCOORD2DV fnptr, const GLdouble * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowTexCoord2f(GPTEXCOORD2F fnptr, GLfloat  s, GLfloat  t) {
-//   (*fnptr)(s, t);
-// }
-// static void  glowTexCoord2fv(GPTEXCOORD2FV fnptr, const GLfloat * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowTexCoord2i(GPTEXCOORD2I fnptr, GLint  s, GLint  t) {
-//   (*fnptr)(s, t);
-// }
-// static void  glowTexCoord2iv(GPTEXCOORD2IV fnptr, const GLint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowTexCoord2s(GPTEXCOORD2S fnptr, GLshort  s, GLshort  t) {
-//   (*fnptr)(s, t);
-// }
-// static void  glowTexCoord2sv(GPTEXCOORD2SV fnptr, const GLshort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowTexCoord3d(GPTEXCOORD3D fnptr, GLdouble  s, GLdouble  t, GLdouble  r) {
-//   (*fnptr)(s, t, r);
-// }
-// static void  glowTexCoord3dv(GPTEXCOORD3DV fnptr, const GLdouble * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowTexCoord3f(GPTEXCOORD3F fnptr, GLfloat  s, GLfloat  t, GLfloat  r) {
-//   (*fnptr)(s, t, r);
-// }
-// static void  glowTexCoord3fv(GPTEXCOORD3FV fnptr, const GLfloat * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowTexCoord3i(GPTEXCOORD3I fnptr, GLint  s, GLint  t, GLint  r) {
-//   (*fnptr)(s, t, r);
-// }
-// static void  glowTexCoord3iv(GPTEXCOORD3IV fnptr, const GLint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowTexCoord3s(GPTEXCOORD3S fnptr, GLshort  s, GLshort  t, GLshort  r) {
-//   (*fnptr)(s, t, r);
-// }
-// static void  glowTexCoord3sv(GPTEXCOORD3SV fnptr, const GLshort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowTexCoord4d(GPTEXCOORD4D fnptr, GLdouble  s, GLdouble  t, GLdouble  r, GLdouble  q) {
-//   (*fnptr)(s, t, r, q);
-// }
-// static void  glowTexCoord4dv(GPTEXCOORD4DV fnptr, const GLdouble * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowTexCoord4f(GPTEXCOORD4F fnptr, GLfloat  s, GLfloat  t, GLfloat  r, GLfloat  q) {
-//   (*fnptr)(s, t, r, q);
-// }
-// static void  glowTexCoord4fv(GPTEXCOORD4FV fnptr, const GLfloat * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowTexCoord4i(GPTEXCOORD4I fnptr, GLint  s, GLint  t, GLint  r, GLint  q) {
-//   (*fnptr)(s, t, r, q);
-// }
-// static void  glowTexCoord4iv(GPTEXCOORD4IV fnptr, const GLint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowTexCoord4s(GPTEXCOORD4S fnptr, GLshort  s, GLshort  t, GLshort  r, GLshort  q) {
-//   (*fnptr)(s, t, r, q);
-// }
-// static void  glowTexCoord4sv(GPTEXCOORD4SV fnptr, const GLshort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowTexCoordPointer(GPTEXCOORDPOINTER fnptr, GLint  size, GLenum  type, GLsizei  stride, const void * pointer) {
-//   (*fnptr)(size, type, stride, pointer);
-// }
-// static void  glowTexEnvf(GPTEXENVF fnptr, GLenum  target, GLenum  pname, GLfloat  param) {
-//   (*fnptr)(target, pname, param);
-// }
-// static void  glowTexEnvfv(GPTEXENVFV fnptr, GLenum  target, GLenum  pname, const GLfloat * params) {
-//   (*fnptr)(target, pname, params);
-// }
-// static void  glowTexEnvi(GPTEXENVI fnptr, GLenum  target, GLenum  pname, GLint  param) {
-//   (*fnptr)(target, pname, param);
-// }
-// static void  glowTexEnviv(GPTEXENVIV fnptr, GLenum  target, GLenum  pname, const GLint * params) {
-//   (*fnptr)(target, pname, params);
-// }
-// static void  glowTexGend(GPTEXGEND fnptr, GLenum  coord, GLenum  pname, GLdouble  param) {
-//   (*fnptr)(coord, pname, param);
-// }
-// static void  glowTexGendv(GPTEXGENDV fnptr, GLenum  coord, GLenum  pname, const GLdouble * params) {
-//   (*fnptr)(coord, pname, params);
-// }
-// static void  glowTexGenf(GPTEXGENF fnptr, GLenum  coord, GLenum  pname, GLfloat  param) {
-//   (*fnptr)(coord, pname, param);
-// }
-// static void  glowTexGenfv(GPTEXGENFV fnptr, GLenum  coord, GLenum  pname, const GLfloat * params) {
-//   (*fnptr)(coord, pname, params);
-// }
-// static void  glowTexGeni(GPTEXGENI fnptr, GLenum  coord, GLenum  pname, GLint  param) {
-//   (*fnptr)(coord, pname, param);
-// }
-// static void  glowTexGeniv(GPTEXGENIV fnptr, GLenum  coord, GLenum  pname, const GLint * params) {
-//   (*fnptr)(coord, pname, params);
-// }
-// static void  glowTexImage1D(GPTEXIMAGE1D fnptr, GLenum  target, GLint  level, GLint  internalformat, GLsizei  width, GLint  border, GLenum  format, GLenum  type, const void * pixels) {
-//   (*fnptr)(target, level, internalformat, width, border, format, type, pixels);
-// }
 // static void  glowTexImage2D(GPTEXIMAGE2D fnptr, GLenum  target, GLint  level, GLint  internalformat, GLsizei  width, GLsizei  height, GLint  border, GLenum  format, GLenum  type, const void * pixels) {
 //   (*fnptr)(target, level, internalformat, width, height, border, format, type, pixels);
-// }
-// static void  glowTexImage3D(GPTEXIMAGE3D fnptr, GLenum  target, GLint  level, GLint  internalformat, GLsizei  width, GLsizei  height, GLsizei  depth, GLint  border, GLenum  format, GLenum  type, const void * pixels) {
-//   (*fnptr)(target, level, internalformat, width, height, depth, border, format, type, pixels);
-// }
-// static void  glowTexParameterIiv(GPTEXPARAMETERIIV fnptr, GLenum  target, GLenum  pname, const GLint * params) {
-//   (*fnptr)(target, pname, params);
-// }
-// static void  glowTexParameterIuiv(GPTEXPARAMETERIUIV fnptr, GLenum  target, GLenum  pname, const GLuint * params) {
-//   (*fnptr)(target, pname, params);
 // }
 // static void  glowTexParameterf(GPTEXPARAMETERF fnptr, GLenum  target, GLenum  pname, GLfloat  param) {
 //   (*fnptr)(target, pname, param);
@@ -2176,23 +513,8 @@ package gl
 // static void  glowTexParameteriv(GPTEXPARAMETERIV fnptr, GLenum  target, GLenum  pname, const GLint * params) {
 //   (*fnptr)(target, pname, params);
 // }
-// static void  glowTexSubImage1D(GPTEXSUBIMAGE1D fnptr, GLenum  target, GLint  level, GLint  xoffset, GLsizei  width, GLenum  format, GLenum  type, const void * pixels) {
-//   (*fnptr)(target, level, xoffset, width, format, type, pixels);
-// }
 // static void  glowTexSubImage2D(GPTEXSUBIMAGE2D fnptr, GLenum  target, GLint  level, GLint  xoffset, GLint  yoffset, GLsizei  width, GLsizei  height, GLenum  format, GLenum  type, const void * pixels) {
 //   (*fnptr)(target, level, xoffset, yoffset, width, height, format, type, pixels);
-// }
-// static void  glowTexSubImage3D(GPTEXSUBIMAGE3D fnptr, GLenum  target, GLint  level, GLint  xoffset, GLint  yoffset, GLint  zoffset, GLsizei  width, GLsizei  height, GLsizei  depth, GLenum  format, GLenum  type, const void * pixels) {
-//   (*fnptr)(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
-// }
-// static void  glowTransformFeedbackVaryings(GPTRANSFORMFEEDBACKVARYINGS fnptr, GLuint  program, GLsizei  count, const GLchar *const* varyings, GLenum  bufferMode) {
-//   (*fnptr)(program, count, varyings, bufferMode);
-// }
-// static void  glowTranslated(GPTRANSLATED fnptr, GLdouble  x, GLdouble  y, GLdouble  z) {
-//   (*fnptr)(x, y, z);
-// }
-// static void  glowTranslatef(GPTRANSLATEF fnptr, GLfloat  x, GLfloat  y, GLfloat  z) {
-//   (*fnptr)(x, y, z);
 // }
 // static void  glowUniform1f(GPUNIFORM1F fnptr, GLint  location, GLfloat  v0) {
 //   (*fnptr)(location, v0);
@@ -2204,12 +526,6 @@ package gl
 //   (*fnptr)(location, v0);
 // }
 // static void  glowUniform1iv(GPUNIFORM1IV fnptr, GLint  location, GLsizei  count, const GLint * value) {
-//   (*fnptr)(location, count, value);
-// }
-// static void  glowUniform1ui(GPUNIFORM1UI fnptr, GLint  location, GLuint  v0) {
-//   (*fnptr)(location, v0);
-// }
-// static void  glowUniform1uiv(GPUNIFORM1UIV fnptr, GLint  location, GLsizei  count, const GLuint * value) {
 //   (*fnptr)(location, count, value);
 // }
 // static void  glowUniform2f(GPUNIFORM2F fnptr, GLint  location, GLfloat  v0, GLfloat  v1) {
@@ -2224,12 +540,6 @@ package gl
 // static void  glowUniform2iv(GPUNIFORM2IV fnptr, GLint  location, GLsizei  count, const GLint * value) {
 //   (*fnptr)(location, count, value);
 // }
-// static void  glowUniform2ui(GPUNIFORM2UI fnptr, GLint  location, GLuint  v0, GLuint  v1) {
-//   (*fnptr)(location, v0, v1);
-// }
-// static void  glowUniform2uiv(GPUNIFORM2UIV fnptr, GLint  location, GLsizei  count, const GLuint * value) {
-//   (*fnptr)(location, count, value);
-// }
 // static void  glowUniform3f(GPUNIFORM3F fnptr, GLint  location, GLfloat  v0, GLfloat  v1, GLfloat  v2) {
 //   (*fnptr)(location, v0, v1, v2);
 // }
@@ -2240,12 +550,6 @@ package gl
 //   (*fnptr)(location, v0, v1, v2);
 // }
 // static void  glowUniform3iv(GPUNIFORM3IV fnptr, GLint  location, GLsizei  count, const GLint * value) {
-//   (*fnptr)(location, count, value);
-// }
-// static void  glowUniform3ui(GPUNIFORM3UI fnptr, GLint  location, GLuint  v0, GLuint  v1, GLuint  v2) {
-//   (*fnptr)(location, v0, v1, v2);
-// }
-// static void  glowUniform3uiv(GPUNIFORM3UIV fnptr, GLint  location, GLsizei  count, const GLuint * value) {
 //   (*fnptr)(location, count, value);
 // }
 // static void  glowUniform4f(GPUNIFORM4F fnptr, GLint  location, GLfloat  v0, GLfloat  v1, GLfloat  v2, GLfloat  v3) {
@@ -2260,41 +564,14 @@ package gl
 // static void  glowUniform4iv(GPUNIFORM4IV fnptr, GLint  location, GLsizei  count, const GLint * value) {
 //   (*fnptr)(location, count, value);
 // }
-// static void  glowUniform4ui(GPUNIFORM4UI fnptr, GLint  location, GLuint  v0, GLuint  v1, GLuint  v2, GLuint  v3) {
-//   (*fnptr)(location, v0, v1, v2, v3);
-// }
-// static void  glowUniform4uiv(GPUNIFORM4UIV fnptr, GLint  location, GLsizei  count, const GLuint * value) {
-//   (*fnptr)(location, count, value);
-// }
 // static void  glowUniformMatrix2fv(GPUNIFORMMATRIX2FV fnptr, GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value) {
-//   (*fnptr)(location, count, transpose, value);
-// }
-// static void  glowUniformMatrix2x3fv(GPUNIFORMMATRIX2X3FV fnptr, GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value) {
-//   (*fnptr)(location, count, transpose, value);
-// }
-// static void  glowUniformMatrix2x4fv(GPUNIFORMMATRIX2X4FV fnptr, GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value) {
 //   (*fnptr)(location, count, transpose, value);
 // }
 // static void  glowUniformMatrix3fv(GPUNIFORMMATRIX3FV fnptr, GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value) {
 //   (*fnptr)(location, count, transpose, value);
 // }
-// static void  glowUniformMatrix3x2fv(GPUNIFORMMATRIX3X2FV fnptr, GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value) {
-//   (*fnptr)(location, count, transpose, value);
-// }
-// static void  glowUniformMatrix3x4fv(GPUNIFORMMATRIX3X4FV fnptr, GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value) {
-//   (*fnptr)(location, count, transpose, value);
-// }
 // static void  glowUniformMatrix4fv(GPUNIFORMMATRIX4FV fnptr, GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value) {
 //   (*fnptr)(location, count, transpose, value);
-// }
-// static void  glowUniformMatrix4x2fv(GPUNIFORMMATRIX4X2FV fnptr, GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value) {
-//   (*fnptr)(location, count, transpose, value);
-// }
-// static void  glowUniformMatrix4x3fv(GPUNIFORMMATRIX4X3FV fnptr, GLint  location, GLsizei  count, GLboolean  transpose, const GLfloat * value) {
-//   (*fnptr)(location, count, transpose, value);
-// }
-// static GLboolean  glowUnmapBuffer(GPUNMAPBUFFER fnptr, GLenum  target) {
-//   return (*fnptr)(target);
 // }
 // static void  glowUseProgram(GPUSEPROGRAM fnptr, GLuint  program) {
 //   (*fnptr)(program);
@@ -2302,100 +579,10 @@ package gl
 // static void  glowValidateProgram(GPVALIDATEPROGRAM fnptr, GLuint  program) {
 //   (*fnptr)(program);
 // }
-// static void  glowVertex2d(GPVERTEX2D fnptr, GLdouble  x, GLdouble  y) {
-//   (*fnptr)(x, y);
-// }
-// static void  glowVertex2dv(GPVERTEX2DV fnptr, const GLdouble * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowVertex2f(GPVERTEX2F fnptr, GLfloat  x, GLfloat  y) {
-//   (*fnptr)(x, y);
-// }
-// static void  glowVertex2fv(GPVERTEX2FV fnptr, const GLfloat * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowVertex2i(GPVERTEX2I fnptr, GLint  x, GLint  y) {
-//   (*fnptr)(x, y);
-// }
-// static void  glowVertex2iv(GPVERTEX2IV fnptr, const GLint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowVertex2s(GPVERTEX2S fnptr, GLshort  x, GLshort  y) {
-//   (*fnptr)(x, y);
-// }
-// static void  glowVertex2sv(GPVERTEX2SV fnptr, const GLshort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowVertex3d(GPVERTEX3D fnptr, GLdouble  x, GLdouble  y, GLdouble  z) {
-//   (*fnptr)(x, y, z);
-// }
-// static void  glowVertex3dv(GPVERTEX3DV fnptr, const GLdouble * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowVertex3f(GPVERTEX3F fnptr, GLfloat  x, GLfloat  y, GLfloat  z) {
-//   (*fnptr)(x, y, z);
-// }
-// static void  glowVertex3fv(GPVERTEX3FV fnptr, const GLfloat * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowVertex3i(GPVERTEX3I fnptr, GLint  x, GLint  y, GLint  z) {
-//   (*fnptr)(x, y, z);
-// }
-// static void  glowVertex3iv(GPVERTEX3IV fnptr, const GLint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowVertex3s(GPVERTEX3S fnptr, GLshort  x, GLshort  y, GLshort  z) {
-//   (*fnptr)(x, y, z);
-// }
-// static void  glowVertex3sv(GPVERTEX3SV fnptr, const GLshort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowVertex4d(GPVERTEX4D fnptr, GLdouble  x, GLdouble  y, GLdouble  z, GLdouble  w) {
-//   (*fnptr)(x, y, z, w);
-// }
-// static void  glowVertex4dv(GPVERTEX4DV fnptr, const GLdouble * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowVertex4f(GPVERTEX4F fnptr, GLfloat  x, GLfloat  y, GLfloat  z, GLfloat  w) {
-//   (*fnptr)(x, y, z, w);
-// }
-// static void  glowVertex4fv(GPVERTEX4FV fnptr, const GLfloat * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowVertex4i(GPVERTEX4I fnptr, GLint  x, GLint  y, GLint  z, GLint  w) {
-//   (*fnptr)(x, y, z, w);
-// }
-// static void  glowVertex4iv(GPVERTEX4IV fnptr, const GLint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowVertex4s(GPVERTEX4S fnptr, GLshort  x, GLshort  y, GLshort  z, GLshort  w) {
-//   (*fnptr)(x, y, z, w);
-// }
-// static void  glowVertex4sv(GPVERTEX4SV fnptr, const GLshort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowVertexAttrib1d(GPVERTEXATTRIB1D fnptr, GLuint  index, GLdouble  x) {
-//   (*fnptr)(index, x);
-// }
-// static void  glowVertexAttrib1dv(GPVERTEXATTRIB1DV fnptr, GLuint  index, const GLdouble * v) {
-//   (*fnptr)(index, v);
-// }
 // static void  glowVertexAttrib1f(GPVERTEXATTRIB1F fnptr, GLuint  index, GLfloat  x) {
 //   (*fnptr)(index, x);
 // }
 // static void  glowVertexAttrib1fv(GPVERTEXATTRIB1FV fnptr, GLuint  index, const GLfloat * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttrib1s(GPVERTEXATTRIB1S fnptr, GLuint  index, GLshort  x) {
-//   (*fnptr)(index, x);
-// }
-// static void  glowVertexAttrib1sv(GPVERTEXATTRIB1SV fnptr, GLuint  index, const GLshort * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttrib2d(GPVERTEXATTRIB2D fnptr, GLuint  index, GLdouble  x, GLdouble  y) {
-//   (*fnptr)(index, x, y);
-// }
-// static void  glowVertexAttrib2dv(GPVERTEXATTRIB2DV fnptr, GLuint  index, const GLdouble * v) {
 //   (*fnptr)(index, v);
 // }
 // static void  glowVertexAttrib2f(GPVERTEXATTRIB2F fnptr, GLuint  index, GLfloat  x, GLfloat  y) {
@@ -2404,58 +591,10 @@ package gl
 // static void  glowVertexAttrib2fv(GPVERTEXATTRIB2FV fnptr, GLuint  index, const GLfloat * v) {
 //   (*fnptr)(index, v);
 // }
-// static void  glowVertexAttrib2s(GPVERTEXATTRIB2S fnptr, GLuint  index, GLshort  x, GLshort  y) {
-//   (*fnptr)(index, x, y);
-// }
-// static void  glowVertexAttrib2sv(GPVERTEXATTRIB2SV fnptr, GLuint  index, const GLshort * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttrib3d(GPVERTEXATTRIB3D fnptr, GLuint  index, GLdouble  x, GLdouble  y, GLdouble  z) {
-//   (*fnptr)(index, x, y, z);
-// }
-// static void  glowVertexAttrib3dv(GPVERTEXATTRIB3DV fnptr, GLuint  index, const GLdouble * v) {
-//   (*fnptr)(index, v);
-// }
 // static void  glowVertexAttrib3f(GPVERTEXATTRIB3F fnptr, GLuint  index, GLfloat  x, GLfloat  y, GLfloat  z) {
 //   (*fnptr)(index, x, y, z);
 // }
 // static void  glowVertexAttrib3fv(GPVERTEXATTRIB3FV fnptr, GLuint  index, const GLfloat * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttrib3s(GPVERTEXATTRIB3S fnptr, GLuint  index, GLshort  x, GLshort  y, GLshort  z) {
-//   (*fnptr)(index, x, y, z);
-// }
-// static void  glowVertexAttrib3sv(GPVERTEXATTRIB3SV fnptr, GLuint  index, const GLshort * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttrib4Nbv(GPVERTEXATTRIB4NBV fnptr, GLuint  index, const GLbyte * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttrib4Niv(GPVERTEXATTRIB4NIV fnptr, GLuint  index, const GLint * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttrib4Nsv(GPVERTEXATTRIB4NSV fnptr, GLuint  index, const GLshort * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttrib4Nub(GPVERTEXATTRIB4NUB fnptr, GLuint  index, GLubyte  x, GLubyte  y, GLubyte  z, GLubyte  w) {
-//   (*fnptr)(index, x, y, z, w);
-// }
-// static void  glowVertexAttrib4Nubv(GPVERTEXATTRIB4NUBV fnptr, GLuint  index, const GLubyte * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttrib4Nuiv(GPVERTEXATTRIB4NUIV fnptr, GLuint  index, const GLuint * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttrib4Nusv(GPVERTEXATTRIB4NUSV fnptr, GLuint  index, const GLushort * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttrib4bv(GPVERTEXATTRIB4BV fnptr, GLuint  index, const GLbyte * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttrib4d(GPVERTEXATTRIB4D fnptr, GLuint  index, GLdouble  x, GLdouble  y, GLdouble  z, GLdouble  w) {
-//   (*fnptr)(index, x, y, z, w);
-// }
-// static void  glowVertexAttrib4dv(GPVERTEXATTRIB4DV fnptr, GLuint  index, const GLdouble * v) {
 //   (*fnptr)(index, v);
 // }
 // static void  glowVertexAttrib4f(GPVERTEXATTRIB4F fnptr, GLuint  index, GLfloat  x, GLfloat  y, GLfloat  z, GLfloat  w) {
@@ -2464,143 +603,11 @@ package gl
 // static void  glowVertexAttrib4fv(GPVERTEXATTRIB4FV fnptr, GLuint  index, const GLfloat * v) {
 //   (*fnptr)(index, v);
 // }
-// static void  glowVertexAttrib4iv(GPVERTEXATTRIB4IV fnptr, GLuint  index, const GLint * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttrib4s(GPVERTEXATTRIB4S fnptr, GLuint  index, GLshort  x, GLshort  y, GLshort  z, GLshort  w) {
-//   (*fnptr)(index, x, y, z, w);
-// }
-// static void  glowVertexAttrib4sv(GPVERTEXATTRIB4SV fnptr, GLuint  index, const GLshort * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttrib4ubv(GPVERTEXATTRIB4UBV fnptr, GLuint  index, const GLubyte * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttrib4uiv(GPVERTEXATTRIB4UIV fnptr, GLuint  index, const GLuint * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttrib4usv(GPVERTEXATTRIB4USV fnptr, GLuint  index, const GLushort * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttribI1i(GPVERTEXATTRIBI1I fnptr, GLuint  index, GLint  x) {
-//   (*fnptr)(index, x);
-// }
-// static void  glowVertexAttribI1iv(GPVERTEXATTRIBI1IV fnptr, GLuint  index, const GLint * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttribI1ui(GPVERTEXATTRIBI1UI fnptr, GLuint  index, GLuint  x) {
-//   (*fnptr)(index, x);
-// }
-// static void  glowVertexAttribI1uiv(GPVERTEXATTRIBI1UIV fnptr, GLuint  index, const GLuint * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttribI2i(GPVERTEXATTRIBI2I fnptr, GLuint  index, GLint  x, GLint  y) {
-//   (*fnptr)(index, x, y);
-// }
-// static void  glowVertexAttribI2iv(GPVERTEXATTRIBI2IV fnptr, GLuint  index, const GLint * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttribI2ui(GPVERTEXATTRIBI2UI fnptr, GLuint  index, GLuint  x, GLuint  y) {
-//   (*fnptr)(index, x, y);
-// }
-// static void  glowVertexAttribI2uiv(GPVERTEXATTRIBI2UIV fnptr, GLuint  index, const GLuint * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttribI3i(GPVERTEXATTRIBI3I fnptr, GLuint  index, GLint  x, GLint  y, GLint  z) {
-//   (*fnptr)(index, x, y, z);
-// }
-// static void  glowVertexAttribI3iv(GPVERTEXATTRIBI3IV fnptr, GLuint  index, const GLint * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttribI3ui(GPVERTEXATTRIBI3UI fnptr, GLuint  index, GLuint  x, GLuint  y, GLuint  z) {
-//   (*fnptr)(index, x, y, z);
-// }
-// static void  glowVertexAttribI3uiv(GPVERTEXATTRIBI3UIV fnptr, GLuint  index, const GLuint * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttribI4bv(GPVERTEXATTRIBI4BV fnptr, GLuint  index, const GLbyte * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttribI4i(GPVERTEXATTRIBI4I fnptr, GLuint  index, GLint  x, GLint  y, GLint  z, GLint  w) {
-//   (*fnptr)(index, x, y, z, w);
-// }
-// static void  glowVertexAttribI4iv(GPVERTEXATTRIBI4IV fnptr, GLuint  index, const GLint * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttribI4sv(GPVERTEXATTRIBI4SV fnptr, GLuint  index, const GLshort * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttribI4ubv(GPVERTEXATTRIBI4UBV fnptr, GLuint  index, const GLubyte * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttribI4ui(GPVERTEXATTRIBI4UI fnptr, GLuint  index, GLuint  x, GLuint  y, GLuint  z, GLuint  w) {
-//   (*fnptr)(index, x, y, z, w);
-// }
-// static void  glowVertexAttribI4uiv(GPVERTEXATTRIBI4UIV fnptr, GLuint  index, const GLuint * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttribI4usv(GPVERTEXATTRIBI4USV fnptr, GLuint  index, const GLushort * v) {
-//   (*fnptr)(index, v);
-// }
-// static void  glowVertexAttribIPointer(GPVERTEXATTRIBIPOINTER fnptr, GLuint  index, GLint  size, GLenum  type, GLsizei  stride, const void * pointer) {
-//   (*fnptr)(index, size, type, stride, pointer);
-// }
 // static void  glowVertexAttribPointer(GPVERTEXATTRIBPOINTER fnptr, GLuint  index, GLint  size, GLenum  type, GLboolean  normalized, GLsizei  stride, const void * pointer) {
 //   (*fnptr)(index, size, type, normalized, stride, pointer);
 // }
-// static void  glowVertexPointer(GPVERTEXPOINTER fnptr, GLint  size, GLenum  type, GLsizei  stride, const void * pointer) {
-//   (*fnptr)(size, type, stride, pointer);
-// }
 // static void  glowViewport(GPVIEWPORT fnptr, GLint  x, GLint  y, GLsizei  width, GLsizei  height) {
 //   (*fnptr)(x, y, width, height);
-// }
-// static void  glowWindowPos2d(GPWINDOWPOS2D fnptr, GLdouble  x, GLdouble  y) {
-//   (*fnptr)(x, y);
-// }
-// static void  glowWindowPos2dv(GPWINDOWPOS2DV fnptr, const GLdouble * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowWindowPos2f(GPWINDOWPOS2F fnptr, GLfloat  x, GLfloat  y) {
-//   (*fnptr)(x, y);
-// }
-// static void  glowWindowPos2fv(GPWINDOWPOS2FV fnptr, const GLfloat * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowWindowPos2i(GPWINDOWPOS2I fnptr, GLint  x, GLint  y) {
-//   (*fnptr)(x, y);
-// }
-// static void  glowWindowPos2iv(GPWINDOWPOS2IV fnptr, const GLint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowWindowPos2s(GPWINDOWPOS2S fnptr, GLshort  x, GLshort  y) {
-//   (*fnptr)(x, y);
-// }
-// static void  glowWindowPos2sv(GPWINDOWPOS2SV fnptr, const GLshort * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowWindowPos3d(GPWINDOWPOS3D fnptr, GLdouble  x, GLdouble  y, GLdouble  z) {
-//   (*fnptr)(x, y, z);
-// }
-// static void  glowWindowPos3dv(GPWINDOWPOS3DV fnptr, const GLdouble * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowWindowPos3f(GPWINDOWPOS3F fnptr, GLfloat  x, GLfloat  y, GLfloat  z) {
-//   (*fnptr)(x, y, z);
-// }
-// static void  glowWindowPos3fv(GPWINDOWPOS3FV fnptr, const GLfloat * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowWindowPos3i(GPWINDOWPOS3I fnptr, GLint  x, GLint  y, GLint  z) {
-//   (*fnptr)(x, y, z);
-// }
-// static void  glowWindowPos3iv(GPWINDOWPOS3IV fnptr, const GLint * v) {
-//   (*fnptr)(v);
-// }
-// static void  glowWindowPos3s(GPWINDOWPOS3S fnptr, GLshort  x, GLshort  y, GLshort  z) {
-//   (*fnptr)(x, y, z);
-// }
-// static void  glowWindowPos3sv(GPWINDOWPOS3SV fnptr, const GLshort * v) {
-//   (*fnptr)(v);
 // }
 import "C"
 import (
@@ -2894,440 +901,99 @@ const (
 )
 
 var (
-	gpAccum                               C.GPACCUM
 	gpActiveTexture                       C.GPACTIVETEXTURE
-	gpAlphaFunc                           C.GPALPHAFUNC
-	gpAreTexturesResident                 C.GPARETEXTURESRESIDENT
-	gpArrayElement                        C.GPARRAYELEMENT
 	gpAttachShader                        C.GPATTACHSHADER
-	gpBegin                               C.GPBEGIN
-	gpBeginConditionalRender              C.GPBEGINCONDITIONALRENDER
-	gpBeginQuery                          C.GPBEGINQUERY
-	gpBeginTransformFeedback              C.GPBEGINTRANSFORMFEEDBACK
 	gpBindAttribLocation                  C.GPBINDATTRIBLOCATION
 	gpBindBuffer                          C.GPBINDBUFFER
-	gpBindBufferBase                      C.GPBINDBUFFERBASE
-	gpBindBufferRange                     C.GPBINDBUFFERRANGE
-	gpBindFragDataLocation                C.GPBINDFRAGDATALOCATION
 	gpBindFramebuffer                     C.GPBINDFRAMEBUFFER
 	gpBindRenderbuffer                    C.GPBINDRENDERBUFFER
 	gpBindTexture                         C.GPBINDTEXTURE
-	gpBindVertexArray                     C.GPBINDVERTEXARRAY
-	gpBitmap                              C.GPBITMAP
 	gpBlendColor                          C.GPBLENDCOLOR
 	gpBlendEquation                       C.GPBLENDEQUATION
 	gpBlendEquationSeparate               C.GPBLENDEQUATIONSEPARATE
 	gpBlendFunc                           C.GPBLENDFUNC
 	gpBlendFuncSeparate                   C.GPBLENDFUNCSEPARATE
-	gpBlitFramebuffer                     C.GPBLITFRAMEBUFFER
 	gpBufferData                          C.GPBUFFERDATA
 	gpBufferSubData                       C.GPBUFFERSUBDATA
-	gpCallList                            C.GPCALLLIST
-	gpCallLists                           C.GPCALLLISTS
 	gpCheckFramebufferStatus              C.GPCHECKFRAMEBUFFERSTATUS
-	gpClampColor                          C.GPCLAMPCOLOR
 	gpClear                               C.GPCLEAR
-	gpClearAccum                          C.GPCLEARACCUM
-	gpClearBufferfi                       C.GPCLEARBUFFERFI
-	gpClearBufferfv                       C.GPCLEARBUFFERFV
-	gpClearBufferiv                       C.GPCLEARBUFFERIV
-	gpClearBufferuiv                      C.GPCLEARBUFFERUIV
 	gpClearColor                          C.GPCLEARCOLOR
-	gpClearDepth                          C.GPCLEARDEPTH
-	gpClearIndex                          C.GPCLEARINDEX
 	gpClearStencil                        C.GPCLEARSTENCIL
-	gpClientActiveTexture                 C.GPCLIENTACTIVETEXTURE
-	gpClipPlane                           C.GPCLIPPLANE
-	gpColor3b                             C.GPCOLOR3B
-	gpColor3bv                            C.GPCOLOR3BV
-	gpColor3d                             C.GPCOLOR3D
-	gpColor3dv                            C.GPCOLOR3DV
-	gpColor3f                             C.GPCOLOR3F
-	gpColor3fv                            C.GPCOLOR3FV
-	gpColor3i                             C.GPCOLOR3I
-	gpColor3iv                            C.GPCOLOR3IV
-	gpColor3s                             C.GPCOLOR3S
-	gpColor3sv                            C.GPCOLOR3SV
-	gpColor3ub                            C.GPCOLOR3UB
-	gpColor3ubv                           C.GPCOLOR3UBV
-	gpColor3ui                            C.GPCOLOR3UI
-	gpColor3uiv                           C.GPCOLOR3UIV
-	gpColor3us                            C.GPCOLOR3US
-	gpColor3usv                           C.GPCOLOR3USV
-	gpColor4b                             C.GPCOLOR4B
-	gpColor4bv                            C.GPCOLOR4BV
-	gpColor4d                             C.GPCOLOR4D
-	gpColor4dv                            C.GPCOLOR4DV
-	gpColor4f                             C.GPCOLOR4F
-	gpColor4fv                            C.GPCOLOR4FV
-	gpColor4i                             C.GPCOLOR4I
-	gpColor4iv                            C.GPCOLOR4IV
-	gpColor4s                             C.GPCOLOR4S
-	gpColor4sv                            C.GPCOLOR4SV
-	gpColor4ub                            C.GPCOLOR4UB
-	gpColor4ubv                           C.GPCOLOR4UBV
-	gpColor4ui                            C.GPCOLOR4UI
-	gpColor4uiv                           C.GPCOLOR4UIV
-	gpColor4us                            C.GPCOLOR4US
-	gpColor4usv                           C.GPCOLOR4USV
 	gpColorMask                           C.GPCOLORMASK
-	gpColorMaski                          C.GPCOLORMASKI
-	gpColorMaterial                       C.GPCOLORMATERIAL
-	gpColorPointer                        C.GPCOLORPOINTER
 	gpCompileShader                       C.GPCOMPILESHADER
-	gpCompressedTexImage1D                C.GPCOMPRESSEDTEXIMAGE1D
 	gpCompressedTexImage2D                C.GPCOMPRESSEDTEXIMAGE2D
-	gpCompressedTexImage3D                C.GPCOMPRESSEDTEXIMAGE3D
-	gpCompressedTexSubImage1D             C.GPCOMPRESSEDTEXSUBIMAGE1D
 	gpCompressedTexSubImage2D             C.GPCOMPRESSEDTEXSUBIMAGE2D
-	gpCompressedTexSubImage3D             C.GPCOMPRESSEDTEXSUBIMAGE3D
-	gpCopyPixels                          C.GPCOPYPIXELS
-	gpCopyTexImage1D                      C.GPCOPYTEXIMAGE1D
 	gpCopyTexImage2D                      C.GPCOPYTEXIMAGE2D
-	gpCopyTexSubImage1D                   C.GPCOPYTEXSUBIMAGE1D
 	gpCopyTexSubImage2D                   C.GPCOPYTEXSUBIMAGE2D
-	gpCopyTexSubImage3D                   C.GPCOPYTEXSUBIMAGE3D
 	gpCreateProgram                       C.GPCREATEPROGRAM
 	gpCreateShader                        C.GPCREATESHADER
 	gpCullFace                            C.GPCULLFACE
 	gpDeleteBuffers                       C.GPDELETEBUFFERS
 	gpDeleteFramebuffers                  C.GPDELETEFRAMEBUFFERS
-	gpDeleteLists                         C.GPDELETELISTS
 	gpDeleteProgram                       C.GPDELETEPROGRAM
-	gpDeleteQueries                       C.GPDELETEQUERIES
 	gpDeleteRenderbuffers                 C.GPDELETERENDERBUFFERS
 	gpDeleteShader                        C.GPDELETESHADER
 	gpDeleteTextures                      C.GPDELETETEXTURES
-	gpDeleteVertexArrays                  C.GPDELETEVERTEXARRAYS
 	gpDepthFunc                           C.GPDEPTHFUNC
 	gpDepthMask                           C.GPDEPTHMASK
-	gpDepthRange                          C.GPDEPTHRANGE
 	gpDetachShader                        C.GPDETACHSHADER
 	gpDisable                             C.GPDISABLE
-	gpDisableClientState                  C.GPDISABLECLIENTSTATE
 	gpDisableVertexAttribArray            C.GPDISABLEVERTEXATTRIBARRAY
-	gpDisablei                            C.GPDISABLEI
 	gpDrawArrays                          C.GPDRAWARRAYS
-	gpDrawBuffer                          C.GPDRAWBUFFER
-	gpDrawBuffers                         C.GPDRAWBUFFERS
 	gpDrawElements                        C.GPDRAWELEMENTS
-	gpDrawPixels                          C.GPDRAWPIXELS
-	gpDrawRangeElements                   C.GPDRAWRANGEELEMENTS
-	gpEdgeFlag                            C.GPEDGEFLAG
-	gpEdgeFlagPointer                     C.GPEDGEFLAGPOINTER
-	gpEdgeFlagv                           C.GPEDGEFLAGV
 	gpEnable                              C.GPENABLE
-	gpEnableClientState                   C.GPENABLECLIENTSTATE
 	gpEnableVertexAttribArray             C.GPENABLEVERTEXATTRIBARRAY
-	gpEnablei                             C.GPENABLEI
-	gpEnd                                 C.GPEND
-	gpEndConditionalRender                C.GPENDCONDITIONALRENDER
-	gpEndList                             C.GPENDLIST
-	gpEndQuery                            C.GPENDQUERY
-	gpEndTransformFeedback                C.GPENDTRANSFORMFEEDBACK
-	gpEvalCoord1d                         C.GPEVALCOORD1D
-	gpEvalCoord1dv                        C.GPEVALCOORD1DV
-	gpEvalCoord1f                         C.GPEVALCOORD1F
-	gpEvalCoord1fv                        C.GPEVALCOORD1FV
-	gpEvalCoord2d                         C.GPEVALCOORD2D
-	gpEvalCoord2dv                        C.GPEVALCOORD2DV
-	gpEvalCoord2f                         C.GPEVALCOORD2F
-	gpEvalCoord2fv                        C.GPEVALCOORD2FV
-	gpEvalMesh1                           C.GPEVALMESH1
-	gpEvalMesh2                           C.GPEVALMESH2
-	gpEvalPoint1                          C.GPEVALPOINT1
-	gpEvalPoint2                          C.GPEVALPOINT2
-	gpFeedbackBuffer                      C.GPFEEDBACKBUFFER
 	gpFinish                              C.GPFINISH
 	gpFlush                               C.GPFLUSH
-	gpFlushMappedBufferRange              C.GPFLUSHMAPPEDBUFFERRANGE
-	gpFogCoordPointer                     C.GPFOGCOORDPOINTER
-	gpFogCoordd                           C.GPFOGCOORDD
-	gpFogCoorddv                          C.GPFOGCOORDDV
-	gpFogCoordf                           C.GPFOGCOORDF
-	gpFogCoordfv                          C.GPFOGCOORDFV
-	gpFogf                                C.GPFOGF
-	gpFogfv                               C.GPFOGFV
-	gpFogi                                C.GPFOGI
-	gpFogiv                               C.GPFOGIV
 	gpFramebufferRenderbuffer             C.GPFRAMEBUFFERRENDERBUFFER
-	gpFramebufferTexture1D                C.GPFRAMEBUFFERTEXTURE1D
 	gpFramebufferTexture2D                C.GPFRAMEBUFFERTEXTURE2D
-	gpFramebufferTexture3D                C.GPFRAMEBUFFERTEXTURE3D
-	gpFramebufferTextureLayer             C.GPFRAMEBUFFERTEXTURELAYER
 	gpFrontFace                           C.GPFRONTFACE
-	gpFrustum                             C.GPFRUSTUM
 	gpGenBuffers                          C.GPGENBUFFERS
 	gpGenFramebuffers                     C.GPGENFRAMEBUFFERS
-	gpGenLists                            C.GPGENLISTS
-	gpGenQueries                          C.GPGENQUERIES
 	gpGenRenderbuffers                    C.GPGENRENDERBUFFERS
 	gpGenTextures                         C.GPGENTEXTURES
-	gpGenVertexArrays                     C.GPGENVERTEXARRAYS
 	gpGenerateMipmap                      C.GPGENERATEMIPMAP
 	gpGetActiveAttrib                     C.GPGETACTIVEATTRIB
 	gpGetActiveUniform                    C.GPGETACTIVEUNIFORM
 	gpGetAttachedShaders                  C.GPGETATTACHEDSHADERS
 	gpGetAttribLocation                   C.GPGETATTRIBLOCATION
-	gpGetBooleani_v                       C.GPGETBOOLEANI_V
 	gpGetBooleanv                         C.GPGETBOOLEANV
 	gpGetBufferParameteriv                C.GPGETBUFFERPARAMETERIV
-	gpGetBufferPointerv                   C.GPGETBUFFERPOINTERV
-	gpGetBufferSubData                    C.GPGETBUFFERSUBDATA
-	gpGetClipPlane                        C.GPGETCLIPPLANE
-	gpGetCompressedTexImage               C.GPGETCOMPRESSEDTEXIMAGE
-	gpGetDoublev                          C.GPGETDOUBLEV
 	gpGetError                            C.GPGETERROR
 	gpGetFloatv                           C.GPGETFLOATV
-	gpGetFragDataLocation                 C.GPGETFRAGDATALOCATION
 	gpGetFramebufferAttachmentParameteriv C.GPGETFRAMEBUFFERATTACHMENTPARAMETERIV
-	gpGetIntegeri_v                       C.GPGETINTEGERI_V
 	gpGetIntegerv                         C.GPGETINTEGERV
-	gpGetLightfv                          C.GPGETLIGHTFV
-	gpGetLightiv                          C.GPGETLIGHTIV
-	gpGetMapdv                            C.GPGETMAPDV
-	gpGetMapfv                            C.GPGETMAPFV
-	gpGetMapiv                            C.GPGETMAPIV
-	gpGetMaterialfv                       C.GPGETMATERIALFV
-	gpGetMaterialiv                       C.GPGETMATERIALIV
-	gpGetPixelMapfv                       C.GPGETPIXELMAPFV
-	gpGetPixelMapuiv                      C.GPGETPIXELMAPUIV
-	gpGetPixelMapusv                      C.GPGETPIXELMAPUSV
-	gpGetPointerv                         C.GPGETPOINTERV
-	gpGetPolygonStipple                   C.GPGETPOLYGONSTIPPLE
 	gpGetProgramInfoLog                   C.GPGETPROGRAMINFOLOG
 	gpGetProgramiv                        C.GPGETPROGRAMIV
-	gpGetQueryObjectiv                    C.GPGETQUERYOBJECTIV
-	gpGetQueryObjectuiv                   C.GPGETQUERYOBJECTUIV
-	gpGetQueryiv                          C.GPGETQUERYIV
 	gpGetRenderbufferParameteriv          C.GPGETRENDERBUFFERPARAMETERIV
 	gpGetShaderInfoLog                    C.GPGETSHADERINFOLOG
 	gpGetShaderSource                     C.GPGETSHADERSOURCE
 	gpGetShaderiv                         C.GPGETSHADERIV
 	gpGetString                           C.GPGETSTRING
-	gpGetStringi                          C.GPGETSTRINGI
-	gpGetTexEnvfv                         C.GPGETTEXENVFV
-	gpGetTexEnviv                         C.GPGETTEXENVIV
-	gpGetTexGendv                         C.GPGETTEXGENDV
-	gpGetTexGenfv                         C.GPGETTEXGENFV
-	gpGetTexGeniv                         C.GPGETTEXGENIV
-	gpGetTexImage                         C.GPGETTEXIMAGE
-	gpGetTexLevelParameterfv              C.GPGETTEXLEVELPARAMETERFV
-	gpGetTexLevelParameteriv              C.GPGETTEXLEVELPARAMETERIV
-	gpGetTexParameterIiv                  C.GPGETTEXPARAMETERIIV
-	gpGetTexParameterIuiv                 C.GPGETTEXPARAMETERIUIV
 	gpGetTexParameterfv                   C.GPGETTEXPARAMETERFV
 	gpGetTexParameteriv                   C.GPGETTEXPARAMETERIV
-	gpGetTransformFeedbackVarying         C.GPGETTRANSFORMFEEDBACKVARYING
 	gpGetUniformLocation                  C.GPGETUNIFORMLOCATION
 	gpGetUniformfv                        C.GPGETUNIFORMFV
 	gpGetUniformiv                        C.GPGETUNIFORMIV
-	gpGetUniformuiv                       C.GPGETUNIFORMUIV
-	gpGetVertexAttribIiv                  C.GPGETVERTEXATTRIBIIV
-	gpGetVertexAttribIuiv                 C.GPGETVERTEXATTRIBIUIV
 	gpGetVertexAttribPointerv             C.GPGETVERTEXATTRIBPOINTERV
-	gpGetVertexAttribdv                   C.GPGETVERTEXATTRIBDV
 	gpGetVertexAttribfv                   C.GPGETVERTEXATTRIBFV
 	gpGetVertexAttribiv                   C.GPGETVERTEXATTRIBIV
 	gpHint                                C.GPHINT
-	gpIndexMask                           C.GPINDEXMASK
-	gpIndexPointer                        C.GPINDEXPOINTER
-	gpIndexd                              C.GPINDEXD
-	gpIndexdv                             C.GPINDEXDV
-	gpIndexf                              C.GPINDEXF
-	gpIndexfv                             C.GPINDEXFV
-	gpIndexi                              C.GPINDEXI
-	gpIndexiv                             C.GPINDEXIV
-	gpIndexs                              C.GPINDEXS
-	gpIndexsv                             C.GPINDEXSV
-	gpIndexub                             C.GPINDEXUB
-	gpIndexubv                            C.GPINDEXUBV
-	gpInitNames                           C.GPINITNAMES
-	gpInterleavedArrays                   C.GPINTERLEAVEDARRAYS
 	gpIsBuffer                            C.GPISBUFFER
 	gpIsEnabled                           C.GPISENABLED
-	gpIsEnabledi                          C.GPISENABLEDI
 	gpIsFramebuffer                       C.GPISFRAMEBUFFER
-	gpIsList                              C.GPISLIST
 	gpIsProgram                           C.GPISPROGRAM
-	gpIsQuery                             C.GPISQUERY
 	gpIsRenderbuffer                      C.GPISRENDERBUFFER
 	gpIsShader                            C.GPISSHADER
 	gpIsTexture                           C.GPISTEXTURE
-	gpIsVertexArray                       C.GPISVERTEXARRAY
-	gpLightModelf                         C.GPLIGHTMODELF
-	gpLightModelfv                        C.GPLIGHTMODELFV
-	gpLightModeli                         C.GPLIGHTMODELI
-	gpLightModeliv                        C.GPLIGHTMODELIV
-	gpLightf                              C.GPLIGHTF
-	gpLightfv                             C.GPLIGHTFV
-	gpLighti                              C.GPLIGHTI
-	gpLightiv                             C.GPLIGHTIV
-	gpLineStipple                         C.GPLINESTIPPLE
 	gpLineWidth                           C.GPLINEWIDTH
 	gpLinkProgram                         C.GPLINKPROGRAM
-	gpListBase                            C.GPLISTBASE
-	gpLoadIdentity                        C.GPLOADIDENTITY
-	gpLoadMatrixd                         C.GPLOADMATRIXD
-	gpLoadMatrixf                         C.GPLOADMATRIXF
-	gpLoadName                            C.GPLOADNAME
-	gpLoadTransposeMatrixd                C.GPLOADTRANSPOSEMATRIXD
-	gpLoadTransposeMatrixf                C.GPLOADTRANSPOSEMATRIXF
-	gpLogicOp                             C.GPLOGICOP
-	gpMap1d                               C.GPMAP1D
-	gpMap1f                               C.GPMAP1F
-	gpMap2d                               C.GPMAP2D
-	gpMap2f                               C.GPMAP2F
-	gpMapBuffer                           C.GPMAPBUFFER
-	gpMapBufferRange                      C.GPMAPBUFFERRANGE
-	gpMapGrid1d                           C.GPMAPGRID1D
-	gpMapGrid1f                           C.GPMAPGRID1F
-	gpMapGrid2d                           C.GPMAPGRID2D
-	gpMapGrid2f                           C.GPMAPGRID2F
-	gpMaterialf                           C.GPMATERIALF
-	gpMaterialfv                          C.GPMATERIALFV
-	gpMateriali                           C.GPMATERIALI
-	gpMaterialiv                          C.GPMATERIALIV
-	gpMatrixMode                          C.GPMATRIXMODE
-	gpMultMatrixd                         C.GPMULTMATRIXD
-	gpMultMatrixf                         C.GPMULTMATRIXF
-	gpMultTransposeMatrixd                C.GPMULTTRANSPOSEMATRIXD
-	gpMultTransposeMatrixf                C.GPMULTTRANSPOSEMATRIXF
-	gpMultiDrawArrays                     C.GPMULTIDRAWARRAYS
-	gpMultiDrawElements                   C.GPMULTIDRAWELEMENTS
-	gpMultiTexCoord1d                     C.GPMULTITEXCOORD1D
-	gpMultiTexCoord1dv                    C.GPMULTITEXCOORD1DV
-	gpMultiTexCoord1f                     C.GPMULTITEXCOORD1F
-	gpMultiTexCoord1fv                    C.GPMULTITEXCOORD1FV
-	gpMultiTexCoord1i                     C.GPMULTITEXCOORD1I
-	gpMultiTexCoord1iv                    C.GPMULTITEXCOORD1IV
-	gpMultiTexCoord1s                     C.GPMULTITEXCOORD1S
-	gpMultiTexCoord1sv                    C.GPMULTITEXCOORD1SV
-	gpMultiTexCoord2d                     C.GPMULTITEXCOORD2D
-	gpMultiTexCoord2dv                    C.GPMULTITEXCOORD2DV
-	gpMultiTexCoord2f                     C.GPMULTITEXCOORD2F
-	gpMultiTexCoord2fv                    C.GPMULTITEXCOORD2FV
-	gpMultiTexCoord2i                     C.GPMULTITEXCOORD2I
-	gpMultiTexCoord2iv                    C.GPMULTITEXCOORD2IV
-	gpMultiTexCoord2s                     C.GPMULTITEXCOORD2S
-	gpMultiTexCoord2sv                    C.GPMULTITEXCOORD2SV
-	gpMultiTexCoord3d                     C.GPMULTITEXCOORD3D
-	gpMultiTexCoord3dv                    C.GPMULTITEXCOORD3DV
-	gpMultiTexCoord3f                     C.GPMULTITEXCOORD3F
-	gpMultiTexCoord3fv                    C.GPMULTITEXCOORD3FV
-	gpMultiTexCoord3i                     C.GPMULTITEXCOORD3I
-	gpMultiTexCoord3iv                    C.GPMULTITEXCOORD3IV
-	gpMultiTexCoord3s                     C.GPMULTITEXCOORD3S
-	gpMultiTexCoord3sv                    C.GPMULTITEXCOORD3SV
-	gpMultiTexCoord4d                     C.GPMULTITEXCOORD4D
-	gpMultiTexCoord4dv                    C.GPMULTITEXCOORD4DV
-	gpMultiTexCoord4f                     C.GPMULTITEXCOORD4F
-	gpMultiTexCoord4fv                    C.GPMULTITEXCOORD4FV
-	gpMultiTexCoord4i                     C.GPMULTITEXCOORD4I
-	gpMultiTexCoord4iv                    C.GPMULTITEXCOORD4IV
-	gpMultiTexCoord4s                     C.GPMULTITEXCOORD4S
-	gpMultiTexCoord4sv                    C.GPMULTITEXCOORD4SV
-	gpNewList                             C.GPNEWLIST
-	gpNormal3b                            C.GPNORMAL3B
-	gpNormal3bv                           C.GPNORMAL3BV
-	gpNormal3d                            C.GPNORMAL3D
-	gpNormal3dv                           C.GPNORMAL3DV
-	gpNormal3f                            C.GPNORMAL3F
-	gpNormal3fv                           C.GPNORMAL3FV
-	gpNormal3i                            C.GPNORMAL3I
-	gpNormal3iv                           C.GPNORMAL3IV
-	gpNormal3s                            C.GPNORMAL3S
-	gpNormal3sv                           C.GPNORMAL3SV
-	gpNormalPointer                       C.GPNORMALPOINTER
-	gpOrtho                               C.GPORTHO
-	gpPassThrough                         C.GPPASSTHROUGH
-	gpPixelMapfv                          C.GPPIXELMAPFV
-	gpPixelMapuiv                         C.GPPIXELMAPUIV
-	gpPixelMapusv                         C.GPPIXELMAPUSV
-	gpPixelStoref                         C.GPPIXELSTOREF
 	gpPixelStorei                         C.GPPIXELSTOREI
-	gpPixelTransferf                      C.GPPIXELTRANSFERF
-	gpPixelTransferi                      C.GPPIXELTRANSFERI
-	gpPixelZoom                           C.GPPIXELZOOM
-	gpPointParameterf                     C.GPPOINTPARAMETERF
-	gpPointParameterfv                    C.GPPOINTPARAMETERFV
-	gpPointParameteri                     C.GPPOINTPARAMETERI
-	gpPointParameteriv                    C.GPPOINTPARAMETERIV
-	gpPointSize                           C.GPPOINTSIZE
-	gpPolygonMode                         C.GPPOLYGONMODE
 	gpPolygonOffset                       C.GPPOLYGONOFFSET
-	gpPolygonStipple                      C.GPPOLYGONSTIPPLE
-	gpPopAttrib                           C.GPPOPATTRIB
-	gpPopClientAttrib                     C.GPPOPCLIENTATTRIB
-	gpPopMatrix                           C.GPPOPMATRIX
-	gpPopName                             C.GPPOPNAME
-	gpPrioritizeTextures                  C.GPPRIORITIZETEXTURES
-	gpPushAttrib                          C.GPPUSHATTRIB
-	gpPushClientAttrib                    C.GPPUSHCLIENTATTRIB
-	gpPushMatrix                          C.GPPUSHMATRIX
-	gpPushName                            C.GPPUSHNAME
-	gpRasterPos2d                         C.GPRASTERPOS2D
-	gpRasterPos2dv                        C.GPRASTERPOS2DV
-	gpRasterPos2f                         C.GPRASTERPOS2F
-	gpRasterPos2fv                        C.GPRASTERPOS2FV
-	gpRasterPos2i                         C.GPRASTERPOS2I
-	gpRasterPos2iv                        C.GPRASTERPOS2IV
-	gpRasterPos2s                         C.GPRASTERPOS2S
-	gpRasterPos2sv                        C.GPRASTERPOS2SV
-	gpRasterPos3d                         C.GPRASTERPOS3D
-	gpRasterPos3dv                        C.GPRASTERPOS3DV
-	gpRasterPos3f                         C.GPRASTERPOS3F
-	gpRasterPos3fv                        C.GPRASTERPOS3FV
-	gpRasterPos3i                         C.GPRASTERPOS3I
-	gpRasterPos3iv                        C.GPRASTERPOS3IV
-	gpRasterPos3s                         C.GPRASTERPOS3S
-	gpRasterPos3sv                        C.GPRASTERPOS3SV
-	gpRasterPos4d                         C.GPRASTERPOS4D
-	gpRasterPos4dv                        C.GPRASTERPOS4DV
-	gpRasterPos4f                         C.GPRASTERPOS4F
-	gpRasterPos4fv                        C.GPRASTERPOS4FV
-	gpRasterPos4i                         C.GPRASTERPOS4I
-	gpRasterPos4iv                        C.GPRASTERPOS4IV
-	gpRasterPos4s                         C.GPRASTERPOS4S
-	gpRasterPos4sv                        C.GPRASTERPOS4SV
-	gpReadBuffer                          C.GPREADBUFFER
 	gpReadPixels                          C.GPREADPIXELS
-	gpRectd                               C.GPRECTD
-	gpRectdv                              C.GPRECTDV
-	gpRectf                               C.GPRECTF
-	gpRectfv                              C.GPRECTFV
-	gpRecti                               C.GPRECTI
-	gpRectiv                              C.GPRECTIV
-	gpRects                               C.GPRECTS
-	gpRectsv                              C.GPRECTSV
-	gpRenderMode                          C.GPRENDERMODE
 	gpRenderbufferStorage                 C.GPRENDERBUFFERSTORAGE
-	gpRenderbufferStorageMultisample      C.GPRENDERBUFFERSTORAGEMULTISAMPLE
-	gpRotated                             C.GPROTATED
-	gpRotatef                             C.GPROTATEF
 	gpSampleCoverage                      C.GPSAMPLECOVERAGE
-	gpScaled                              C.GPSCALED
-	gpScalef                              C.GPSCALEF
 	gpScissor                             C.GPSCISSOR
-	gpSecondaryColor3b                    C.GPSECONDARYCOLOR3B
-	gpSecondaryColor3bv                   C.GPSECONDARYCOLOR3BV
-	gpSecondaryColor3d                    C.GPSECONDARYCOLOR3D
-	gpSecondaryColor3dv                   C.GPSECONDARYCOLOR3DV
-	gpSecondaryColor3f                    C.GPSECONDARYCOLOR3F
-	gpSecondaryColor3fv                   C.GPSECONDARYCOLOR3FV
-	gpSecondaryColor3i                    C.GPSECONDARYCOLOR3I
-	gpSecondaryColor3iv                   C.GPSECONDARYCOLOR3IV
-	gpSecondaryColor3s                    C.GPSECONDARYCOLOR3S
-	gpSecondaryColor3sv                   C.GPSECONDARYCOLOR3SV
-	gpSecondaryColor3ub                   C.GPSECONDARYCOLOR3UB
-	gpSecondaryColor3ubv                  C.GPSECONDARYCOLOR3UBV
-	gpSecondaryColor3ui                   C.GPSECONDARYCOLOR3UI
-	gpSecondaryColor3uiv                  C.GPSECONDARYCOLOR3UIV
-	gpSecondaryColor3us                   C.GPSECONDARYCOLOR3US
-	gpSecondaryColor3usv                  C.GPSECONDARYCOLOR3USV
-	gpSecondaryColorPointer               C.GPSECONDARYCOLORPOINTER
-	gpSelectBuffer                        C.GPSELECTBUFFER
-	gpShadeModel                          C.GPSHADEMODEL
 	gpShaderSource                        C.GPSHADERSOURCE
 	gpStencilFunc                         C.GPSTENCILFUNC
 	gpStencilFuncSeparate                 C.GPSTENCILFUNCSEPARATE
@@ -3335,200 +1001,43 @@ var (
 	gpStencilMaskSeparate                 C.GPSTENCILMASKSEPARATE
 	gpStencilOp                           C.GPSTENCILOP
 	gpStencilOpSeparate                   C.GPSTENCILOPSEPARATE
-	gpTexCoord1d                          C.GPTEXCOORD1D
-	gpTexCoord1dv                         C.GPTEXCOORD1DV
-	gpTexCoord1f                          C.GPTEXCOORD1F
-	gpTexCoord1fv                         C.GPTEXCOORD1FV
-	gpTexCoord1i                          C.GPTEXCOORD1I
-	gpTexCoord1iv                         C.GPTEXCOORD1IV
-	gpTexCoord1s                          C.GPTEXCOORD1S
-	gpTexCoord1sv                         C.GPTEXCOORD1SV
-	gpTexCoord2d                          C.GPTEXCOORD2D
-	gpTexCoord2dv                         C.GPTEXCOORD2DV
-	gpTexCoord2f                          C.GPTEXCOORD2F
-	gpTexCoord2fv                         C.GPTEXCOORD2FV
-	gpTexCoord2i                          C.GPTEXCOORD2I
-	gpTexCoord2iv                         C.GPTEXCOORD2IV
-	gpTexCoord2s                          C.GPTEXCOORD2S
-	gpTexCoord2sv                         C.GPTEXCOORD2SV
-	gpTexCoord3d                          C.GPTEXCOORD3D
-	gpTexCoord3dv                         C.GPTEXCOORD3DV
-	gpTexCoord3f                          C.GPTEXCOORD3F
-	gpTexCoord3fv                         C.GPTEXCOORD3FV
-	gpTexCoord3i                          C.GPTEXCOORD3I
-	gpTexCoord3iv                         C.GPTEXCOORD3IV
-	gpTexCoord3s                          C.GPTEXCOORD3S
-	gpTexCoord3sv                         C.GPTEXCOORD3SV
-	gpTexCoord4d                          C.GPTEXCOORD4D
-	gpTexCoord4dv                         C.GPTEXCOORD4DV
-	gpTexCoord4f                          C.GPTEXCOORD4F
-	gpTexCoord4fv                         C.GPTEXCOORD4FV
-	gpTexCoord4i                          C.GPTEXCOORD4I
-	gpTexCoord4iv                         C.GPTEXCOORD4IV
-	gpTexCoord4s                          C.GPTEXCOORD4S
-	gpTexCoord4sv                         C.GPTEXCOORD4SV
-	gpTexCoordPointer                     C.GPTEXCOORDPOINTER
-	gpTexEnvf                             C.GPTEXENVF
-	gpTexEnvfv                            C.GPTEXENVFV
-	gpTexEnvi                             C.GPTEXENVI
-	gpTexEnviv                            C.GPTEXENVIV
-	gpTexGend                             C.GPTEXGEND
-	gpTexGendv                            C.GPTEXGENDV
-	gpTexGenf                             C.GPTEXGENF
-	gpTexGenfv                            C.GPTEXGENFV
-	gpTexGeni                             C.GPTEXGENI
-	gpTexGeniv                            C.GPTEXGENIV
-	gpTexImage1D                          C.GPTEXIMAGE1D
 	gpTexImage2D                          C.GPTEXIMAGE2D
-	gpTexImage3D                          C.GPTEXIMAGE3D
-	gpTexParameterIiv                     C.GPTEXPARAMETERIIV
-	gpTexParameterIuiv                    C.GPTEXPARAMETERIUIV
 	gpTexParameterf                       C.GPTEXPARAMETERF
 	gpTexParameterfv                      C.GPTEXPARAMETERFV
 	gpTexParameteri                       C.GPTEXPARAMETERI
 	gpTexParameteriv                      C.GPTEXPARAMETERIV
-	gpTexSubImage1D                       C.GPTEXSUBIMAGE1D
 	gpTexSubImage2D                       C.GPTEXSUBIMAGE2D
-	gpTexSubImage3D                       C.GPTEXSUBIMAGE3D
-	gpTransformFeedbackVaryings           C.GPTRANSFORMFEEDBACKVARYINGS
-	gpTranslated                          C.GPTRANSLATED
-	gpTranslatef                          C.GPTRANSLATEF
 	gpUniform1f                           C.GPUNIFORM1F
 	gpUniform1fv                          C.GPUNIFORM1FV
 	gpUniform1i                           C.GPUNIFORM1I
 	gpUniform1iv                          C.GPUNIFORM1IV
-	gpUniform1ui                          C.GPUNIFORM1UI
-	gpUniform1uiv                         C.GPUNIFORM1UIV
 	gpUniform2f                           C.GPUNIFORM2F
 	gpUniform2fv                          C.GPUNIFORM2FV
 	gpUniform2i                           C.GPUNIFORM2I
 	gpUniform2iv                          C.GPUNIFORM2IV
-	gpUniform2ui                          C.GPUNIFORM2UI
-	gpUniform2uiv                         C.GPUNIFORM2UIV
 	gpUniform3f                           C.GPUNIFORM3F
 	gpUniform3fv                          C.GPUNIFORM3FV
 	gpUniform3i                           C.GPUNIFORM3I
 	gpUniform3iv                          C.GPUNIFORM3IV
-	gpUniform3ui                          C.GPUNIFORM3UI
-	gpUniform3uiv                         C.GPUNIFORM3UIV
 	gpUniform4f                           C.GPUNIFORM4F
 	gpUniform4fv                          C.GPUNIFORM4FV
 	gpUniform4i                           C.GPUNIFORM4I
 	gpUniform4iv                          C.GPUNIFORM4IV
-	gpUniform4ui                          C.GPUNIFORM4UI
-	gpUniform4uiv                         C.GPUNIFORM4UIV
 	gpUniformMatrix2fv                    C.GPUNIFORMMATRIX2FV
-	gpUniformMatrix2x3fv                  C.GPUNIFORMMATRIX2X3FV
-	gpUniformMatrix2x4fv                  C.GPUNIFORMMATRIX2X4FV
 	gpUniformMatrix3fv                    C.GPUNIFORMMATRIX3FV
-	gpUniformMatrix3x2fv                  C.GPUNIFORMMATRIX3X2FV
-	gpUniformMatrix3x4fv                  C.GPUNIFORMMATRIX3X4FV
 	gpUniformMatrix4fv                    C.GPUNIFORMMATRIX4FV
-	gpUniformMatrix4x2fv                  C.GPUNIFORMMATRIX4X2FV
-	gpUniformMatrix4x3fv                  C.GPUNIFORMMATRIX4X3FV
-	gpUnmapBuffer                         C.GPUNMAPBUFFER
 	gpUseProgram                          C.GPUSEPROGRAM
 	gpValidateProgram                     C.GPVALIDATEPROGRAM
-	gpVertex2d                            C.GPVERTEX2D
-	gpVertex2dv                           C.GPVERTEX2DV
-	gpVertex2f                            C.GPVERTEX2F
-	gpVertex2fv                           C.GPVERTEX2FV
-	gpVertex2i                            C.GPVERTEX2I
-	gpVertex2iv                           C.GPVERTEX2IV
-	gpVertex2s                            C.GPVERTEX2S
-	gpVertex2sv                           C.GPVERTEX2SV
-	gpVertex3d                            C.GPVERTEX3D
-	gpVertex3dv                           C.GPVERTEX3DV
-	gpVertex3f                            C.GPVERTEX3F
-	gpVertex3fv                           C.GPVERTEX3FV
-	gpVertex3i                            C.GPVERTEX3I
-	gpVertex3iv                           C.GPVERTEX3IV
-	gpVertex3s                            C.GPVERTEX3S
-	gpVertex3sv                           C.GPVERTEX3SV
-	gpVertex4d                            C.GPVERTEX4D
-	gpVertex4dv                           C.GPVERTEX4DV
-	gpVertex4f                            C.GPVERTEX4F
-	gpVertex4fv                           C.GPVERTEX4FV
-	gpVertex4i                            C.GPVERTEX4I
-	gpVertex4iv                           C.GPVERTEX4IV
-	gpVertex4s                            C.GPVERTEX4S
-	gpVertex4sv                           C.GPVERTEX4SV
-	gpVertexAttrib1d                      C.GPVERTEXATTRIB1D
-	gpVertexAttrib1dv                     C.GPVERTEXATTRIB1DV
 	gpVertexAttrib1f                      C.GPVERTEXATTRIB1F
 	gpVertexAttrib1fv                     C.GPVERTEXATTRIB1FV
-	gpVertexAttrib1s                      C.GPVERTEXATTRIB1S
-	gpVertexAttrib1sv                     C.GPVERTEXATTRIB1SV
-	gpVertexAttrib2d                      C.GPVERTEXATTRIB2D
-	gpVertexAttrib2dv                     C.GPVERTEXATTRIB2DV
 	gpVertexAttrib2f                      C.GPVERTEXATTRIB2F
 	gpVertexAttrib2fv                     C.GPVERTEXATTRIB2FV
-	gpVertexAttrib2s                      C.GPVERTEXATTRIB2S
-	gpVertexAttrib2sv                     C.GPVERTEXATTRIB2SV
-	gpVertexAttrib3d                      C.GPVERTEXATTRIB3D
-	gpVertexAttrib3dv                     C.GPVERTEXATTRIB3DV
 	gpVertexAttrib3f                      C.GPVERTEXATTRIB3F
 	gpVertexAttrib3fv                     C.GPVERTEXATTRIB3FV
-	gpVertexAttrib3s                      C.GPVERTEXATTRIB3S
-	gpVertexAttrib3sv                     C.GPVERTEXATTRIB3SV
-	gpVertexAttrib4Nbv                    C.GPVERTEXATTRIB4NBV
-	gpVertexAttrib4Niv                    C.GPVERTEXATTRIB4NIV
-	gpVertexAttrib4Nsv                    C.GPVERTEXATTRIB4NSV
-	gpVertexAttrib4Nub                    C.GPVERTEXATTRIB4NUB
-	gpVertexAttrib4Nubv                   C.GPVERTEXATTRIB4NUBV
-	gpVertexAttrib4Nuiv                   C.GPVERTEXATTRIB4NUIV
-	gpVertexAttrib4Nusv                   C.GPVERTEXATTRIB4NUSV
-	gpVertexAttrib4bv                     C.GPVERTEXATTRIB4BV
-	gpVertexAttrib4d                      C.GPVERTEXATTRIB4D
-	gpVertexAttrib4dv                     C.GPVERTEXATTRIB4DV
 	gpVertexAttrib4f                      C.GPVERTEXATTRIB4F
 	gpVertexAttrib4fv                     C.GPVERTEXATTRIB4FV
-	gpVertexAttrib4iv                     C.GPVERTEXATTRIB4IV
-	gpVertexAttrib4s                      C.GPVERTEXATTRIB4S
-	gpVertexAttrib4sv                     C.GPVERTEXATTRIB4SV
-	gpVertexAttrib4ubv                    C.GPVERTEXATTRIB4UBV
-	gpVertexAttrib4uiv                    C.GPVERTEXATTRIB4UIV
-	gpVertexAttrib4usv                    C.GPVERTEXATTRIB4USV
-	gpVertexAttribI1i                     C.GPVERTEXATTRIBI1I
-	gpVertexAttribI1iv                    C.GPVERTEXATTRIBI1IV
-	gpVertexAttribI1ui                    C.GPVERTEXATTRIBI1UI
-	gpVertexAttribI1uiv                   C.GPVERTEXATTRIBI1UIV
-	gpVertexAttribI2i                     C.GPVERTEXATTRIBI2I
-	gpVertexAttribI2iv                    C.GPVERTEXATTRIBI2IV
-	gpVertexAttribI2ui                    C.GPVERTEXATTRIBI2UI
-	gpVertexAttribI2uiv                   C.GPVERTEXATTRIBI2UIV
-	gpVertexAttribI3i                     C.GPVERTEXATTRIBI3I
-	gpVertexAttribI3iv                    C.GPVERTEXATTRIBI3IV
-	gpVertexAttribI3ui                    C.GPVERTEXATTRIBI3UI
-	gpVertexAttribI3uiv                   C.GPVERTEXATTRIBI3UIV
-	gpVertexAttribI4bv                    C.GPVERTEXATTRIBI4BV
-	gpVertexAttribI4i                     C.GPVERTEXATTRIBI4I
-	gpVertexAttribI4iv                    C.GPVERTEXATTRIBI4IV
-	gpVertexAttribI4sv                    C.GPVERTEXATTRIBI4SV
-	gpVertexAttribI4ubv                   C.GPVERTEXATTRIBI4UBV
-	gpVertexAttribI4ui                    C.GPVERTEXATTRIBI4UI
-	gpVertexAttribI4uiv                   C.GPVERTEXATTRIBI4UIV
-	gpVertexAttribI4usv                   C.GPVERTEXATTRIBI4USV
-	gpVertexAttribIPointer                C.GPVERTEXATTRIBIPOINTER
 	gpVertexAttribPointer                 C.GPVERTEXATTRIBPOINTER
-	gpVertexPointer                       C.GPVERTEXPOINTER
 	gpViewport                            C.GPVIEWPORT
-	gpWindowPos2d                         C.GPWINDOWPOS2D
-	gpWindowPos2dv                        C.GPWINDOWPOS2DV
-	gpWindowPos2f                         C.GPWINDOWPOS2F
-	gpWindowPos2fv                        C.GPWINDOWPOS2FV
-	gpWindowPos2i                         C.GPWINDOWPOS2I
-	gpWindowPos2iv                        C.GPWINDOWPOS2IV
-	gpWindowPos2s                         C.GPWINDOWPOS2S
-	gpWindowPos2sv                        C.GPWINDOWPOS2SV
-	gpWindowPos3d                         C.GPWINDOWPOS3D
-	gpWindowPos3dv                        C.GPWINDOWPOS3DV
-	gpWindowPos3f                         C.GPWINDOWPOS3F
-	gpWindowPos3fv                        C.GPWINDOWPOS3FV
-	gpWindowPos3i                         C.GPWINDOWPOS3I
-	gpWindowPos3iv                        C.GPWINDOWPOS3IV
-	gpWindowPos3s                         C.GPWINDOWPOS3S
-	gpWindowPos3sv                        C.GPWINDOWPOS3SV
 )
 
 // Helper functions
@@ -3538,51 +1047,17 @@ func boolToInt(b bool) int {
 	}
 	return 0
 }
-func Accum(op uint32, value float32) {
-	C.glowAccum(gpAccum, (C.GLenum)(op), (C.GLfloat)(value))
-}
 func ActiveTexture(texture uint32) {
 	C.glowActiveTexture(gpActiveTexture, (C.GLenum)(texture))
 }
-func AlphaFunc(xfunc uint32, ref float32) {
-	C.glowAlphaFunc(gpAlphaFunc, (C.GLenum)(xfunc), (C.GLfloat)(ref))
-}
-func AreTexturesResident(n int32, textures *uint32, residences *bool) bool {
-	ret := C.glowAreTexturesResident(gpAreTexturesResident, (C.GLsizei)(n), (*C.GLuint)(unsafe.Pointer(textures)), (*C.GLboolean)(unsafe.Pointer(residences)))
-	return ret == TRUE
-}
-func ArrayElement(i int32) {
-	C.glowArrayElement(gpArrayElement, (C.GLint)(i))
-}
 func AttachShader(program uint32, shader uint32) {
 	C.glowAttachShader(gpAttachShader, (C.GLuint)(program), (C.GLuint)(shader))
-}
-func Begin(mode uint32) {
-	C.glowBegin(gpBegin, (C.GLenum)(mode))
-}
-func BeginConditionalRender(id uint32, mode uint32) {
-	C.glowBeginConditionalRender(gpBeginConditionalRender, (C.GLuint)(id), (C.GLenum)(mode))
-}
-func BeginQuery(target uint32, id uint32) {
-	C.glowBeginQuery(gpBeginQuery, (C.GLenum)(target), (C.GLuint)(id))
-}
-func BeginTransformFeedback(primitiveMode uint32) {
-	C.glowBeginTransformFeedback(gpBeginTransformFeedback, (C.GLenum)(primitiveMode))
 }
 func BindAttribLocation(program uint32, index uint32, name *uint8) {
 	C.glowBindAttribLocation(gpBindAttribLocation, (C.GLuint)(program), (C.GLuint)(index), (*C.GLchar)(unsafe.Pointer(name)))
 }
 func BindBuffer(target uint32, buffer uint32) {
 	C.glowBindBuffer(gpBindBuffer, (C.GLenum)(target), (C.GLuint)(buffer))
-}
-func BindBufferBase(target uint32, index uint32, buffer uint32) {
-	C.glowBindBufferBase(gpBindBufferBase, (C.GLenum)(target), (C.GLuint)(index), (C.GLuint)(buffer))
-}
-func BindBufferRange(target uint32, index uint32, buffer uint32, offset int, size int) {
-	C.glowBindBufferRange(gpBindBufferRange, (C.GLenum)(target), (C.GLuint)(index), (C.GLuint)(buffer), (C.GLintptr)(offset), (C.GLsizeiptr)(size))
-}
-func BindFragDataLocation(program uint32, color uint32, name *uint8) {
-	C.glowBindFragDataLocation(gpBindFragDataLocation, (C.GLuint)(program), (C.GLuint)(color), (*C.GLchar)(unsafe.Pointer(name)))
 }
 func BindFramebuffer(target uint32, framebuffer uint32) {
 	C.glowBindFramebuffer(gpBindFramebuffer, (C.GLenum)(target), (C.GLuint)(framebuffer))
@@ -3592,12 +1067,6 @@ func BindRenderbuffer(target uint32, renderbuffer uint32) {
 }
 func BindTexture(target uint32, texture uint32) {
 	C.glowBindTexture(gpBindTexture, (C.GLenum)(target), (C.GLuint)(texture))
-}
-func BindVertexArray(array uint32) {
-	C.glowBindVertexArray(gpBindVertexArray, (C.GLuint)(array))
-}
-func Bitmap(width int32, height int32, xorig float32, yorig float32, xmove float32, ymove float32, bitmap *uint8) {
-	C.glowBitmap(gpBitmap, (C.GLsizei)(width), (C.GLsizei)(height), (C.GLfloat)(xorig), (C.GLfloat)(yorig), (C.GLfloat)(xmove), (C.GLfloat)(ymove), (*C.GLubyte)(unsafe.Pointer(bitmap)))
 }
 func BlendColor(red float32, green float32, blue float32, alpha float32) {
 	C.glowBlendColor(gpBlendColor, (C.GLfloat)(red), (C.GLfloat)(green), (C.GLfloat)(blue), (C.GLfloat)(alpha))
@@ -3614,210 +1083,42 @@ func BlendFunc(sfactor uint32, dfactor uint32) {
 func BlendFuncSeparate(sfactorRGB uint32, dfactorRGB uint32, sfactorAlpha uint32, dfactorAlpha uint32) {
 	C.glowBlendFuncSeparate(gpBlendFuncSeparate, (C.GLenum)(sfactorRGB), (C.GLenum)(dfactorRGB), (C.GLenum)(sfactorAlpha), (C.GLenum)(dfactorAlpha))
 }
-func BlitFramebuffer(srcX0 int32, srcY0 int32, srcX1 int32, srcY1 int32, dstX0 int32, dstY0 int32, dstX1 int32, dstY1 int32, mask uint32, filter uint32) {
-	C.glowBlitFramebuffer(gpBlitFramebuffer, (C.GLint)(srcX0), (C.GLint)(srcY0), (C.GLint)(srcX1), (C.GLint)(srcY1), (C.GLint)(dstX0), (C.GLint)(dstY0), (C.GLint)(dstX1), (C.GLint)(dstY1), (C.GLbitfield)(mask), (C.GLenum)(filter))
-}
 func BufferData(target uint32, size int, data unsafe.Pointer, usage uint32) {
 	C.glowBufferData(gpBufferData, (C.GLenum)(target), (C.GLsizeiptr)(size), data, (C.GLenum)(usage))
 }
 func BufferSubData(target uint32, offset int, size int, data unsafe.Pointer) {
 	C.glowBufferSubData(gpBufferSubData, (C.GLenum)(target), (C.GLintptr)(offset), (C.GLsizeiptr)(size), data)
 }
-func CallList(list uint32) {
-	C.glowCallList(gpCallList, (C.GLuint)(list))
-}
-func CallLists(n int32, xtype uint32, lists unsafe.Pointer) {
-	C.glowCallLists(gpCallLists, (C.GLsizei)(n), (C.GLenum)(xtype), lists)
-}
 func CheckFramebufferStatus(target uint32) uint32 {
 	ret := C.glowCheckFramebufferStatus(gpCheckFramebufferStatus, (C.GLenum)(target))
 	return (uint32)(ret)
 }
-func ClampColor(target uint32, clamp uint32) {
-	C.glowClampColor(gpClampColor, (C.GLenum)(target), (C.GLenum)(clamp))
-}
 func Clear(mask uint32) {
 	C.glowClear(gpClear, (C.GLbitfield)(mask))
-}
-func ClearAccum(red float32, green float32, blue float32, alpha float32) {
-	C.glowClearAccum(gpClearAccum, (C.GLfloat)(red), (C.GLfloat)(green), (C.GLfloat)(blue), (C.GLfloat)(alpha))
-}
-func ClearBufferfi(buffer uint32, drawbuffer int32, depth float32, stencil int32) {
-	C.glowClearBufferfi(gpClearBufferfi, (C.GLenum)(buffer), (C.GLint)(drawbuffer), (C.GLfloat)(depth), (C.GLint)(stencil))
-}
-func ClearBufferfv(buffer uint32, drawbuffer int32, value *float32) {
-	C.glowClearBufferfv(gpClearBufferfv, (C.GLenum)(buffer), (C.GLint)(drawbuffer), (*C.GLfloat)(unsafe.Pointer(value)))
-}
-func ClearBufferiv(buffer uint32, drawbuffer int32, value *int32) {
-	C.glowClearBufferiv(gpClearBufferiv, (C.GLenum)(buffer), (C.GLint)(drawbuffer), (*C.GLint)(unsafe.Pointer(value)))
-}
-func ClearBufferuiv(buffer uint32, drawbuffer int32, value *uint32) {
-	C.glowClearBufferuiv(gpClearBufferuiv, (C.GLenum)(buffer), (C.GLint)(drawbuffer), (*C.GLuint)(unsafe.Pointer(value)))
 }
 func ClearColor(red float32, green float32, blue float32, alpha float32) {
 	C.glowClearColor(gpClearColor, (C.GLfloat)(red), (C.GLfloat)(green), (C.GLfloat)(blue), (C.GLfloat)(alpha))
 }
-func ClearDepth(depth float64) {
-	C.glowClearDepth(gpClearDepth, (C.GLdouble)(depth))
-}
-func ClearIndex(c float32) {
-	C.glowClearIndex(gpClearIndex, (C.GLfloat)(c))
-}
 func ClearStencil(s int32) {
 	C.glowClearStencil(gpClearStencil, (C.GLint)(s))
-}
-func ClientActiveTexture(texture uint32) {
-	C.glowClientActiveTexture(gpClientActiveTexture, (C.GLenum)(texture))
-}
-func ClipPlane(plane uint32, equation *float64) {
-	C.glowClipPlane(gpClipPlane, (C.GLenum)(plane), (*C.GLdouble)(unsafe.Pointer(equation)))
-}
-func Color3b(red int8, green int8, blue int8) {
-	C.glowColor3b(gpColor3b, (C.GLbyte)(red), (C.GLbyte)(green), (C.GLbyte)(blue))
-}
-func Color3bv(v *int8) {
-	C.glowColor3bv(gpColor3bv, (*C.GLbyte)(unsafe.Pointer(v)))
-}
-func Color3d(red float64, green float64, blue float64) {
-	C.glowColor3d(gpColor3d, (C.GLdouble)(red), (C.GLdouble)(green), (C.GLdouble)(blue))
-}
-func Color3dv(v *float64) {
-	C.glowColor3dv(gpColor3dv, (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func Color3f(red float32, green float32, blue float32) {
-	C.glowColor3f(gpColor3f, (C.GLfloat)(red), (C.GLfloat)(green), (C.GLfloat)(blue))
-}
-func Color3fv(v *float32) {
-	C.glowColor3fv(gpColor3fv, (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func Color3i(red int32, green int32, blue int32) {
-	C.glowColor3i(gpColor3i, (C.GLint)(red), (C.GLint)(green), (C.GLint)(blue))
-}
-func Color3iv(v *int32) {
-	C.glowColor3iv(gpColor3iv, (*C.GLint)(unsafe.Pointer(v)))
-}
-func Color3s(red int16, green int16, blue int16) {
-	C.glowColor3s(gpColor3s, (C.GLshort)(red), (C.GLshort)(green), (C.GLshort)(blue))
-}
-func Color3sv(v *int16) {
-	C.glowColor3sv(gpColor3sv, (*C.GLshort)(unsafe.Pointer(v)))
-}
-func Color3ub(red uint8, green uint8, blue uint8) {
-	C.glowColor3ub(gpColor3ub, (C.GLubyte)(red), (C.GLubyte)(green), (C.GLubyte)(blue))
-}
-func Color3ubv(v *uint8) {
-	C.glowColor3ubv(gpColor3ubv, (*C.GLubyte)(unsafe.Pointer(v)))
-}
-func Color3ui(red uint32, green uint32, blue uint32) {
-	C.glowColor3ui(gpColor3ui, (C.GLuint)(red), (C.GLuint)(green), (C.GLuint)(blue))
-}
-func Color3uiv(v *uint32) {
-	C.glowColor3uiv(gpColor3uiv, (*C.GLuint)(unsafe.Pointer(v)))
-}
-func Color3us(red uint16, green uint16, blue uint16) {
-	C.glowColor3us(gpColor3us, (C.GLushort)(red), (C.GLushort)(green), (C.GLushort)(blue))
-}
-func Color3usv(v *uint16) {
-	C.glowColor3usv(gpColor3usv, (*C.GLushort)(unsafe.Pointer(v)))
-}
-func Color4b(red int8, green int8, blue int8, alpha int8) {
-	C.glowColor4b(gpColor4b, (C.GLbyte)(red), (C.GLbyte)(green), (C.GLbyte)(blue), (C.GLbyte)(alpha))
-}
-func Color4bv(v *int8) {
-	C.glowColor4bv(gpColor4bv, (*C.GLbyte)(unsafe.Pointer(v)))
-}
-func Color4d(red float64, green float64, blue float64, alpha float64) {
-	C.glowColor4d(gpColor4d, (C.GLdouble)(red), (C.GLdouble)(green), (C.GLdouble)(blue), (C.GLdouble)(alpha))
-}
-func Color4dv(v *float64) {
-	C.glowColor4dv(gpColor4dv, (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func Color4f(red float32, green float32, blue float32, alpha float32) {
-	C.glowColor4f(gpColor4f, (C.GLfloat)(red), (C.GLfloat)(green), (C.GLfloat)(blue), (C.GLfloat)(alpha))
-}
-func Color4fv(v *float32) {
-	C.glowColor4fv(gpColor4fv, (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func Color4i(red int32, green int32, blue int32, alpha int32) {
-	C.glowColor4i(gpColor4i, (C.GLint)(red), (C.GLint)(green), (C.GLint)(blue), (C.GLint)(alpha))
-}
-func Color4iv(v *int32) {
-	C.glowColor4iv(gpColor4iv, (*C.GLint)(unsafe.Pointer(v)))
-}
-func Color4s(red int16, green int16, blue int16, alpha int16) {
-	C.glowColor4s(gpColor4s, (C.GLshort)(red), (C.GLshort)(green), (C.GLshort)(blue), (C.GLshort)(alpha))
-}
-func Color4sv(v *int16) {
-	C.glowColor4sv(gpColor4sv, (*C.GLshort)(unsafe.Pointer(v)))
-}
-func Color4ub(red uint8, green uint8, blue uint8, alpha uint8) {
-	C.glowColor4ub(gpColor4ub, (C.GLubyte)(red), (C.GLubyte)(green), (C.GLubyte)(blue), (C.GLubyte)(alpha))
-}
-func Color4ubv(v *uint8) {
-	C.glowColor4ubv(gpColor4ubv, (*C.GLubyte)(unsafe.Pointer(v)))
-}
-func Color4ui(red uint32, green uint32, blue uint32, alpha uint32) {
-	C.glowColor4ui(gpColor4ui, (C.GLuint)(red), (C.GLuint)(green), (C.GLuint)(blue), (C.GLuint)(alpha))
-}
-func Color4uiv(v *uint32) {
-	C.glowColor4uiv(gpColor4uiv, (*C.GLuint)(unsafe.Pointer(v)))
-}
-func Color4us(red uint16, green uint16, blue uint16, alpha uint16) {
-	C.glowColor4us(gpColor4us, (C.GLushort)(red), (C.GLushort)(green), (C.GLushort)(blue), (C.GLushort)(alpha))
-}
-func Color4usv(v *uint16) {
-	C.glowColor4usv(gpColor4usv, (*C.GLushort)(unsafe.Pointer(v)))
 }
 func ColorMask(red bool, green bool, blue bool, alpha bool) {
 	C.glowColorMask(gpColorMask, (C.GLboolean)(boolToInt(red)), (C.GLboolean)(boolToInt(green)), (C.GLboolean)(boolToInt(blue)), (C.GLboolean)(boolToInt(alpha)))
 }
-func ColorMaski(index uint32, r bool, g bool, b bool, a bool) {
-	C.glowColorMaski(gpColorMaski, (C.GLuint)(index), (C.GLboolean)(boolToInt(r)), (C.GLboolean)(boolToInt(g)), (C.GLboolean)(boolToInt(b)), (C.GLboolean)(boolToInt(a)))
-}
-func ColorMaterial(face uint32, mode uint32) {
-	C.glowColorMaterial(gpColorMaterial, (C.GLenum)(face), (C.GLenum)(mode))
-}
-func ColorPointer(size int32, xtype uint32, stride int32, pointer unsafe.Pointer) {
-	C.glowColorPointer(gpColorPointer, (C.GLint)(size), (C.GLenum)(xtype), (C.GLsizei)(stride), pointer)
-}
 func CompileShader(shader uint32) {
 	C.glowCompileShader(gpCompileShader, (C.GLuint)(shader))
-}
-func CompressedTexImage1D(target uint32, level int32, internalformat uint32, width int32, border int32, imageSize int32, data unsafe.Pointer) {
-	C.glowCompressedTexImage1D(gpCompressedTexImage1D, (C.GLenum)(target), (C.GLint)(level), (C.GLenum)(internalformat), (C.GLsizei)(width), (C.GLint)(border), (C.GLsizei)(imageSize), data)
 }
 func CompressedTexImage2D(target uint32, level int32, internalformat uint32, width int32, height int32, border int32, imageSize int32, data unsafe.Pointer) {
 	C.glowCompressedTexImage2D(gpCompressedTexImage2D, (C.GLenum)(target), (C.GLint)(level), (C.GLenum)(internalformat), (C.GLsizei)(width), (C.GLsizei)(height), (C.GLint)(border), (C.GLsizei)(imageSize), data)
 }
-func CompressedTexImage3D(target uint32, level int32, internalformat uint32, width int32, height int32, depth int32, border int32, imageSize int32, data unsafe.Pointer) {
-	C.glowCompressedTexImage3D(gpCompressedTexImage3D, (C.GLenum)(target), (C.GLint)(level), (C.GLenum)(internalformat), (C.GLsizei)(width), (C.GLsizei)(height), (C.GLsizei)(depth), (C.GLint)(border), (C.GLsizei)(imageSize), data)
-}
-func CompressedTexSubImage1D(target uint32, level int32, xoffset int32, width int32, format uint32, imageSize int32, data unsafe.Pointer) {
-	C.glowCompressedTexSubImage1D(gpCompressedTexSubImage1D, (C.GLenum)(target), (C.GLint)(level), (C.GLint)(xoffset), (C.GLsizei)(width), (C.GLenum)(format), (C.GLsizei)(imageSize), data)
-}
 func CompressedTexSubImage2D(target uint32, level int32, xoffset int32, yoffset int32, width int32, height int32, format uint32, imageSize int32, data unsafe.Pointer) {
 	C.glowCompressedTexSubImage2D(gpCompressedTexSubImage2D, (C.GLenum)(target), (C.GLint)(level), (C.GLint)(xoffset), (C.GLint)(yoffset), (C.GLsizei)(width), (C.GLsizei)(height), (C.GLenum)(format), (C.GLsizei)(imageSize), data)
-}
-func CompressedTexSubImage3D(target uint32, level int32, xoffset int32, yoffset int32, zoffset int32, width int32, height int32, depth int32, format uint32, imageSize int32, data unsafe.Pointer) {
-	C.glowCompressedTexSubImage3D(gpCompressedTexSubImage3D, (C.GLenum)(target), (C.GLint)(level), (C.GLint)(xoffset), (C.GLint)(yoffset), (C.GLint)(zoffset), (C.GLsizei)(width), (C.GLsizei)(height), (C.GLsizei)(depth), (C.GLenum)(format), (C.GLsizei)(imageSize), data)
-}
-func CopyPixels(x int32, y int32, width int32, height int32, xtype uint32) {
-	C.glowCopyPixels(gpCopyPixels, (C.GLint)(x), (C.GLint)(y), (C.GLsizei)(width), (C.GLsizei)(height), (C.GLenum)(xtype))
-}
-func CopyTexImage1D(target uint32, level int32, internalformat uint32, x int32, y int32, width int32, border int32) {
-	C.glowCopyTexImage1D(gpCopyTexImage1D, (C.GLenum)(target), (C.GLint)(level), (C.GLenum)(internalformat), (C.GLint)(x), (C.GLint)(y), (C.GLsizei)(width), (C.GLint)(border))
 }
 func CopyTexImage2D(target uint32, level int32, internalformat uint32, x int32, y int32, width int32, height int32, border int32) {
 	C.glowCopyTexImage2D(gpCopyTexImage2D, (C.GLenum)(target), (C.GLint)(level), (C.GLenum)(internalformat), (C.GLint)(x), (C.GLint)(y), (C.GLsizei)(width), (C.GLsizei)(height), (C.GLint)(border))
 }
-func CopyTexSubImage1D(target uint32, level int32, xoffset int32, x int32, y int32, width int32) {
-	C.glowCopyTexSubImage1D(gpCopyTexSubImage1D, (C.GLenum)(target), (C.GLint)(level), (C.GLint)(xoffset), (C.GLint)(x), (C.GLint)(y), (C.GLsizei)(width))
-}
 func CopyTexSubImage2D(target uint32, level int32, xoffset int32, yoffset int32, x int32, y int32, width int32, height int32) {
 	C.glowCopyTexSubImage2D(gpCopyTexSubImage2D, (C.GLenum)(target), (C.GLint)(level), (C.GLint)(xoffset), (C.GLint)(yoffset), (C.GLint)(x), (C.GLint)(y), (C.GLsizei)(width), (C.GLsizei)(height))
-}
-func CopyTexSubImage3D(target uint32, level int32, xoffset int32, yoffset int32, zoffset int32, x int32, y int32, width int32, height int32) {
-	C.glowCopyTexSubImage3D(gpCopyTexSubImage3D, (C.GLenum)(target), (C.GLint)(level), (C.GLint)(xoffset), (C.GLint)(yoffset), (C.GLint)(zoffset), (C.GLint)(x), (C.GLint)(y), (C.GLsizei)(width), (C.GLsizei)(height))
 }
 func CreateProgram() uint32 {
 	ret := C.glowCreateProgram(gpCreateProgram)
@@ -3836,14 +1137,8 @@ func DeleteBuffers(n int32, buffers *uint32) {
 func DeleteFramebuffers(n int32, framebuffers *uint32) {
 	C.glowDeleteFramebuffers(gpDeleteFramebuffers, (C.GLsizei)(n), (*C.GLuint)(unsafe.Pointer(framebuffers)))
 }
-func DeleteLists(list uint32, xrange int32) {
-	C.glowDeleteLists(gpDeleteLists, (C.GLuint)(list), (C.GLsizei)(xrange))
-}
 func DeleteProgram(program uint32) {
 	C.glowDeleteProgram(gpDeleteProgram, (C.GLuint)(program))
-}
-func DeleteQueries(n int32, ids *uint32) {
-	C.glowDeleteQueries(gpDeleteQueries, (C.GLsizei)(n), (*C.GLuint)(unsafe.Pointer(ids)))
 }
 func DeleteRenderbuffers(n int32, renderbuffers *uint32) {
 	C.glowDeleteRenderbuffers(gpDeleteRenderbuffers, (C.GLsizei)(n), (*C.GLuint)(unsafe.Pointer(renderbuffers)))
@@ -3854,17 +1149,11 @@ func DeleteShader(shader uint32) {
 func DeleteTextures(n int32, textures *uint32) {
 	C.glowDeleteTextures(gpDeleteTextures, (C.GLsizei)(n), (*C.GLuint)(unsafe.Pointer(textures)))
 }
-func DeleteVertexArrays(n int32, arrays *uint32) {
-	C.glowDeleteVertexArrays(gpDeleteVertexArrays, (C.GLsizei)(n), (*C.GLuint)(unsafe.Pointer(arrays)))
-}
 func DepthFunc(xfunc uint32) {
 	C.glowDepthFunc(gpDepthFunc, (C.GLenum)(xfunc))
 }
 func DepthMask(flag bool) {
 	C.glowDepthMask(gpDepthMask, (C.GLboolean)(boolToInt(flag)))
-}
-func DepthRange(near float64, far float64) {
-	C.glowDepthRange(gpDepthRange, (C.GLdouble)(near), (C.GLdouble)(far))
 }
 func DetachShader(program uint32, shader uint32) {
 	C.glowDetachShader(gpDetachShader, (C.GLuint)(program), (C.GLuint)(shader))
@@ -3872,107 +1161,20 @@ func DetachShader(program uint32, shader uint32) {
 func Disable(cap uint32) {
 	C.glowDisable(gpDisable, (C.GLenum)(cap))
 }
-func DisableClientState(array uint32) {
-	C.glowDisableClientState(gpDisableClientState, (C.GLenum)(array))
-}
 func DisableVertexAttribArray(index uint32) {
 	C.glowDisableVertexAttribArray(gpDisableVertexAttribArray, (C.GLuint)(index))
-}
-func Disablei(target uint32, index uint32) {
-	C.glowDisablei(gpDisablei, (C.GLenum)(target), (C.GLuint)(index))
 }
 func DrawArrays(mode uint32, first int32, count int32) {
 	C.glowDrawArrays(gpDrawArrays, (C.GLenum)(mode), (C.GLint)(first), (C.GLsizei)(count))
 }
-func DrawBuffer(buf uint32) {
-	C.glowDrawBuffer(gpDrawBuffer, (C.GLenum)(buf))
-}
-func DrawBuffers(n int32, bufs *uint32) {
-	C.glowDrawBuffers(gpDrawBuffers, (C.GLsizei)(n), (*C.GLenum)(unsafe.Pointer(bufs)))
-}
 func DrawElements(mode uint32, count int32, xtype uint32, indices unsafe.Pointer) {
 	C.glowDrawElements(gpDrawElements, (C.GLenum)(mode), (C.GLsizei)(count), (C.GLenum)(xtype), indices)
-}
-func DrawPixels(width int32, height int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
-	C.glowDrawPixels(gpDrawPixels, (C.GLsizei)(width), (C.GLsizei)(height), (C.GLenum)(format), (C.GLenum)(xtype), pixels)
-}
-func DrawRangeElements(mode uint32, start uint32, end uint32, count int32, xtype uint32, indices unsafe.Pointer) {
-	C.glowDrawRangeElements(gpDrawRangeElements, (C.GLenum)(mode), (C.GLuint)(start), (C.GLuint)(end), (C.GLsizei)(count), (C.GLenum)(xtype), indices)
-}
-func EdgeFlag(flag bool) {
-	C.glowEdgeFlag(gpEdgeFlag, (C.GLboolean)(boolToInt(flag)))
-}
-func EdgeFlagPointer(stride int32, pointer unsafe.Pointer) {
-	C.glowEdgeFlagPointer(gpEdgeFlagPointer, (C.GLsizei)(stride), pointer)
-}
-func EdgeFlagv(flag *bool) {
-	C.glowEdgeFlagv(gpEdgeFlagv, (*C.GLboolean)(unsafe.Pointer(flag)))
 }
 func Enable(cap uint32) {
 	C.glowEnable(gpEnable, (C.GLenum)(cap))
 }
-func EnableClientState(array uint32) {
-	C.glowEnableClientState(gpEnableClientState, (C.GLenum)(array))
-}
 func EnableVertexAttribArray(index uint32) {
 	C.glowEnableVertexAttribArray(gpEnableVertexAttribArray, (C.GLuint)(index))
-}
-func Enablei(target uint32, index uint32) {
-	C.glowEnablei(gpEnablei, (C.GLenum)(target), (C.GLuint)(index))
-}
-func End() {
-	C.glowEnd(gpEnd)
-}
-func EndConditionalRender() {
-	C.glowEndConditionalRender(gpEndConditionalRender)
-}
-func EndList() {
-	C.glowEndList(gpEndList)
-}
-func EndQuery(target uint32) {
-	C.glowEndQuery(gpEndQuery, (C.GLenum)(target))
-}
-func EndTransformFeedback() {
-	C.glowEndTransformFeedback(gpEndTransformFeedback)
-}
-func EvalCoord1d(u float64) {
-	C.glowEvalCoord1d(gpEvalCoord1d, (C.GLdouble)(u))
-}
-func EvalCoord1dv(u *float64) {
-	C.glowEvalCoord1dv(gpEvalCoord1dv, (*C.GLdouble)(unsafe.Pointer(u)))
-}
-func EvalCoord1f(u float32) {
-	C.glowEvalCoord1f(gpEvalCoord1f, (C.GLfloat)(u))
-}
-func EvalCoord1fv(u *float32) {
-	C.glowEvalCoord1fv(gpEvalCoord1fv, (*C.GLfloat)(unsafe.Pointer(u)))
-}
-func EvalCoord2d(u float64, v float64) {
-	C.glowEvalCoord2d(gpEvalCoord2d, (C.GLdouble)(u), (C.GLdouble)(v))
-}
-func EvalCoord2dv(u *float64) {
-	C.glowEvalCoord2dv(gpEvalCoord2dv, (*C.GLdouble)(unsafe.Pointer(u)))
-}
-func EvalCoord2f(u float32, v float32) {
-	C.glowEvalCoord2f(gpEvalCoord2f, (C.GLfloat)(u), (C.GLfloat)(v))
-}
-func EvalCoord2fv(u *float32) {
-	C.glowEvalCoord2fv(gpEvalCoord2fv, (*C.GLfloat)(unsafe.Pointer(u)))
-}
-func EvalMesh1(mode uint32, i1 int32, i2 int32) {
-	C.glowEvalMesh1(gpEvalMesh1, (C.GLenum)(mode), (C.GLint)(i1), (C.GLint)(i2))
-}
-func EvalMesh2(mode uint32, i1 int32, i2 int32, j1 int32, j2 int32) {
-	C.glowEvalMesh2(gpEvalMesh2, (C.GLenum)(mode), (C.GLint)(i1), (C.GLint)(i2), (C.GLint)(j1), (C.GLint)(j2))
-}
-func EvalPoint1(i int32) {
-	C.glowEvalPoint1(gpEvalPoint1, (C.GLint)(i))
-}
-func EvalPoint2(i int32, j int32) {
-	C.glowEvalPoint2(gpEvalPoint2, (C.GLint)(i), (C.GLint)(j))
-}
-func FeedbackBuffer(size int32, xtype uint32, buffer *float32) {
-	C.glowFeedbackBuffer(gpFeedbackBuffer, (C.GLsizei)(size), (C.GLenum)(xtype), (*C.GLfloat)(unsafe.Pointer(buffer)))
 }
 func Finish() {
 	C.glowFinish(gpFinish)
@@ -3980,56 +1182,14 @@ func Finish() {
 func Flush() {
 	C.glowFlush(gpFlush)
 }
-func FlushMappedBufferRange(target uint32, offset int, length int) {
-	C.glowFlushMappedBufferRange(gpFlushMappedBufferRange, (C.GLenum)(target), (C.GLintptr)(offset), (C.GLsizeiptr)(length))
-}
-func FogCoordPointer(xtype uint32, stride int32, pointer unsafe.Pointer) {
-	C.glowFogCoordPointer(gpFogCoordPointer, (C.GLenum)(xtype), (C.GLsizei)(stride), pointer)
-}
-func FogCoordd(coord float64) {
-	C.glowFogCoordd(gpFogCoordd, (C.GLdouble)(coord))
-}
-func FogCoorddv(coord *float64) {
-	C.glowFogCoorddv(gpFogCoorddv, (*C.GLdouble)(unsafe.Pointer(coord)))
-}
-func FogCoordf(coord float32) {
-	C.glowFogCoordf(gpFogCoordf, (C.GLfloat)(coord))
-}
-func FogCoordfv(coord *float32) {
-	C.glowFogCoordfv(gpFogCoordfv, (*C.GLfloat)(unsafe.Pointer(coord)))
-}
-func Fogf(pname uint32, param float32) {
-	C.glowFogf(gpFogf, (C.GLenum)(pname), (C.GLfloat)(param))
-}
-func Fogfv(pname uint32, params *float32) {
-	C.glowFogfv(gpFogfv, (C.GLenum)(pname), (*C.GLfloat)(unsafe.Pointer(params)))
-}
-func Fogi(pname uint32, param int32) {
-	C.glowFogi(gpFogi, (C.GLenum)(pname), (C.GLint)(param))
-}
-func Fogiv(pname uint32, params *int32) {
-	C.glowFogiv(gpFogiv, (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
 func FramebufferRenderbuffer(target uint32, attachment uint32, renderbuffertarget uint32, renderbuffer uint32) {
 	C.glowFramebufferRenderbuffer(gpFramebufferRenderbuffer, (C.GLenum)(target), (C.GLenum)(attachment), (C.GLenum)(renderbuffertarget), (C.GLuint)(renderbuffer))
-}
-func FramebufferTexture1D(target uint32, attachment uint32, textarget uint32, texture uint32, level int32) {
-	C.glowFramebufferTexture1D(gpFramebufferTexture1D, (C.GLenum)(target), (C.GLenum)(attachment), (C.GLenum)(textarget), (C.GLuint)(texture), (C.GLint)(level))
 }
 func FramebufferTexture2D(target uint32, attachment uint32, textarget uint32, texture uint32, level int32) {
 	C.glowFramebufferTexture2D(gpFramebufferTexture2D, (C.GLenum)(target), (C.GLenum)(attachment), (C.GLenum)(textarget), (C.GLuint)(texture), (C.GLint)(level))
 }
-func FramebufferTexture3D(target uint32, attachment uint32, textarget uint32, texture uint32, level int32, zoffset int32) {
-	C.glowFramebufferTexture3D(gpFramebufferTexture3D, (C.GLenum)(target), (C.GLenum)(attachment), (C.GLenum)(textarget), (C.GLuint)(texture), (C.GLint)(level), (C.GLint)(zoffset))
-}
-func FramebufferTextureLayer(target uint32, attachment uint32, texture uint32, level int32, layer int32) {
-	C.glowFramebufferTextureLayer(gpFramebufferTextureLayer, (C.GLenum)(target), (C.GLenum)(attachment), (C.GLuint)(texture), (C.GLint)(level), (C.GLint)(layer))
-}
 func FrontFace(mode uint32) {
 	C.glowFrontFace(gpFrontFace, (C.GLenum)(mode))
-}
-func Frustum(left float64, right float64, bottom float64, top float64, zNear float64, zFar float64) {
-	C.glowFrustum(gpFrustum, (C.GLdouble)(left), (C.GLdouble)(right), (C.GLdouble)(bottom), (C.GLdouble)(top), (C.GLdouble)(zNear), (C.GLdouble)(zFar))
 }
 func GenBuffers(n int32, buffers *uint32) {
 	C.glowGenBuffers(gpGenBuffers, (C.GLsizei)(n), (*C.GLuint)(unsafe.Pointer(buffers)))
@@ -4037,21 +1197,11 @@ func GenBuffers(n int32, buffers *uint32) {
 func GenFramebuffers(n int32, framebuffers *uint32) {
 	C.glowGenFramebuffers(gpGenFramebuffers, (C.GLsizei)(n), (*C.GLuint)(unsafe.Pointer(framebuffers)))
 }
-func GenLists(xrange int32) uint32 {
-	ret := C.glowGenLists(gpGenLists, (C.GLsizei)(xrange))
-	return (uint32)(ret)
-}
-func GenQueries(n int32, ids *uint32) {
-	C.glowGenQueries(gpGenQueries, (C.GLsizei)(n), (*C.GLuint)(unsafe.Pointer(ids)))
-}
 func GenRenderbuffers(n int32, renderbuffers *uint32) {
 	C.glowGenRenderbuffers(gpGenRenderbuffers, (C.GLsizei)(n), (*C.GLuint)(unsafe.Pointer(renderbuffers)))
 }
 func GenTextures(n int32, textures *uint32) {
 	C.glowGenTextures(gpGenTextures, (C.GLsizei)(n), (*C.GLuint)(unsafe.Pointer(textures)))
-}
-func GenVertexArrays(n int32, arrays *uint32) {
-	C.glowGenVertexArrays(gpGenVertexArrays, (C.GLsizei)(n), (*C.GLuint)(unsafe.Pointer(arrays)))
 }
 func GenerateMipmap(target uint32) {
 	C.glowGenerateMipmap(gpGenerateMipmap, (C.GLenum)(target))
@@ -4069,29 +1219,11 @@ func GetAttribLocation(program uint32, name *uint8) int32 {
 	ret := C.glowGetAttribLocation(gpGetAttribLocation, (C.GLuint)(program), (*C.GLchar)(unsafe.Pointer(name)))
 	return (int32)(ret)
 }
-func GetBooleani_v(target uint32, index uint32, data *bool) {
-	C.glowGetBooleani_v(gpGetBooleani_v, (C.GLenum)(target), (C.GLuint)(index), (*C.GLboolean)(unsafe.Pointer(data)))
-}
 func GetBooleanv(pname uint32, data *bool) {
 	C.glowGetBooleanv(gpGetBooleanv, (C.GLenum)(pname), (*C.GLboolean)(unsafe.Pointer(data)))
 }
 func GetBufferParameteriv(target uint32, pname uint32, params *int32) {
 	C.glowGetBufferParameteriv(gpGetBufferParameteriv, (C.GLenum)(target), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func GetBufferPointerv(target uint32, pname uint32, params *unsafe.Pointer) {
-	C.glowGetBufferPointerv(gpGetBufferPointerv, (C.GLenum)(target), (C.GLenum)(pname), params)
-}
-func GetBufferSubData(target uint32, offset int, size int, data unsafe.Pointer) {
-	C.glowGetBufferSubData(gpGetBufferSubData, (C.GLenum)(target), (C.GLintptr)(offset), (C.GLsizeiptr)(size), data)
-}
-func GetClipPlane(plane uint32, equation *float64) {
-	C.glowGetClipPlane(gpGetClipPlane, (C.GLenum)(plane), (*C.GLdouble)(unsafe.Pointer(equation)))
-}
-func GetCompressedTexImage(target uint32, level int32, img unsafe.Pointer) {
-	C.glowGetCompressedTexImage(gpGetCompressedTexImage, (C.GLenum)(target), (C.GLint)(level), img)
-}
-func GetDoublev(pname uint32, data *float64) {
-	C.glowGetDoublev(gpGetDoublev, (C.GLenum)(pname), (*C.GLdouble)(unsafe.Pointer(data)))
 }
 func GetError() uint32 {
 	ret := C.glowGetError(gpGetError)
@@ -4100,69 +1232,17 @@ func GetError() uint32 {
 func GetFloatv(pname uint32, data *float32) {
 	C.glowGetFloatv(gpGetFloatv, (C.GLenum)(pname), (*C.GLfloat)(unsafe.Pointer(data)))
 }
-func GetFragDataLocation(program uint32, name *uint8) int32 {
-	ret := C.glowGetFragDataLocation(gpGetFragDataLocation, (C.GLuint)(program), (*C.GLchar)(unsafe.Pointer(name)))
-	return (int32)(ret)
-}
 func GetFramebufferAttachmentParameteriv(target uint32, attachment uint32, pname uint32, params *int32) {
 	C.glowGetFramebufferAttachmentParameteriv(gpGetFramebufferAttachmentParameteriv, (C.GLenum)(target), (C.GLenum)(attachment), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
 }
-func GetIntegeri_v(target uint32, index uint32, data *int32) {
-	C.glowGetIntegeri_v(gpGetIntegeri_v, (C.GLenum)(target), (C.GLuint)(index), (*C.GLint)(unsafe.Pointer(data)))
-}
 func GetIntegerv(pname uint32, data *int32) {
 	C.glowGetIntegerv(gpGetIntegerv, (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(data)))
-}
-func GetLightfv(light uint32, pname uint32, params *float32) {
-	C.glowGetLightfv(gpGetLightfv, (C.GLenum)(light), (C.GLenum)(pname), (*C.GLfloat)(unsafe.Pointer(params)))
-}
-func GetLightiv(light uint32, pname uint32, params *int32) {
-	C.glowGetLightiv(gpGetLightiv, (C.GLenum)(light), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func GetMapdv(target uint32, query uint32, v *float64) {
-	C.glowGetMapdv(gpGetMapdv, (C.GLenum)(target), (C.GLenum)(query), (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func GetMapfv(target uint32, query uint32, v *float32) {
-	C.glowGetMapfv(gpGetMapfv, (C.GLenum)(target), (C.GLenum)(query), (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func GetMapiv(target uint32, query uint32, v *int32) {
-	C.glowGetMapiv(gpGetMapiv, (C.GLenum)(target), (C.GLenum)(query), (*C.GLint)(unsafe.Pointer(v)))
-}
-func GetMaterialfv(face uint32, pname uint32, params *float32) {
-	C.glowGetMaterialfv(gpGetMaterialfv, (C.GLenum)(face), (C.GLenum)(pname), (*C.GLfloat)(unsafe.Pointer(params)))
-}
-func GetMaterialiv(face uint32, pname uint32, params *int32) {
-	C.glowGetMaterialiv(gpGetMaterialiv, (C.GLenum)(face), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func GetPixelMapfv(xmap uint32, values *float32) {
-	C.glowGetPixelMapfv(gpGetPixelMapfv, (C.GLenum)(xmap), (*C.GLfloat)(unsafe.Pointer(values)))
-}
-func GetPixelMapuiv(xmap uint32, values *uint32) {
-	C.glowGetPixelMapuiv(gpGetPixelMapuiv, (C.GLenum)(xmap), (*C.GLuint)(unsafe.Pointer(values)))
-}
-func GetPixelMapusv(xmap uint32, values *uint16) {
-	C.glowGetPixelMapusv(gpGetPixelMapusv, (C.GLenum)(xmap), (*C.GLushort)(unsafe.Pointer(values)))
-}
-func GetPointerv(pname uint32, params *unsafe.Pointer) {
-	C.glowGetPointerv(gpGetPointerv, (C.GLenum)(pname), params)
-}
-func GetPolygonStipple(mask *uint8) {
-	C.glowGetPolygonStipple(gpGetPolygonStipple, (*C.GLubyte)(unsafe.Pointer(mask)))
 }
 func GetProgramInfoLog(program uint32, bufSize int32, length *int32, infoLog *uint8) {
 	C.glowGetProgramInfoLog(gpGetProgramInfoLog, (C.GLuint)(program), (C.GLsizei)(bufSize), (*C.GLsizei)(unsafe.Pointer(length)), (*C.GLchar)(unsafe.Pointer(infoLog)))
 }
 func GetProgramiv(program uint32, pname uint32, params *int32) {
 	C.glowGetProgramiv(gpGetProgramiv, (C.GLuint)(program), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func GetQueryObjectiv(id uint32, pname uint32, params *int32) {
-	C.glowGetQueryObjectiv(gpGetQueryObjectiv, (C.GLuint)(id), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func GetQueryObjectuiv(id uint32, pname uint32, params *uint32) {
-	C.glowGetQueryObjectuiv(gpGetQueryObjectuiv, (C.GLuint)(id), (C.GLenum)(pname), (*C.GLuint)(unsafe.Pointer(params)))
-}
-func GetQueryiv(target uint32, pname uint32, params *int32) {
-	C.glowGetQueryiv(gpGetQueryiv, (C.GLenum)(target), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
 }
 func GetRenderbufferParameteriv(target uint32, pname uint32, params *int32) {
 	C.glowGetRenderbufferParameteriv(gpGetRenderbufferParameteriv, (C.GLenum)(target), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
@@ -4180,48 +1260,11 @@ func GetString(name uint32) *uint8 {
 	ret := C.glowGetString(gpGetString, (C.GLenum)(name))
 	return (*uint8)(ret)
 }
-func GetStringi(name uint32, index uint32) *uint8 {
-	ret := C.glowGetStringi(gpGetStringi, (C.GLenum)(name), (C.GLuint)(index))
-	return (*uint8)(ret)
-}
-func GetTexEnvfv(target uint32, pname uint32, params *float32) {
-	C.glowGetTexEnvfv(gpGetTexEnvfv, (C.GLenum)(target), (C.GLenum)(pname), (*C.GLfloat)(unsafe.Pointer(params)))
-}
-func GetTexEnviv(target uint32, pname uint32, params *int32) {
-	C.glowGetTexEnviv(gpGetTexEnviv, (C.GLenum)(target), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func GetTexGendv(coord uint32, pname uint32, params *float64) {
-	C.glowGetTexGendv(gpGetTexGendv, (C.GLenum)(coord), (C.GLenum)(pname), (*C.GLdouble)(unsafe.Pointer(params)))
-}
-func GetTexGenfv(coord uint32, pname uint32, params *float32) {
-	C.glowGetTexGenfv(gpGetTexGenfv, (C.GLenum)(coord), (C.GLenum)(pname), (*C.GLfloat)(unsafe.Pointer(params)))
-}
-func GetTexGeniv(coord uint32, pname uint32, params *int32) {
-	C.glowGetTexGeniv(gpGetTexGeniv, (C.GLenum)(coord), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func GetTexImage(target uint32, level int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
-	C.glowGetTexImage(gpGetTexImage, (C.GLenum)(target), (C.GLint)(level), (C.GLenum)(format), (C.GLenum)(xtype), pixels)
-}
-func GetTexLevelParameterfv(target uint32, level int32, pname uint32, params *float32) {
-	C.glowGetTexLevelParameterfv(gpGetTexLevelParameterfv, (C.GLenum)(target), (C.GLint)(level), (C.GLenum)(pname), (*C.GLfloat)(unsafe.Pointer(params)))
-}
-func GetTexLevelParameteriv(target uint32, level int32, pname uint32, params *int32) {
-	C.glowGetTexLevelParameteriv(gpGetTexLevelParameteriv, (C.GLenum)(target), (C.GLint)(level), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func GetTexParameterIiv(target uint32, pname uint32, params *int32) {
-	C.glowGetTexParameterIiv(gpGetTexParameterIiv, (C.GLenum)(target), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func GetTexParameterIuiv(target uint32, pname uint32, params *uint32) {
-	C.glowGetTexParameterIuiv(gpGetTexParameterIuiv, (C.GLenum)(target), (C.GLenum)(pname), (*C.GLuint)(unsafe.Pointer(params)))
-}
 func GetTexParameterfv(target uint32, pname uint32, params *float32) {
 	C.glowGetTexParameterfv(gpGetTexParameterfv, (C.GLenum)(target), (C.GLenum)(pname), (*C.GLfloat)(unsafe.Pointer(params)))
 }
 func GetTexParameteriv(target uint32, pname uint32, params *int32) {
 	C.glowGetTexParameteriv(gpGetTexParameteriv, (C.GLenum)(target), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func GetTransformFeedbackVarying(program uint32, index uint32, bufSize int32, length *int32, size *int32, xtype *uint32, name *uint8) {
-	C.glowGetTransformFeedbackVarying(gpGetTransformFeedbackVarying, (C.GLuint)(program), (C.GLuint)(index), (C.GLsizei)(bufSize), (*C.GLsizei)(unsafe.Pointer(length)), (*C.GLsizei)(unsafe.Pointer(size)), (*C.GLenum)(unsafe.Pointer(xtype)), (*C.GLchar)(unsafe.Pointer(name)))
 }
 func GetUniformLocation(program uint32, name *uint8) int32 {
 	ret := C.glowGetUniformLocation(gpGetUniformLocation, (C.GLuint)(program), (*C.GLchar)(unsafe.Pointer(name)))
@@ -4233,20 +1276,8 @@ func GetUniformfv(program uint32, location int32, params *float32) {
 func GetUniformiv(program uint32, location int32, params *int32) {
 	C.glowGetUniformiv(gpGetUniformiv, (C.GLuint)(program), (C.GLint)(location), (*C.GLint)(unsafe.Pointer(params)))
 }
-func GetUniformuiv(program uint32, location int32, params *uint32) {
-	C.glowGetUniformuiv(gpGetUniformuiv, (C.GLuint)(program), (C.GLint)(location), (*C.GLuint)(unsafe.Pointer(params)))
-}
-func GetVertexAttribIiv(index uint32, pname uint32, params *int32) {
-	C.glowGetVertexAttribIiv(gpGetVertexAttribIiv, (C.GLuint)(index), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func GetVertexAttribIuiv(index uint32, pname uint32, params *uint32) {
-	C.glowGetVertexAttribIuiv(gpGetVertexAttribIuiv, (C.GLuint)(index), (C.GLenum)(pname), (*C.GLuint)(unsafe.Pointer(params)))
-}
 func GetVertexAttribPointerv(index uint32, pname uint32, pointer *unsafe.Pointer) {
 	C.glowGetVertexAttribPointerv(gpGetVertexAttribPointerv, (C.GLuint)(index), (C.GLenum)(pname), pointer)
-}
-func GetVertexAttribdv(index uint32, pname uint32, params *float64) {
-	C.glowGetVertexAttribdv(gpGetVertexAttribdv, (C.GLuint)(index), (C.GLenum)(pname), (*C.GLdouble)(unsafe.Pointer(params)))
 }
 func GetVertexAttribfv(index uint32, pname uint32, params *float32) {
 	C.glowGetVertexAttribfv(gpGetVertexAttribfv, (C.GLuint)(index), (C.GLenum)(pname), (*C.GLfloat)(unsafe.Pointer(params)))
@@ -4257,48 +1288,6 @@ func GetVertexAttribiv(index uint32, pname uint32, params *int32) {
 func Hint(target uint32, mode uint32) {
 	C.glowHint(gpHint, (C.GLenum)(target), (C.GLenum)(mode))
 }
-func IndexMask(mask uint32) {
-	C.glowIndexMask(gpIndexMask, (C.GLuint)(mask))
-}
-func IndexPointer(xtype uint32, stride int32, pointer unsafe.Pointer) {
-	C.glowIndexPointer(gpIndexPointer, (C.GLenum)(xtype), (C.GLsizei)(stride), pointer)
-}
-func Indexd(c float64) {
-	C.glowIndexd(gpIndexd, (C.GLdouble)(c))
-}
-func Indexdv(c *float64) {
-	C.glowIndexdv(gpIndexdv, (*C.GLdouble)(unsafe.Pointer(c)))
-}
-func Indexf(c float32) {
-	C.glowIndexf(gpIndexf, (C.GLfloat)(c))
-}
-func Indexfv(c *float32) {
-	C.glowIndexfv(gpIndexfv, (*C.GLfloat)(unsafe.Pointer(c)))
-}
-func Indexi(c int32) {
-	C.glowIndexi(gpIndexi, (C.GLint)(c))
-}
-func Indexiv(c *int32) {
-	C.glowIndexiv(gpIndexiv, (*C.GLint)(unsafe.Pointer(c)))
-}
-func Indexs(c int16) {
-	C.glowIndexs(gpIndexs, (C.GLshort)(c))
-}
-func Indexsv(c *int16) {
-	C.glowIndexsv(gpIndexsv, (*C.GLshort)(unsafe.Pointer(c)))
-}
-func Indexub(c uint8) {
-	C.glowIndexub(gpIndexub, (C.GLubyte)(c))
-}
-func Indexubv(c *uint8) {
-	C.glowIndexubv(gpIndexubv, (*C.GLubyte)(unsafe.Pointer(c)))
-}
-func InitNames() {
-	C.glowInitNames(gpInitNames)
-}
-func InterleavedArrays(format uint32, stride int32, pointer unsafe.Pointer) {
-	C.glowInterleavedArrays(gpInterleavedArrays, (C.GLenum)(format), (C.GLsizei)(stride), pointer)
-}
 func IsBuffer(buffer uint32) bool {
 	ret := C.glowIsBuffer(gpIsBuffer, (C.GLuint)(buffer))
 	return ret == TRUE
@@ -4307,24 +1296,12 @@ func IsEnabled(cap uint32) bool {
 	ret := C.glowIsEnabled(gpIsEnabled, (C.GLenum)(cap))
 	return ret == TRUE
 }
-func IsEnabledi(target uint32, index uint32) bool {
-	ret := C.glowIsEnabledi(gpIsEnabledi, (C.GLenum)(target), (C.GLuint)(index))
-	return ret == TRUE
-}
 func IsFramebuffer(framebuffer uint32) bool {
 	ret := C.glowIsFramebuffer(gpIsFramebuffer, (C.GLuint)(framebuffer))
 	return ret == TRUE
 }
-func IsList(list uint32) bool {
-	ret := C.glowIsList(gpIsList, (C.GLuint)(list))
-	return ret == TRUE
-}
 func IsProgram(program uint32) bool {
 	ret := C.glowIsProgram(gpIsProgram, (C.GLuint)(program))
-	return ret == TRUE
-}
-func IsQuery(id uint32) bool {
-	ret := C.glowIsQuery(gpIsQuery, (C.GLuint)(id))
 	return ret == TRUE
 }
 func IsRenderbuffer(renderbuffer uint32) bool {
@@ -4339,531 +1316,29 @@ func IsTexture(texture uint32) bool {
 	ret := C.glowIsTexture(gpIsTexture, (C.GLuint)(texture))
 	return ret == TRUE
 }
-func IsVertexArray(array uint32) bool {
-	ret := C.glowIsVertexArray(gpIsVertexArray, (C.GLuint)(array))
-	return ret == TRUE
-}
-func LightModelf(pname uint32, param float32) {
-	C.glowLightModelf(gpLightModelf, (C.GLenum)(pname), (C.GLfloat)(param))
-}
-func LightModelfv(pname uint32, params *float32) {
-	C.glowLightModelfv(gpLightModelfv, (C.GLenum)(pname), (*C.GLfloat)(unsafe.Pointer(params)))
-}
-func LightModeli(pname uint32, param int32) {
-	C.glowLightModeli(gpLightModeli, (C.GLenum)(pname), (C.GLint)(param))
-}
-func LightModeliv(pname uint32, params *int32) {
-	C.glowLightModeliv(gpLightModeliv, (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func Lightf(light uint32, pname uint32, param float32) {
-	C.glowLightf(gpLightf, (C.GLenum)(light), (C.GLenum)(pname), (C.GLfloat)(param))
-}
-func Lightfv(light uint32, pname uint32, params *float32) {
-	C.glowLightfv(gpLightfv, (C.GLenum)(light), (C.GLenum)(pname), (*C.GLfloat)(unsafe.Pointer(params)))
-}
-func Lighti(light uint32, pname uint32, param int32) {
-	C.glowLighti(gpLighti, (C.GLenum)(light), (C.GLenum)(pname), (C.GLint)(param))
-}
-func Lightiv(light uint32, pname uint32, params *int32) {
-	C.glowLightiv(gpLightiv, (C.GLenum)(light), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func LineStipple(factor int32, pattern uint16) {
-	C.glowLineStipple(gpLineStipple, (C.GLint)(factor), (C.GLushort)(pattern))
-}
 func LineWidth(width float32) {
 	C.glowLineWidth(gpLineWidth, (C.GLfloat)(width))
 }
 func LinkProgram(program uint32) {
 	C.glowLinkProgram(gpLinkProgram, (C.GLuint)(program))
 }
-func ListBase(base uint32) {
-	C.glowListBase(gpListBase, (C.GLuint)(base))
-}
-func LoadIdentity() {
-	C.glowLoadIdentity(gpLoadIdentity)
-}
-func LoadMatrixd(m *float64) {
-	C.glowLoadMatrixd(gpLoadMatrixd, (*C.GLdouble)(unsafe.Pointer(m)))
-}
-func LoadMatrixf(m *float32) {
-	C.glowLoadMatrixf(gpLoadMatrixf, (*C.GLfloat)(unsafe.Pointer(m)))
-}
-func LoadName(name uint32) {
-	C.glowLoadName(gpLoadName, (C.GLuint)(name))
-}
-func LoadTransposeMatrixd(m *float64) {
-	C.glowLoadTransposeMatrixd(gpLoadTransposeMatrixd, (*C.GLdouble)(unsafe.Pointer(m)))
-}
-func LoadTransposeMatrixf(m *float32) {
-	C.glowLoadTransposeMatrixf(gpLoadTransposeMatrixf, (*C.GLfloat)(unsafe.Pointer(m)))
-}
-func LogicOp(opcode uint32) {
-	C.glowLogicOp(gpLogicOp, (C.GLenum)(opcode))
-}
-func Map1d(target uint32, u1 float64, u2 float64, stride int32, order int32, points *float64) {
-	C.glowMap1d(gpMap1d, (C.GLenum)(target), (C.GLdouble)(u1), (C.GLdouble)(u2), (C.GLint)(stride), (C.GLint)(order), (*C.GLdouble)(unsafe.Pointer(points)))
-}
-func Map1f(target uint32, u1 float32, u2 float32, stride int32, order int32, points *float32) {
-	C.glowMap1f(gpMap1f, (C.GLenum)(target), (C.GLfloat)(u1), (C.GLfloat)(u2), (C.GLint)(stride), (C.GLint)(order), (*C.GLfloat)(unsafe.Pointer(points)))
-}
-func Map2d(target uint32, u1 float64, u2 float64, ustride int32, uorder int32, v1 float64, v2 float64, vstride int32, vorder int32, points *float64) {
-	C.glowMap2d(gpMap2d, (C.GLenum)(target), (C.GLdouble)(u1), (C.GLdouble)(u2), (C.GLint)(ustride), (C.GLint)(uorder), (C.GLdouble)(v1), (C.GLdouble)(v2), (C.GLint)(vstride), (C.GLint)(vorder), (*C.GLdouble)(unsafe.Pointer(points)))
-}
-func Map2f(target uint32, u1 float32, u2 float32, ustride int32, uorder int32, v1 float32, v2 float32, vstride int32, vorder int32, points *float32) {
-	C.glowMap2f(gpMap2f, (C.GLenum)(target), (C.GLfloat)(u1), (C.GLfloat)(u2), (C.GLint)(ustride), (C.GLint)(uorder), (C.GLfloat)(v1), (C.GLfloat)(v2), (C.GLint)(vstride), (C.GLint)(vorder), (*C.GLfloat)(unsafe.Pointer(points)))
-}
-func MapBuffer(target uint32, access uint32) unsafe.Pointer {
-	ret := C.glowMapBuffer(gpMapBuffer, (C.GLenum)(target), (C.GLenum)(access))
-	return (unsafe.Pointer)(ret)
-}
-func MapBufferRange(target uint32, offset int, length int, access uint32) unsafe.Pointer {
-	ret := C.glowMapBufferRange(gpMapBufferRange, (C.GLenum)(target), (C.GLintptr)(offset), (C.GLsizeiptr)(length), (C.GLbitfield)(access))
-	return (unsafe.Pointer)(ret)
-}
-func MapGrid1d(un int32, u1 float64, u2 float64) {
-	C.glowMapGrid1d(gpMapGrid1d, (C.GLint)(un), (C.GLdouble)(u1), (C.GLdouble)(u2))
-}
-func MapGrid1f(un int32, u1 float32, u2 float32) {
-	C.glowMapGrid1f(gpMapGrid1f, (C.GLint)(un), (C.GLfloat)(u1), (C.GLfloat)(u2))
-}
-func MapGrid2d(un int32, u1 float64, u2 float64, vn int32, v1 float64, v2 float64) {
-	C.glowMapGrid2d(gpMapGrid2d, (C.GLint)(un), (C.GLdouble)(u1), (C.GLdouble)(u2), (C.GLint)(vn), (C.GLdouble)(v1), (C.GLdouble)(v2))
-}
-func MapGrid2f(un int32, u1 float32, u2 float32, vn int32, v1 float32, v2 float32) {
-	C.glowMapGrid2f(gpMapGrid2f, (C.GLint)(un), (C.GLfloat)(u1), (C.GLfloat)(u2), (C.GLint)(vn), (C.GLfloat)(v1), (C.GLfloat)(v2))
-}
-func Materialf(face uint32, pname uint32, param float32) {
-	C.glowMaterialf(gpMaterialf, (C.GLenum)(face), (C.GLenum)(pname), (C.GLfloat)(param))
-}
-func Materialfv(face uint32, pname uint32, params *float32) {
-	C.glowMaterialfv(gpMaterialfv, (C.GLenum)(face), (C.GLenum)(pname), (*C.GLfloat)(unsafe.Pointer(params)))
-}
-func Materiali(face uint32, pname uint32, param int32) {
-	C.glowMateriali(gpMateriali, (C.GLenum)(face), (C.GLenum)(pname), (C.GLint)(param))
-}
-func Materialiv(face uint32, pname uint32, params *int32) {
-	C.glowMaterialiv(gpMaterialiv, (C.GLenum)(face), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func MatrixMode(mode uint32) {
-	C.glowMatrixMode(gpMatrixMode, (C.GLenum)(mode))
-}
-func MultMatrixd(m *float64) {
-	C.glowMultMatrixd(gpMultMatrixd, (*C.GLdouble)(unsafe.Pointer(m)))
-}
-func MultMatrixf(m *float32) {
-	C.glowMultMatrixf(gpMultMatrixf, (*C.GLfloat)(unsafe.Pointer(m)))
-}
-func MultTransposeMatrixd(m *float64) {
-	C.glowMultTransposeMatrixd(gpMultTransposeMatrixd, (*C.GLdouble)(unsafe.Pointer(m)))
-}
-func MultTransposeMatrixf(m *float32) {
-	C.glowMultTransposeMatrixf(gpMultTransposeMatrixf, (*C.GLfloat)(unsafe.Pointer(m)))
-}
-func MultiDrawArrays(mode uint32, first *int32, count *int32, drawcount int32) {
-	C.glowMultiDrawArrays(gpMultiDrawArrays, (C.GLenum)(mode), (*C.GLint)(unsafe.Pointer(first)), (*C.GLsizei)(unsafe.Pointer(count)), (C.GLsizei)(drawcount))
-}
-func MultiDrawElements(mode uint32, count *int32, xtype uint32, indices *unsafe.Pointer, drawcount int32) {
-	C.glowMultiDrawElements(gpMultiDrawElements, (C.GLenum)(mode), (*C.GLsizei)(unsafe.Pointer(count)), (C.GLenum)(xtype), indices, (C.GLsizei)(drawcount))
-}
-func MultiTexCoord1d(target uint32, s float64) {
-	C.glowMultiTexCoord1d(gpMultiTexCoord1d, (C.GLenum)(target), (C.GLdouble)(s))
-}
-func MultiTexCoord1dv(target uint32, v *float64) {
-	C.glowMultiTexCoord1dv(gpMultiTexCoord1dv, (C.GLenum)(target), (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func MultiTexCoord1f(target uint32, s float32) {
-	C.glowMultiTexCoord1f(gpMultiTexCoord1f, (C.GLenum)(target), (C.GLfloat)(s))
-}
-func MultiTexCoord1fv(target uint32, v *float32) {
-	C.glowMultiTexCoord1fv(gpMultiTexCoord1fv, (C.GLenum)(target), (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func MultiTexCoord1i(target uint32, s int32) {
-	C.glowMultiTexCoord1i(gpMultiTexCoord1i, (C.GLenum)(target), (C.GLint)(s))
-}
-func MultiTexCoord1iv(target uint32, v *int32) {
-	C.glowMultiTexCoord1iv(gpMultiTexCoord1iv, (C.GLenum)(target), (*C.GLint)(unsafe.Pointer(v)))
-}
-func MultiTexCoord1s(target uint32, s int16) {
-	C.glowMultiTexCoord1s(gpMultiTexCoord1s, (C.GLenum)(target), (C.GLshort)(s))
-}
-func MultiTexCoord1sv(target uint32, v *int16) {
-	C.glowMultiTexCoord1sv(gpMultiTexCoord1sv, (C.GLenum)(target), (*C.GLshort)(unsafe.Pointer(v)))
-}
-func MultiTexCoord2d(target uint32, s float64, t float64) {
-	C.glowMultiTexCoord2d(gpMultiTexCoord2d, (C.GLenum)(target), (C.GLdouble)(s), (C.GLdouble)(t))
-}
-func MultiTexCoord2dv(target uint32, v *float64) {
-	C.glowMultiTexCoord2dv(gpMultiTexCoord2dv, (C.GLenum)(target), (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func MultiTexCoord2f(target uint32, s float32, t float32) {
-	C.glowMultiTexCoord2f(gpMultiTexCoord2f, (C.GLenum)(target), (C.GLfloat)(s), (C.GLfloat)(t))
-}
-func MultiTexCoord2fv(target uint32, v *float32) {
-	C.glowMultiTexCoord2fv(gpMultiTexCoord2fv, (C.GLenum)(target), (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func MultiTexCoord2i(target uint32, s int32, t int32) {
-	C.glowMultiTexCoord2i(gpMultiTexCoord2i, (C.GLenum)(target), (C.GLint)(s), (C.GLint)(t))
-}
-func MultiTexCoord2iv(target uint32, v *int32) {
-	C.glowMultiTexCoord2iv(gpMultiTexCoord2iv, (C.GLenum)(target), (*C.GLint)(unsafe.Pointer(v)))
-}
-func MultiTexCoord2s(target uint32, s int16, t int16) {
-	C.glowMultiTexCoord2s(gpMultiTexCoord2s, (C.GLenum)(target), (C.GLshort)(s), (C.GLshort)(t))
-}
-func MultiTexCoord2sv(target uint32, v *int16) {
-	C.glowMultiTexCoord2sv(gpMultiTexCoord2sv, (C.GLenum)(target), (*C.GLshort)(unsafe.Pointer(v)))
-}
-func MultiTexCoord3d(target uint32, s float64, t float64, r float64) {
-	C.glowMultiTexCoord3d(gpMultiTexCoord3d, (C.GLenum)(target), (C.GLdouble)(s), (C.GLdouble)(t), (C.GLdouble)(r))
-}
-func MultiTexCoord3dv(target uint32, v *float64) {
-	C.glowMultiTexCoord3dv(gpMultiTexCoord3dv, (C.GLenum)(target), (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func MultiTexCoord3f(target uint32, s float32, t float32, r float32) {
-	C.glowMultiTexCoord3f(gpMultiTexCoord3f, (C.GLenum)(target), (C.GLfloat)(s), (C.GLfloat)(t), (C.GLfloat)(r))
-}
-func MultiTexCoord3fv(target uint32, v *float32) {
-	C.glowMultiTexCoord3fv(gpMultiTexCoord3fv, (C.GLenum)(target), (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func MultiTexCoord3i(target uint32, s int32, t int32, r int32) {
-	C.glowMultiTexCoord3i(gpMultiTexCoord3i, (C.GLenum)(target), (C.GLint)(s), (C.GLint)(t), (C.GLint)(r))
-}
-func MultiTexCoord3iv(target uint32, v *int32) {
-	C.glowMultiTexCoord3iv(gpMultiTexCoord3iv, (C.GLenum)(target), (*C.GLint)(unsafe.Pointer(v)))
-}
-func MultiTexCoord3s(target uint32, s int16, t int16, r int16) {
-	C.glowMultiTexCoord3s(gpMultiTexCoord3s, (C.GLenum)(target), (C.GLshort)(s), (C.GLshort)(t), (C.GLshort)(r))
-}
-func MultiTexCoord3sv(target uint32, v *int16) {
-	C.glowMultiTexCoord3sv(gpMultiTexCoord3sv, (C.GLenum)(target), (*C.GLshort)(unsafe.Pointer(v)))
-}
-func MultiTexCoord4d(target uint32, s float64, t float64, r float64, q float64) {
-	C.glowMultiTexCoord4d(gpMultiTexCoord4d, (C.GLenum)(target), (C.GLdouble)(s), (C.GLdouble)(t), (C.GLdouble)(r), (C.GLdouble)(q))
-}
-func MultiTexCoord4dv(target uint32, v *float64) {
-	C.glowMultiTexCoord4dv(gpMultiTexCoord4dv, (C.GLenum)(target), (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func MultiTexCoord4f(target uint32, s float32, t float32, r float32, q float32) {
-	C.glowMultiTexCoord4f(gpMultiTexCoord4f, (C.GLenum)(target), (C.GLfloat)(s), (C.GLfloat)(t), (C.GLfloat)(r), (C.GLfloat)(q))
-}
-func MultiTexCoord4fv(target uint32, v *float32) {
-	C.glowMultiTexCoord4fv(gpMultiTexCoord4fv, (C.GLenum)(target), (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func MultiTexCoord4i(target uint32, s int32, t int32, r int32, q int32) {
-	C.glowMultiTexCoord4i(gpMultiTexCoord4i, (C.GLenum)(target), (C.GLint)(s), (C.GLint)(t), (C.GLint)(r), (C.GLint)(q))
-}
-func MultiTexCoord4iv(target uint32, v *int32) {
-	C.glowMultiTexCoord4iv(gpMultiTexCoord4iv, (C.GLenum)(target), (*C.GLint)(unsafe.Pointer(v)))
-}
-func MultiTexCoord4s(target uint32, s int16, t int16, r int16, q int16) {
-	C.glowMultiTexCoord4s(gpMultiTexCoord4s, (C.GLenum)(target), (C.GLshort)(s), (C.GLshort)(t), (C.GLshort)(r), (C.GLshort)(q))
-}
-func MultiTexCoord4sv(target uint32, v *int16) {
-	C.glowMultiTexCoord4sv(gpMultiTexCoord4sv, (C.GLenum)(target), (*C.GLshort)(unsafe.Pointer(v)))
-}
-func NewList(list uint32, mode uint32) {
-	C.glowNewList(gpNewList, (C.GLuint)(list), (C.GLenum)(mode))
-}
-func Normal3b(nx int8, ny int8, nz int8) {
-	C.glowNormal3b(gpNormal3b, (C.GLbyte)(nx), (C.GLbyte)(ny), (C.GLbyte)(nz))
-}
-func Normal3bv(v *int8) {
-	C.glowNormal3bv(gpNormal3bv, (*C.GLbyte)(unsafe.Pointer(v)))
-}
-func Normal3d(nx float64, ny float64, nz float64) {
-	C.glowNormal3d(gpNormal3d, (C.GLdouble)(nx), (C.GLdouble)(ny), (C.GLdouble)(nz))
-}
-func Normal3dv(v *float64) {
-	C.glowNormal3dv(gpNormal3dv, (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func Normal3f(nx float32, ny float32, nz float32) {
-	C.glowNormal3f(gpNormal3f, (C.GLfloat)(nx), (C.GLfloat)(ny), (C.GLfloat)(nz))
-}
-func Normal3fv(v *float32) {
-	C.glowNormal3fv(gpNormal3fv, (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func Normal3i(nx int32, ny int32, nz int32) {
-	C.glowNormal3i(gpNormal3i, (C.GLint)(nx), (C.GLint)(ny), (C.GLint)(nz))
-}
-func Normal3iv(v *int32) {
-	C.glowNormal3iv(gpNormal3iv, (*C.GLint)(unsafe.Pointer(v)))
-}
-func Normal3s(nx int16, ny int16, nz int16) {
-	C.glowNormal3s(gpNormal3s, (C.GLshort)(nx), (C.GLshort)(ny), (C.GLshort)(nz))
-}
-func Normal3sv(v *int16) {
-	C.glowNormal3sv(gpNormal3sv, (*C.GLshort)(unsafe.Pointer(v)))
-}
-func NormalPointer(xtype uint32, stride int32, pointer unsafe.Pointer) {
-	C.glowNormalPointer(gpNormalPointer, (C.GLenum)(xtype), (C.GLsizei)(stride), pointer)
-}
-func Ortho(left float64, right float64, bottom float64, top float64, zNear float64, zFar float64) {
-	C.glowOrtho(gpOrtho, (C.GLdouble)(left), (C.GLdouble)(right), (C.GLdouble)(bottom), (C.GLdouble)(top), (C.GLdouble)(zNear), (C.GLdouble)(zFar))
-}
-func PassThrough(token float32) {
-	C.glowPassThrough(gpPassThrough, (C.GLfloat)(token))
-}
-func PixelMapfv(xmap uint32, mapsize int32, values *float32) {
-	C.glowPixelMapfv(gpPixelMapfv, (C.GLenum)(xmap), (C.GLsizei)(mapsize), (*C.GLfloat)(unsafe.Pointer(values)))
-}
-func PixelMapuiv(xmap uint32, mapsize int32, values *uint32) {
-	C.glowPixelMapuiv(gpPixelMapuiv, (C.GLenum)(xmap), (C.GLsizei)(mapsize), (*C.GLuint)(unsafe.Pointer(values)))
-}
-func PixelMapusv(xmap uint32, mapsize int32, values *uint16) {
-	C.glowPixelMapusv(gpPixelMapusv, (C.GLenum)(xmap), (C.GLsizei)(mapsize), (*C.GLushort)(unsafe.Pointer(values)))
-}
-func PixelStoref(pname uint32, param float32) {
-	C.glowPixelStoref(gpPixelStoref, (C.GLenum)(pname), (C.GLfloat)(param))
-}
 func PixelStorei(pname uint32, param int32) {
 	C.glowPixelStorei(gpPixelStorei, (C.GLenum)(pname), (C.GLint)(param))
-}
-func PixelTransferf(pname uint32, param float32) {
-	C.glowPixelTransferf(gpPixelTransferf, (C.GLenum)(pname), (C.GLfloat)(param))
-}
-func PixelTransferi(pname uint32, param int32) {
-	C.glowPixelTransferi(gpPixelTransferi, (C.GLenum)(pname), (C.GLint)(param))
-}
-func PixelZoom(xfactor float32, yfactor float32) {
-	C.glowPixelZoom(gpPixelZoom, (C.GLfloat)(xfactor), (C.GLfloat)(yfactor))
-}
-func PointParameterf(pname uint32, param float32) {
-	C.glowPointParameterf(gpPointParameterf, (C.GLenum)(pname), (C.GLfloat)(param))
-}
-func PointParameterfv(pname uint32, params *float32) {
-	C.glowPointParameterfv(gpPointParameterfv, (C.GLenum)(pname), (*C.GLfloat)(unsafe.Pointer(params)))
-}
-func PointParameteri(pname uint32, param int32) {
-	C.glowPointParameteri(gpPointParameteri, (C.GLenum)(pname), (C.GLint)(param))
-}
-func PointParameteriv(pname uint32, params *int32) {
-	C.glowPointParameteriv(gpPointParameteriv, (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func PointSize(size float32) {
-	C.glowPointSize(gpPointSize, (C.GLfloat)(size))
-}
-func PolygonMode(face uint32, mode uint32) {
-	C.glowPolygonMode(gpPolygonMode, (C.GLenum)(face), (C.GLenum)(mode))
 }
 func PolygonOffset(factor float32, units float32) {
 	C.glowPolygonOffset(gpPolygonOffset, (C.GLfloat)(factor), (C.GLfloat)(units))
 }
-func PolygonStipple(mask *uint8) {
-	C.glowPolygonStipple(gpPolygonStipple, (*C.GLubyte)(unsafe.Pointer(mask)))
-}
-func PopAttrib() {
-	C.glowPopAttrib(gpPopAttrib)
-}
-func PopClientAttrib() {
-	C.glowPopClientAttrib(gpPopClientAttrib)
-}
-func PopMatrix() {
-	C.glowPopMatrix(gpPopMatrix)
-}
-func PopName() {
-	C.glowPopName(gpPopName)
-}
-func PrioritizeTextures(n int32, textures *uint32, priorities *float32) {
-	C.glowPrioritizeTextures(gpPrioritizeTextures, (C.GLsizei)(n), (*C.GLuint)(unsafe.Pointer(textures)), (*C.GLfloat)(unsafe.Pointer(priorities)))
-}
-func PushAttrib(mask uint32) {
-	C.glowPushAttrib(gpPushAttrib, (C.GLbitfield)(mask))
-}
-func PushClientAttrib(mask uint32) {
-	C.glowPushClientAttrib(gpPushClientAttrib, (C.GLbitfield)(mask))
-}
-func PushMatrix() {
-	C.glowPushMatrix(gpPushMatrix)
-}
-func PushName(name uint32) {
-	C.glowPushName(gpPushName, (C.GLuint)(name))
-}
-func RasterPos2d(x float64, y float64) {
-	C.glowRasterPos2d(gpRasterPos2d, (C.GLdouble)(x), (C.GLdouble)(y))
-}
-func RasterPos2dv(v *float64) {
-	C.glowRasterPos2dv(gpRasterPos2dv, (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func RasterPos2f(x float32, y float32) {
-	C.glowRasterPos2f(gpRasterPos2f, (C.GLfloat)(x), (C.GLfloat)(y))
-}
-func RasterPos2fv(v *float32) {
-	C.glowRasterPos2fv(gpRasterPos2fv, (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func RasterPos2i(x int32, y int32) {
-	C.glowRasterPos2i(gpRasterPos2i, (C.GLint)(x), (C.GLint)(y))
-}
-func RasterPos2iv(v *int32) {
-	C.glowRasterPos2iv(gpRasterPos2iv, (*C.GLint)(unsafe.Pointer(v)))
-}
-func RasterPos2s(x int16, y int16) {
-	C.glowRasterPos2s(gpRasterPos2s, (C.GLshort)(x), (C.GLshort)(y))
-}
-func RasterPos2sv(v *int16) {
-	C.glowRasterPos2sv(gpRasterPos2sv, (*C.GLshort)(unsafe.Pointer(v)))
-}
-func RasterPos3d(x float64, y float64, z float64) {
-	C.glowRasterPos3d(gpRasterPos3d, (C.GLdouble)(x), (C.GLdouble)(y), (C.GLdouble)(z))
-}
-func RasterPos3dv(v *float64) {
-	C.glowRasterPos3dv(gpRasterPos3dv, (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func RasterPos3f(x float32, y float32, z float32) {
-	C.glowRasterPos3f(gpRasterPos3f, (C.GLfloat)(x), (C.GLfloat)(y), (C.GLfloat)(z))
-}
-func RasterPos3fv(v *float32) {
-	C.glowRasterPos3fv(gpRasterPos3fv, (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func RasterPos3i(x int32, y int32, z int32) {
-	C.glowRasterPos3i(gpRasterPos3i, (C.GLint)(x), (C.GLint)(y), (C.GLint)(z))
-}
-func RasterPos3iv(v *int32) {
-	C.glowRasterPos3iv(gpRasterPos3iv, (*C.GLint)(unsafe.Pointer(v)))
-}
-func RasterPos3s(x int16, y int16, z int16) {
-	C.glowRasterPos3s(gpRasterPos3s, (C.GLshort)(x), (C.GLshort)(y), (C.GLshort)(z))
-}
-func RasterPos3sv(v *int16) {
-	C.glowRasterPos3sv(gpRasterPos3sv, (*C.GLshort)(unsafe.Pointer(v)))
-}
-func RasterPos4d(x float64, y float64, z float64, w float64) {
-	C.glowRasterPos4d(gpRasterPos4d, (C.GLdouble)(x), (C.GLdouble)(y), (C.GLdouble)(z), (C.GLdouble)(w))
-}
-func RasterPos4dv(v *float64) {
-	C.glowRasterPos4dv(gpRasterPos4dv, (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func RasterPos4f(x float32, y float32, z float32, w float32) {
-	C.glowRasterPos4f(gpRasterPos4f, (C.GLfloat)(x), (C.GLfloat)(y), (C.GLfloat)(z), (C.GLfloat)(w))
-}
-func RasterPos4fv(v *float32) {
-	C.glowRasterPos4fv(gpRasterPos4fv, (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func RasterPos4i(x int32, y int32, z int32, w int32) {
-	C.glowRasterPos4i(gpRasterPos4i, (C.GLint)(x), (C.GLint)(y), (C.GLint)(z), (C.GLint)(w))
-}
-func RasterPos4iv(v *int32) {
-	C.glowRasterPos4iv(gpRasterPos4iv, (*C.GLint)(unsafe.Pointer(v)))
-}
-func RasterPos4s(x int16, y int16, z int16, w int16) {
-	C.glowRasterPos4s(gpRasterPos4s, (C.GLshort)(x), (C.GLshort)(y), (C.GLshort)(z), (C.GLshort)(w))
-}
-func RasterPos4sv(v *int16) {
-	C.glowRasterPos4sv(gpRasterPos4sv, (*C.GLshort)(unsafe.Pointer(v)))
-}
-func ReadBuffer(src uint32) {
-	C.glowReadBuffer(gpReadBuffer, (C.GLenum)(src))
-}
 func ReadPixels(x int32, y int32, width int32, height int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
 	C.glowReadPixels(gpReadPixels, (C.GLint)(x), (C.GLint)(y), (C.GLsizei)(width), (C.GLsizei)(height), (C.GLenum)(format), (C.GLenum)(xtype), pixels)
-}
-func Rectd(x1 float64, y1 float64, x2 float64, y2 float64) {
-	C.glowRectd(gpRectd, (C.GLdouble)(x1), (C.GLdouble)(y1), (C.GLdouble)(x2), (C.GLdouble)(y2))
-}
-func Rectdv(v1 *float64, v2 *float64) {
-	C.glowRectdv(gpRectdv, (*C.GLdouble)(unsafe.Pointer(v1)), (*C.GLdouble)(unsafe.Pointer(v2)))
-}
-func Rectf(x1 float32, y1 float32, x2 float32, y2 float32) {
-	C.glowRectf(gpRectf, (C.GLfloat)(x1), (C.GLfloat)(y1), (C.GLfloat)(x2), (C.GLfloat)(y2))
-}
-func Rectfv(v1 *float32, v2 *float32) {
-	C.glowRectfv(gpRectfv, (*C.GLfloat)(unsafe.Pointer(v1)), (*C.GLfloat)(unsafe.Pointer(v2)))
-}
-func Recti(x1 int32, y1 int32, x2 int32, y2 int32) {
-	C.glowRecti(gpRecti, (C.GLint)(x1), (C.GLint)(y1), (C.GLint)(x2), (C.GLint)(y2))
-}
-func Rectiv(v1 *int32, v2 *int32) {
-	C.glowRectiv(gpRectiv, (*C.GLint)(unsafe.Pointer(v1)), (*C.GLint)(unsafe.Pointer(v2)))
-}
-func Rects(x1 int16, y1 int16, x2 int16, y2 int16) {
-	C.glowRects(gpRects, (C.GLshort)(x1), (C.GLshort)(y1), (C.GLshort)(x2), (C.GLshort)(y2))
-}
-func Rectsv(v1 *int16, v2 *int16) {
-	C.glowRectsv(gpRectsv, (*C.GLshort)(unsafe.Pointer(v1)), (*C.GLshort)(unsafe.Pointer(v2)))
-}
-func RenderMode(mode uint32) int32 {
-	ret := C.glowRenderMode(gpRenderMode, (C.GLenum)(mode))
-	return (int32)(ret)
 }
 func RenderbufferStorage(target uint32, internalformat uint32, width int32, height int32) {
 	C.glowRenderbufferStorage(gpRenderbufferStorage, (C.GLenum)(target), (C.GLenum)(internalformat), (C.GLsizei)(width), (C.GLsizei)(height))
 }
-func RenderbufferStorageMultisample(target uint32, samples int32, internalformat uint32, width int32, height int32) {
-	C.glowRenderbufferStorageMultisample(gpRenderbufferStorageMultisample, (C.GLenum)(target), (C.GLsizei)(samples), (C.GLenum)(internalformat), (C.GLsizei)(width), (C.GLsizei)(height))
-}
-func Rotated(angle float64, x float64, y float64, z float64) {
-	C.glowRotated(gpRotated, (C.GLdouble)(angle), (C.GLdouble)(x), (C.GLdouble)(y), (C.GLdouble)(z))
-}
-func Rotatef(angle float32, x float32, y float32, z float32) {
-	C.glowRotatef(gpRotatef, (C.GLfloat)(angle), (C.GLfloat)(x), (C.GLfloat)(y), (C.GLfloat)(z))
-}
 func SampleCoverage(value float32, invert bool) {
 	C.glowSampleCoverage(gpSampleCoverage, (C.GLfloat)(value), (C.GLboolean)(boolToInt(invert)))
 }
-func Scaled(x float64, y float64, z float64) {
-	C.glowScaled(gpScaled, (C.GLdouble)(x), (C.GLdouble)(y), (C.GLdouble)(z))
-}
-func Scalef(x float32, y float32, z float32) {
-	C.glowScalef(gpScalef, (C.GLfloat)(x), (C.GLfloat)(y), (C.GLfloat)(z))
-}
 func Scissor(x int32, y int32, width int32, height int32) {
 	C.glowScissor(gpScissor, (C.GLint)(x), (C.GLint)(y), (C.GLsizei)(width), (C.GLsizei)(height))
-}
-func SecondaryColor3b(red int8, green int8, blue int8) {
-	C.glowSecondaryColor3b(gpSecondaryColor3b, (C.GLbyte)(red), (C.GLbyte)(green), (C.GLbyte)(blue))
-}
-func SecondaryColor3bv(v *int8) {
-	C.glowSecondaryColor3bv(gpSecondaryColor3bv, (*C.GLbyte)(unsafe.Pointer(v)))
-}
-func SecondaryColor3d(red float64, green float64, blue float64) {
-	C.glowSecondaryColor3d(gpSecondaryColor3d, (C.GLdouble)(red), (C.GLdouble)(green), (C.GLdouble)(blue))
-}
-func SecondaryColor3dv(v *float64) {
-	C.glowSecondaryColor3dv(gpSecondaryColor3dv, (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func SecondaryColor3f(red float32, green float32, blue float32) {
-	C.glowSecondaryColor3f(gpSecondaryColor3f, (C.GLfloat)(red), (C.GLfloat)(green), (C.GLfloat)(blue))
-}
-func SecondaryColor3fv(v *float32) {
-	C.glowSecondaryColor3fv(gpSecondaryColor3fv, (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func SecondaryColor3i(red int32, green int32, blue int32) {
-	C.glowSecondaryColor3i(gpSecondaryColor3i, (C.GLint)(red), (C.GLint)(green), (C.GLint)(blue))
-}
-func SecondaryColor3iv(v *int32) {
-	C.glowSecondaryColor3iv(gpSecondaryColor3iv, (*C.GLint)(unsafe.Pointer(v)))
-}
-func SecondaryColor3s(red int16, green int16, blue int16) {
-	C.glowSecondaryColor3s(gpSecondaryColor3s, (C.GLshort)(red), (C.GLshort)(green), (C.GLshort)(blue))
-}
-func SecondaryColor3sv(v *int16) {
-	C.glowSecondaryColor3sv(gpSecondaryColor3sv, (*C.GLshort)(unsafe.Pointer(v)))
-}
-func SecondaryColor3ub(red uint8, green uint8, blue uint8) {
-	C.glowSecondaryColor3ub(gpSecondaryColor3ub, (C.GLubyte)(red), (C.GLubyte)(green), (C.GLubyte)(blue))
-}
-func SecondaryColor3ubv(v *uint8) {
-	C.glowSecondaryColor3ubv(gpSecondaryColor3ubv, (*C.GLubyte)(unsafe.Pointer(v)))
-}
-func SecondaryColor3ui(red uint32, green uint32, blue uint32) {
-	C.glowSecondaryColor3ui(gpSecondaryColor3ui, (C.GLuint)(red), (C.GLuint)(green), (C.GLuint)(blue))
-}
-func SecondaryColor3uiv(v *uint32) {
-	C.glowSecondaryColor3uiv(gpSecondaryColor3uiv, (*C.GLuint)(unsafe.Pointer(v)))
-}
-func SecondaryColor3us(red uint16, green uint16, blue uint16) {
-	C.glowSecondaryColor3us(gpSecondaryColor3us, (C.GLushort)(red), (C.GLushort)(green), (C.GLushort)(blue))
-}
-func SecondaryColor3usv(v *uint16) {
-	C.glowSecondaryColor3usv(gpSecondaryColor3usv, (*C.GLushort)(unsafe.Pointer(v)))
-}
-func SecondaryColorPointer(size int32, xtype uint32, stride int32, pointer unsafe.Pointer) {
-	C.glowSecondaryColorPointer(gpSecondaryColorPointer, (C.GLint)(size), (C.GLenum)(xtype), (C.GLsizei)(stride), pointer)
-}
-func SelectBuffer(size int32, buffer *uint32) {
-	C.glowSelectBuffer(gpSelectBuffer, (C.GLsizei)(size), (*C.GLuint)(unsafe.Pointer(buffer)))
-}
-func ShadeModel(mode uint32) {
-	C.glowShadeModel(gpShadeModel, (C.GLenum)(mode))
 }
 func ShaderSource(shader uint32, count int32, xstring **uint8, length *int32) {
 	C.glowShaderSource(gpShaderSource, (C.GLuint)(shader), (C.GLsizei)(count), (**C.GLchar)(unsafe.Pointer(xstring)), (*C.GLint)(unsafe.Pointer(length)))
@@ -4886,149 +1361,8 @@ func StencilOp(fail uint32, zfail uint32, zpass uint32) {
 func StencilOpSeparate(face uint32, sfail uint32, dpfail uint32, dppass uint32) {
 	C.glowStencilOpSeparate(gpStencilOpSeparate, (C.GLenum)(face), (C.GLenum)(sfail), (C.GLenum)(dpfail), (C.GLenum)(dppass))
 }
-func TexCoord1d(s float64) {
-	C.glowTexCoord1d(gpTexCoord1d, (C.GLdouble)(s))
-}
-func TexCoord1dv(v *float64) {
-	C.glowTexCoord1dv(gpTexCoord1dv, (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func TexCoord1f(s float32) {
-	C.glowTexCoord1f(gpTexCoord1f, (C.GLfloat)(s))
-}
-func TexCoord1fv(v *float32) {
-	C.glowTexCoord1fv(gpTexCoord1fv, (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func TexCoord1i(s int32) {
-	C.glowTexCoord1i(gpTexCoord1i, (C.GLint)(s))
-}
-func TexCoord1iv(v *int32) {
-	C.glowTexCoord1iv(gpTexCoord1iv, (*C.GLint)(unsafe.Pointer(v)))
-}
-func TexCoord1s(s int16) {
-	C.glowTexCoord1s(gpTexCoord1s, (C.GLshort)(s))
-}
-func TexCoord1sv(v *int16) {
-	C.glowTexCoord1sv(gpTexCoord1sv, (*C.GLshort)(unsafe.Pointer(v)))
-}
-func TexCoord2d(s float64, t float64) {
-	C.glowTexCoord2d(gpTexCoord2d, (C.GLdouble)(s), (C.GLdouble)(t))
-}
-func TexCoord2dv(v *float64) {
-	C.glowTexCoord2dv(gpTexCoord2dv, (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func TexCoord2f(s float32, t float32) {
-	C.glowTexCoord2f(gpTexCoord2f, (C.GLfloat)(s), (C.GLfloat)(t))
-}
-func TexCoord2fv(v *float32) {
-	C.glowTexCoord2fv(gpTexCoord2fv, (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func TexCoord2i(s int32, t int32) {
-	C.glowTexCoord2i(gpTexCoord2i, (C.GLint)(s), (C.GLint)(t))
-}
-func TexCoord2iv(v *int32) {
-	C.glowTexCoord2iv(gpTexCoord2iv, (*C.GLint)(unsafe.Pointer(v)))
-}
-func TexCoord2s(s int16, t int16) {
-	C.glowTexCoord2s(gpTexCoord2s, (C.GLshort)(s), (C.GLshort)(t))
-}
-func TexCoord2sv(v *int16) {
-	C.glowTexCoord2sv(gpTexCoord2sv, (*C.GLshort)(unsafe.Pointer(v)))
-}
-func TexCoord3d(s float64, t float64, r float64) {
-	C.glowTexCoord3d(gpTexCoord3d, (C.GLdouble)(s), (C.GLdouble)(t), (C.GLdouble)(r))
-}
-func TexCoord3dv(v *float64) {
-	C.glowTexCoord3dv(gpTexCoord3dv, (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func TexCoord3f(s float32, t float32, r float32) {
-	C.glowTexCoord3f(gpTexCoord3f, (C.GLfloat)(s), (C.GLfloat)(t), (C.GLfloat)(r))
-}
-func TexCoord3fv(v *float32) {
-	C.glowTexCoord3fv(gpTexCoord3fv, (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func TexCoord3i(s int32, t int32, r int32) {
-	C.glowTexCoord3i(gpTexCoord3i, (C.GLint)(s), (C.GLint)(t), (C.GLint)(r))
-}
-func TexCoord3iv(v *int32) {
-	C.glowTexCoord3iv(gpTexCoord3iv, (*C.GLint)(unsafe.Pointer(v)))
-}
-func TexCoord3s(s int16, t int16, r int16) {
-	C.glowTexCoord3s(gpTexCoord3s, (C.GLshort)(s), (C.GLshort)(t), (C.GLshort)(r))
-}
-func TexCoord3sv(v *int16) {
-	C.glowTexCoord3sv(gpTexCoord3sv, (*C.GLshort)(unsafe.Pointer(v)))
-}
-func TexCoord4d(s float64, t float64, r float64, q float64) {
-	C.glowTexCoord4d(gpTexCoord4d, (C.GLdouble)(s), (C.GLdouble)(t), (C.GLdouble)(r), (C.GLdouble)(q))
-}
-func TexCoord4dv(v *float64) {
-	C.glowTexCoord4dv(gpTexCoord4dv, (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func TexCoord4f(s float32, t float32, r float32, q float32) {
-	C.glowTexCoord4f(gpTexCoord4f, (C.GLfloat)(s), (C.GLfloat)(t), (C.GLfloat)(r), (C.GLfloat)(q))
-}
-func TexCoord4fv(v *float32) {
-	C.glowTexCoord4fv(gpTexCoord4fv, (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func TexCoord4i(s int32, t int32, r int32, q int32) {
-	C.glowTexCoord4i(gpTexCoord4i, (C.GLint)(s), (C.GLint)(t), (C.GLint)(r), (C.GLint)(q))
-}
-func TexCoord4iv(v *int32) {
-	C.glowTexCoord4iv(gpTexCoord4iv, (*C.GLint)(unsafe.Pointer(v)))
-}
-func TexCoord4s(s int16, t int16, r int16, q int16) {
-	C.glowTexCoord4s(gpTexCoord4s, (C.GLshort)(s), (C.GLshort)(t), (C.GLshort)(r), (C.GLshort)(q))
-}
-func TexCoord4sv(v *int16) {
-	C.glowTexCoord4sv(gpTexCoord4sv, (*C.GLshort)(unsafe.Pointer(v)))
-}
-func TexCoordPointer(size int32, xtype uint32, stride int32, pointer unsafe.Pointer) {
-	C.glowTexCoordPointer(gpTexCoordPointer, (C.GLint)(size), (C.GLenum)(xtype), (C.GLsizei)(stride), pointer)
-}
-func TexEnvf(target uint32, pname uint32, param float32) {
-	C.glowTexEnvf(gpTexEnvf, (C.GLenum)(target), (C.GLenum)(pname), (C.GLfloat)(param))
-}
-func TexEnvfv(target uint32, pname uint32, params *float32) {
-	C.glowTexEnvfv(gpTexEnvfv, (C.GLenum)(target), (C.GLenum)(pname), (*C.GLfloat)(unsafe.Pointer(params)))
-}
-func TexEnvi(target uint32, pname uint32, param int32) {
-	C.glowTexEnvi(gpTexEnvi, (C.GLenum)(target), (C.GLenum)(pname), (C.GLint)(param))
-}
-func TexEnviv(target uint32, pname uint32, params *int32) {
-	C.glowTexEnviv(gpTexEnviv, (C.GLenum)(target), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func TexGend(coord uint32, pname uint32, param float64) {
-	C.glowTexGend(gpTexGend, (C.GLenum)(coord), (C.GLenum)(pname), (C.GLdouble)(param))
-}
-func TexGendv(coord uint32, pname uint32, params *float64) {
-	C.glowTexGendv(gpTexGendv, (C.GLenum)(coord), (C.GLenum)(pname), (*C.GLdouble)(unsafe.Pointer(params)))
-}
-func TexGenf(coord uint32, pname uint32, param float32) {
-	C.glowTexGenf(gpTexGenf, (C.GLenum)(coord), (C.GLenum)(pname), (C.GLfloat)(param))
-}
-func TexGenfv(coord uint32, pname uint32, params *float32) {
-	C.glowTexGenfv(gpTexGenfv, (C.GLenum)(coord), (C.GLenum)(pname), (*C.GLfloat)(unsafe.Pointer(params)))
-}
-func TexGeni(coord uint32, pname uint32, param int32) {
-	C.glowTexGeni(gpTexGeni, (C.GLenum)(coord), (C.GLenum)(pname), (C.GLint)(param))
-}
-func TexGeniv(coord uint32, pname uint32, params *int32) {
-	C.glowTexGeniv(gpTexGeniv, (C.GLenum)(coord), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func TexImage1D(target uint32, level int32, internalformat int32, width int32, border int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
-	C.glowTexImage1D(gpTexImage1D, (C.GLenum)(target), (C.GLint)(level), (C.GLint)(internalformat), (C.GLsizei)(width), (C.GLint)(border), (C.GLenum)(format), (C.GLenum)(xtype), pixels)
-}
 func TexImage2D(target uint32, level int32, internalformat int32, width int32, height int32, border int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
 	C.glowTexImage2D(gpTexImage2D, (C.GLenum)(target), (C.GLint)(level), (C.GLint)(internalformat), (C.GLsizei)(width), (C.GLsizei)(height), (C.GLint)(border), (C.GLenum)(format), (C.GLenum)(xtype), pixels)
-}
-func TexImage3D(target uint32, level int32, internalformat int32, width int32, height int32, depth int32, border int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
-	C.glowTexImage3D(gpTexImage3D, (C.GLenum)(target), (C.GLint)(level), (C.GLint)(internalformat), (C.GLsizei)(width), (C.GLsizei)(height), (C.GLsizei)(depth), (C.GLint)(border), (C.GLenum)(format), (C.GLenum)(xtype), pixels)
-}
-func TexParameterIiv(target uint32, pname uint32, params *int32) {
-	C.glowTexParameterIiv(gpTexParameterIiv, (C.GLenum)(target), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
-}
-func TexParameterIuiv(target uint32, pname uint32, params *uint32) {
-	C.glowTexParameterIuiv(gpTexParameterIuiv, (C.GLenum)(target), (C.GLenum)(pname), (*C.GLuint)(unsafe.Pointer(params)))
 }
 func TexParameterf(target uint32, pname uint32, param float32) {
 	C.glowTexParameterf(gpTexParameterf, (C.GLenum)(target), (C.GLenum)(pname), (C.GLfloat)(param))
@@ -5042,23 +1376,8 @@ func TexParameteri(target uint32, pname uint32, param int32) {
 func TexParameteriv(target uint32, pname uint32, params *int32) {
 	C.glowTexParameteriv(gpTexParameteriv, (C.GLenum)(target), (C.GLenum)(pname), (*C.GLint)(unsafe.Pointer(params)))
 }
-func TexSubImage1D(target uint32, level int32, xoffset int32, width int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
-	C.glowTexSubImage1D(gpTexSubImage1D, (C.GLenum)(target), (C.GLint)(level), (C.GLint)(xoffset), (C.GLsizei)(width), (C.GLenum)(format), (C.GLenum)(xtype), pixels)
-}
 func TexSubImage2D(target uint32, level int32, xoffset int32, yoffset int32, width int32, height int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
 	C.glowTexSubImage2D(gpTexSubImage2D, (C.GLenum)(target), (C.GLint)(level), (C.GLint)(xoffset), (C.GLint)(yoffset), (C.GLsizei)(width), (C.GLsizei)(height), (C.GLenum)(format), (C.GLenum)(xtype), pixels)
-}
-func TexSubImage3D(target uint32, level int32, xoffset int32, yoffset int32, zoffset int32, width int32, height int32, depth int32, format uint32, xtype uint32, pixels unsafe.Pointer) {
-	C.glowTexSubImage3D(gpTexSubImage3D, (C.GLenum)(target), (C.GLint)(level), (C.GLint)(xoffset), (C.GLint)(yoffset), (C.GLint)(zoffset), (C.GLsizei)(width), (C.GLsizei)(height), (C.GLsizei)(depth), (C.GLenum)(format), (C.GLenum)(xtype), pixels)
-}
-func TransformFeedbackVaryings(program uint32, count int32, varyings **uint8, bufferMode uint32) {
-	C.glowTransformFeedbackVaryings(gpTransformFeedbackVaryings, (C.GLuint)(program), (C.GLsizei)(count), (**C.GLchar)(unsafe.Pointer(varyings)), (C.GLenum)(bufferMode))
-}
-func Translated(x float64, y float64, z float64) {
-	C.glowTranslated(gpTranslated, (C.GLdouble)(x), (C.GLdouble)(y), (C.GLdouble)(z))
-}
-func Translatef(x float32, y float32, z float32) {
-	C.glowTranslatef(gpTranslatef, (C.GLfloat)(x), (C.GLfloat)(y), (C.GLfloat)(z))
 }
 func Uniform1f(location int32, v0 float32) {
 	C.glowUniform1f(gpUniform1f, (C.GLint)(location), (C.GLfloat)(v0))
@@ -5072,12 +1391,6 @@ func Uniform1i(location int32, v0 int32) {
 func Uniform1iv(location int32, count int32, value *int32) {
 	C.glowUniform1iv(gpUniform1iv, (C.GLint)(location), (C.GLsizei)(count), (*C.GLint)(unsafe.Pointer(value)))
 }
-func Uniform1ui(location int32, v0 uint32) {
-	C.glowUniform1ui(gpUniform1ui, (C.GLint)(location), (C.GLuint)(v0))
-}
-func Uniform1uiv(location int32, count int32, value *uint32) {
-	C.glowUniform1uiv(gpUniform1uiv, (C.GLint)(location), (C.GLsizei)(count), (*C.GLuint)(unsafe.Pointer(value)))
-}
 func Uniform2f(location int32, v0 float32, v1 float32) {
 	C.glowUniform2f(gpUniform2f, (C.GLint)(location), (C.GLfloat)(v0), (C.GLfloat)(v1))
 }
@@ -5089,12 +1402,6 @@ func Uniform2i(location int32, v0 int32, v1 int32) {
 }
 func Uniform2iv(location int32, count int32, value *int32) {
 	C.glowUniform2iv(gpUniform2iv, (C.GLint)(location), (C.GLsizei)(count), (*C.GLint)(unsafe.Pointer(value)))
-}
-func Uniform2ui(location int32, v0 uint32, v1 uint32) {
-	C.glowUniform2ui(gpUniform2ui, (C.GLint)(location), (C.GLuint)(v0), (C.GLuint)(v1))
-}
-func Uniform2uiv(location int32, count int32, value *uint32) {
-	C.glowUniform2uiv(gpUniform2uiv, (C.GLint)(location), (C.GLsizei)(count), (*C.GLuint)(unsafe.Pointer(value)))
 }
 func Uniform3f(location int32, v0 float32, v1 float32, v2 float32) {
 	C.glowUniform3f(gpUniform3f, (C.GLint)(location), (C.GLfloat)(v0), (C.GLfloat)(v1), (C.GLfloat)(v2))
@@ -5108,12 +1415,6 @@ func Uniform3i(location int32, v0 int32, v1 int32, v2 int32) {
 func Uniform3iv(location int32, count int32, value *int32) {
 	C.glowUniform3iv(gpUniform3iv, (C.GLint)(location), (C.GLsizei)(count), (*C.GLint)(unsafe.Pointer(value)))
 }
-func Uniform3ui(location int32, v0 uint32, v1 uint32, v2 uint32) {
-	C.glowUniform3ui(gpUniform3ui, (C.GLint)(location), (C.GLuint)(v0), (C.GLuint)(v1), (C.GLuint)(v2))
-}
-func Uniform3uiv(location int32, count int32, value *uint32) {
-	C.glowUniform3uiv(gpUniform3uiv, (C.GLint)(location), (C.GLsizei)(count), (*C.GLuint)(unsafe.Pointer(value)))
-}
 func Uniform4f(location int32, v0 float32, v1 float32, v2 float32, v3 float32) {
 	C.glowUniform4f(gpUniform4f, (C.GLint)(location), (C.GLfloat)(v0), (C.GLfloat)(v1), (C.GLfloat)(v2), (C.GLfloat)(v3))
 }
@@ -5126,42 +1427,14 @@ func Uniform4i(location int32, v0 int32, v1 int32, v2 int32, v3 int32) {
 func Uniform4iv(location int32, count int32, value *int32) {
 	C.glowUniform4iv(gpUniform4iv, (C.GLint)(location), (C.GLsizei)(count), (*C.GLint)(unsafe.Pointer(value)))
 }
-func Uniform4ui(location int32, v0 uint32, v1 uint32, v2 uint32, v3 uint32) {
-	C.glowUniform4ui(gpUniform4ui, (C.GLint)(location), (C.GLuint)(v0), (C.GLuint)(v1), (C.GLuint)(v2), (C.GLuint)(v3))
-}
-func Uniform4uiv(location int32, count int32, value *uint32) {
-	C.glowUniform4uiv(gpUniform4uiv, (C.GLint)(location), (C.GLsizei)(count), (*C.GLuint)(unsafe.Pointer(value)))
-}
 func UniformMatrix2fv(location int32, count int32, transpose bool, value *float32) {
 	C.glowUniformMatrix2fv(gpUniformMatrix2fv, (C.GLint)(location), (C.GLsizei)(count), (C.GLboolean)(boolToInt(transpose)), (*C.GLfloat)(unsafe.Pointer(value)))
-}
-func UniformMatrix2x3fv(location int32, count int32, transpose bool, value *float32) {
-	C.glowUniformMatrix2x3fv(gpUniformMatrix2x3fv, (C.GLint)(location), (C.GLsizei)(count), (C.GLboolean)(boolToInt(transpose)), (*C.GLfloat)(unsafe.Pointer(value)))
-}
-func UniformMatrix2x4fv(location int32, count int32, transpose bool, value *float32) {
-	C.glowUniformMatrix2x4fv(gpUniformMatrix2x4fv, (C.GLint)(location), (C.GLsizei)(count), (C.GLboolean)(boolToInt(transpose)), (*C.GLfloat)(unsafe.Pointer(value)))
 }
 func UniformMatrix3fv(location int32, count int32, transpose bool, value *float32) {
 	C.glowUniformMatrix3fv(gpUniformMatrix3fv, (C.GLint)(location), (C.GLsizei)(count), (C.GLboolean)(boolToInt(transpose)), (*C.GLfloat)(unsafe.Pointer(value)))
 }
-func UniformMatrix3x2fv(location int32, count int32, transpose bool, value *float32) {
-	C.glowUniformMatrix3x2fv(gpUniformMatrix3x2fv, (C.GLint)(location), (C.GLsizei)(count), (C.GLboolean)(boolToInt(transpose)), (*C.GLfloat)(unsafe.Pointer(value)))
-}
-func UniformMatrix3x4fv(location int32, count int32, transpose bool, value *float32) {
-	C.glowUniformMatrix3x4fv(gpUniformMatrix3x4fv, (C.GLint)(location), (C.GLsizei)(count), (C.GLboolean)(boolToInt(transpose)), (*C.GLfloat)(unsafe.Pointer(value)))
-}
 func UniformMatrix4fv(location int32, count int32, transpose bool, value *float32) {
 	C.glowUniformMatrix4fv(gpUniformMatrix4fv, (C.GLint)(location), (C.GLsizei)(count), (C.GLboolean)(boolToInt(transpose)), (*C.GLfloat)(unsafe.Pointer(value)))
-}
-func UniformMatrix4x2fv(location int32, count int32, transpose bool, value *float32) {
-	C.glowUniformMatrix4x2fv(gpUniformMatrix4x2fv, (C.GLint)(location), (C.GLsizei)(count), (C.GLboolean)(boolToInt(transpose)), (*C.GLfloat)(unsafe.Pointer(value)))
-}
-func UniformMatrix4x3fv(location int32, count int32, transpose bool, value *float32) {
-	C.glowUniformMatrix4x3fv(gpUniformMatrix4x3fv, (C.GLint)(location), (C.GLsizei)(count), (C.GLboolean)(boolToInt(transpose)), (*C.GLfloat)(unsafe.Pointer(value)))
-}
-func UnmapBuffer(target uint32) bool {
-	ret := C.glowUnmapBuffer(gpUnmapBuffer, (C.GLenum)(target))
-	return ret == TRUE
 }
 func UseProgram(program uint32) {
 	C.glowUseProgram(gpUseProgram, (C.GLuint)(program))
@@ -5169,101 +1442,11 @@ func UseProgram(program uint32) {
 func ValidateProgram(program uint32) {
 	C.glowValidateProgram(gpValidateProgram, (C.GLuint)(program))
 }
-func Vertex2d(x float64, y float64) {
-	C.glowVertex2d(gpVertex2d, (C.GLdouble)(x), (C.GLdouble)(y))
-}
-func Vertex2dv(v *float64) {
-	C.glowVertex2dv(gpVertex2dv, (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func Vertex2f(x float32, y float32) {
-	C.glowVertex2f(gpVertex2f, (C.GLfloat)(x), (C.GLfloat)(y))
-}
-func Vertex2fv(v *float32) {
-	C.glowVertex2fv(gpVertex2fv, (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func Vertex2i(x int32, y int32) {
-	C.glowVertex2i(gpVertex2i, (C.GLint)(x), (C.GLint)(y))
-}
-func Vertex2iv(v *int32) {
-	C.glowVertex2iv(gpVertex2iv, (*C.GLint)(unsafe.Pointer(v)))
-}
-func Vertex2s(x int16, y int16) {
-	C.glowVertex2s(gpVertex2s, (C.GLshort)(x), (C.GLshort)(y))
-}
-func Vertex2sv(v *int16) {
-	C.glowVertex2sv(gpVertex2sv, (*C.GLshort)(unsafe.Pointer(v)))
-}
-func Vertex3d(x float64, y float64, z float64) {
-	C.glowVertex3d(gpVertex3d, (C.GLdouble)(x), (C.GLdouble)(y), (C.GLdouble)(z))
-}
-func Vertex3dv(v *float64) {
-	C.glowVertex3dv(gpVertex3dv, (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func Vertex3f(x float32, y float32, z float32) {
-	C.glowVertex3f(gpVertex3f, (C.GLfloat)(x), (C.GLfloat)(y), (C.GLfloat)(z))
-}
-func Vertex3fv(v *float32) {
-	C.glowVertex3fv(gpVertex3fv, (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func Vertex3i(x int32, y int32, z int32) {
-	C.glowVertex3i(gpVertex3i, (C.GLint)(x), (C.GLint)(y), (C.GLint)(z))
-}
-func Vertex3iv(v *int32) {
-	C.glowVertex3iv(gpVertex3iv, (*C.GLint)(unsafe.Pointer(v)))
-}
-func Vertex3s(x int16, y int16, z int16) {
-	C.glowVertex3s(gpVertex3s, (C.GLshort)(x), (C.GLshort)(y), (C.GLshort)(z))
-}
-func Vertex3sv(v *int16) {
-	C.glowVertex3sv(gpVertex3sv, (*C.GLshort)(unsafe.Pointer(v)))
-}
-func Vertex4d(x float64, y float64, z float64, w float64) {
-	C.glowVertex4d(gpVertex4d, (C.GLdouble)(x), (C.GLdouble)(y), (C.GLdouble)(z), (C.GLdouble)(w))
-}
-func Vertex4dv(v *float64) {
-	C.glowVertex4dv(gpVertex4dv, (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func Vertex4f(x float32, y float32, z float32, w float32) {
-	C.glowVertex4f(gpVertex4f, (C.GLfloat)(x), (C.GLfloat)(y), (C.GLfloat)(z), (C.GLfloat)(w))
-}
-func Vertex4fv(v *float32) {
-	C.glowVertex4fv(gpVertex4fv, (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func Vertex4i(x int32, y int32, z int32, w int32) {
-	C.glowVertex4i(gpVertex4i, (C.GLint)(x), (C.GLint)(y), (C.GLint)(z), (C.GLint)(w))
-}
-func Vertex4iv(v *int32) {
-	C.glowVertex4iv(gpVertex4iv, (*C.GLint)(unsafe.Pointer(v)))
-}
-func Vertex4s(x int16, y int16, z int16, w int16) {
-	C.glowVertex4s(gpVertex4s, (C.GLshort)(x), (C.GLshort)(y), (C.GLshort)(z), (C.GLshort)(w))
-}
-func Vertex4sv(v *int16) {
-	C.glowVertex4sv(gpVertex4sv, (*C.GLshort)(unsafe.Pointer(v)))
-}
-func VertexAttrib1d(index uint32, x float64) {
-	C.glowVertexAttrib1d(gpVertexAttrib1d, (C.GLuint)(index), (C.GLdouble)(x))
-}
-func VertexAttrib1dv(index uint32, v *float64) {
-	C.glowVertexAttrib1dv(gpVertexAttrib1dv, (C.GLuint)(index), (*C.GLdouble)(unsafe.Pointer(v)))
-}
 func VertexAttrib1f(index uint32, x float32) {
 	C.glowVertexAttrib1f(gpVertexAttrib1f, (C.GLuint)(index), (C.GLfloat)(x))
 }
 func VertexAttrib1fv(index uint32, v *float32) {
 	C.glowVertexAttrib1fv(gpVertexAttrib1fv, (C.GLuint)(index), (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func VertexAttrib1s(index uint32, x int16) {
-	C.glowVertexAttrib1s(gpVertexAttrib1s, (C.GLuint)(index), (C.GLshort)(x))
-}
-func VertexAttrib1sv(index uint32, v *int16) {
-	C.glowVertexAttrib1sv(gpVertexAttrib1sv, (C.GLuint)(index), (*C.GLshort)(unsafe.Pointer(v)))
-}
-func VertexAttrib2d(index uint32, x float64, y float64) {
-	C.glowVertexAttrib2d(gpVertexAttrib2d, (C.GLuint)(index), (C.GLdouble)(x), (C.GLdouble)(y))
-}
-func VertexAttrib2dv(index uint32, v *float64) {
-	C.glowVertexAttrib2dv(gpVertexAttrib2dv, (C.GLuint)(index), (*C.GLdouble)(unsafe.Pointer(v)))
 }
 func VertexAttrib2f(index uint32, x float32, y float32) {
 	C.glowVertexAttrib2f(gpVertexAttrib2f, (C.GLuint)(index), (C.GLfloat)(x), (C.GLfloat)(y))
@@ -5271,59 +1454,11 @@ func VertexAttrib2f(index uint32, x float32, y float32) {
 func VertexAttrib2fv(index uint32, v *float32) {
 	C.glowVertexAttrib2fv(gpVertexAttrib2fv, (C.GLuint)(index), (*C.GLfloat)(unsafe.Pointer(v)))
 }
-func VertexAttrib2s(index uint32, x int16, y int16) {
-	C.glowVertexAttrib2s(gpVertexAttrib2s, (C.GLuint)(index), (C.GLshort)(x), (C.GLshort)(y))
-}
-func VertexAttrib2sv(index uint32, v *int16) {
-	C.glowVertexAttrib2sv(gpVertexAttrib2sv, (C.GLuint)(index), (*C.GLshort)(unsafe.Pointer(v)))
-}
-func VertexAttrib3d(index uint32, x float64, y float64, z float64) {
-	C.glowVertexAttrib3d(gpVertexAttrib3d, (C.GLuint)(index), (C.GLdouble)(x), (C.GLdouble)(y), (C.GLdouble)(z))
-}
-func VertexAttrib3dv(index uint32, v *float64) {
-	C.glowVertexAttrib3dv(gpVertexAttrib3dv, (C.GLuint)(index), (*C.GLdouble)(unsafe.Pointer(v)))
-}
 func VertexAttrib3f(index uint32, x float32, y float32, z float32) {
 	C.glowVertexAttrib3f(gpVertexAttrib3f, (C.GLuint)(index), (C.GLfloat)(x), (C.GLfloat)(y), (C.GLfloat)(z))
 }
 func VertexAttrib3fv(index uint32, v *float32) {
 	C.glowVertexAttrib3fv(gpVertexAttrib3fv, (C.GLuint)(index), (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func VertexAttrib3s(index uint32, x int16, y int16, z int16) {
-	C.glowVertexAttrib3s(gpVertexAttrib3s, (C.GLuint)(index), (C.GLshort)(x), (C.GLshort)(y), (C.GLshort)(z))
-}
-func VertexAttrib3sv(index uint32, v *int16) {
-	C.glowVertexAttrib3sv(gpVertexAttrib3sv, (C.GLuint)(index), (*C.GLshort)(unsafe.Pointer(v)))
-}
-func VertexAttrib4Nbv(index uint32, v *int8) {
-	C.glowVertexAttrib4Nbv(gpVertexAttrib4Nbv, (C.GLuint)(index), (*C.GLbyte)(unsafe.Pointer(v)))
-}
-func VertexAttrib4Niv(index uint32, v *int32) {
-	C.glowVertexAttrib4Niv(gpVertexAttrib4Niv, (C.GLuint)(index), (*C.GLint)(unsafe.Pointer(v)))
-}
-func VertexAttrib4Nsv(index uint32, v *int16) {
-	C.glowVertexAttrib4Nsv(gpVertexAttrib4Nsv, (C.GLuint)(index), (*C.GLshort)(unsafe.Pointer(v)))
-}
-func VertexAttrib4Nub(index uint32, x uint8, y uint8, z uint8, w uint8) {
-	C.glowVertexAttrib4Nub(gpVertexAttrib4Nub, (C.GLuint)(index), (C.GLubyte)(x), (C.GLubyte)(y), (C.GLubyte)(z), (C.GLubyte)(w))
-}
-func VertexAttrib4Nubv(index uint32, v *uint8) {
-	C.glowVertexAttrib4Nubv(gpVertexAttrib4Nubv, (C.GLuint)(index), (*C.GLubyte)(unsafe.Pointer(v)))
-}
-func VertexAttrib4Nuiv(index uint32, v *uint32) {
-	C.glowVertexAttrib4Nuiv(gpVertexAttrib4Nuiv, (C.GLuint)(index), (*C.GLuint)(unsafe.Pointer(v)))
-}
-func VertexAttrib4Nusv(index uint32, v *uint16) {
-	C.glowVertexAttrib4Nusv(gpVertexAttrib4Nusv, (C.GLuint)(index), (*C.GLushort)(unsafe.Pointer(v)))
-}
-func VertexAttrib4bv(index uint32, v *int8) {
-	C.glowVertexAttrib4bv(gpVertexAttrib4bv, (C.GLuint)(index), (*C.GLbyte)(unsafe.Pointer(v)))
-}
-func VertexAttrib4d(index uint32, x float64, y float64, z float64, w float64) {
-	C.glowVertexAttrib4d(gpVertexAttrib4d, (C.GLuint)(index), (C.GLdouble)(x), (C.GLdouble)(y), (C.GLdouble)(z), (C.GLdouble)(w))
-}
-func VertexAttrib4dv(index uint32, v *float64) {
-	C.glowVertexAttrib4dv(gpVertexAttrib4dv, (C.GLuint)(index), (*C.GLdouble)(unsafe.Pointer(v)))
 }
 func VertexAttrib4f(index uint32, x float32, y float32, z float32, w float32) {
 	C.glowVertexAttrib4f(gpVertexAttrib4f, (C.GLuint)(index), (C.GLfloat)(x), (C.GLfloat)(y), (C.GLfloat)(z), (C.GLfloat)(w))
@@ -5331,143 +1466,11 @@ func VertexAttrib4f(index uint32, x float32, y float32, z float32, w float32) {
 func VertexAttrib4fv(index uint32, v *float32) {
 	C.glowVertexAttrib4fv(gpVertexAttrib4fv, (C.GLuint)(index), (*C.GLfloat)(unsafe.Pointer(v)))
 }
-func VertexAttrib4iv(index uint32, v *int32) {
-	C.glowVertexAttrib4iv(gpVertexAttrib4iv, (C.GLuint)(index), (*C.GLint)(unsafe.Pointer(v)))
-}
-func VertexAttrib4s(index uint32, x int16, y int16, z int16, w int16) {
-	C.glowVertexAttrib4s(gpVertexAttrib4s, (C.GLuint)(index), (C.GLshort)(x), (C.GLshort)(y), (C.GLshort)(z), (C.GLshort)(w))
-}
-func VertexAttrib4sv(index uint32, v *int16) {
-	C.glowVertexAttrib4sv(gpVertexAttrib4sv, (C.GLuint)(index), (*C.GLshort)(unsafe.Pointer(v)))
-}
-func VertexAttrib4ubv(index uint32, v *uint8) {
-	C.glowVertexAttrib4ubv(gpVertexAttrib4ubv, (C.GLuint)(index), (*C.GLubyte)(unsafe.Pointer(v)))
-}
-func VertexAttrib4uiv(index uint32, v *uint32) {
-	C.glowVertexAttrib4uiv(gpVertexAttrib4uiv, (C.GLuint)(index), (*C.GLuint)(unsafe.Pointer(v)))
-}
-func VertexAttrib4usv(index uint32, v *uint16) {
-	C.glowVertexAttrib4usv(gpVertexAttrib4usv, (C.GLuint)(index), (*C.GLushort)(unsafe.Pointer(v)))
-}
-func VertexAttribI1i(index uint32, x int32) {
-	C.glowVertexAttribI1i(gpVertexAttribI1i, (C.GLuint)(index), (C.GLint)(x))
-}
-func VertexAttribI1iv(index uint32, v *int32) {
-	C.glowVertexAttribI1iv(gpVertexAttribI1iv, (C.GLuint)(index), (*C.GLint)(unsafe.Pointer(v)))
-}
-func VertexAttribI1ui(index uint32, x uint32) {
-	C.glowVertexAttribI1ui(gpVertexAttribI1ui, (C.GLuint)(index), (C.GLuint)(x))
-}
-func VertexAttribI1uiv(index uint32, v *uint32) {
-	C.glowVertexAttribI1uiv(gpVertexAttribI1uiv, (C.GLuint)(index), (*C.GLuint)(unsafe.Pointer(v)))
-}
-func VertexAttribI2i(index uint32, x int32, y int32) {
-	C.glowVertexAttribI2i(gpVertexAttribI2i, (C.GLuint)(index), (C.GLint)(x), (C.GLint)(y))
-}
-func VertexAttribI2iv(index uint32, v *int32) {
-	C.glowVertexAttribI2iv(gpVertexAttribI2iv, (C.GLuint)(index), (*C.GLint)(unsafe.Pointer(v)))
-}
-func VertexAttribI2ui(index uint32, x uint32, y uint32) {
-	C.glowVertexAttribI2ui(gpVertexAttribI2ui, (C.GLuint)(index), (C.GLuint)(x), (C.GLuint)(y))
-}
-func VertexAttribI2uiv(index uint32, v *uint32) {
-	C.glowVertexAttribI2uiv(gpVertexAttribI2uiv, (C.GLuint)(index), (*C.GLuint)(unsafe.Pointer(v)))
-}
-func VertexAttribI3i(index uint32, x int32, y int32, z int32) {
-	C.glowVertexAttribI3i(gpVertexAttribI3i, (C.GLuint)(index), (C.GLint)(x), (C.GLint)(y), (C.GLint)(z))
-}
-func VertexAttribI3iv(index uint32, v *int32) {
-	C.glowVertexAttribI3iv(gpVertexAttribI3iv, (C.GLuint)(index), (*C.GLint)(unsafe.Pointer(v)))
-}
-func VertexAttribI3ui(index uint32, x uint32, y uint32, z uint32) {
-	C.glowVertexAttribI3ui(gpVertexAttribI3ui, (C.GLuint)(index), (C.GLuint)(x), (C.GLuint)(y), (C.GLuint)(z))
-}
-func VertexAttribI3uiv(index uint32, v *uint32) {
-	C.glowVertexAttribI3uiv(gpVertexAttribI3uiv, (C.GLuint)(index), (*C.GLuint)(unsafe.Pointer(v)))
-}
-func VertexAttribI4bv(index uint32, v *int8) {
-	C.glowVertexAttribI4bv(gpVertexAttribI4bv, (C.GLuint)(index), (*C.GLbyte)(unsafe.Pointer(v)))
-}
-func VertexAttribI4i(index uint32, x int32, y int32, z int32, w int32) {
-	C.glowVertexAttribI4i(gpVertexAttribI4i, (C.GLuint)(index), (C.GLint)(x), (C.GLint)(y), (C.GLint)(z), (C.GLint)(w))
-}
-func VertexAttribI4iv(index uint32, v *int32) {
-	C.glowVertexAttribI4iv(gpVertexAttribI4iv, (C.GLuint)(index), (*C.GLint)(unsafe.Pointer(v)))
-}
-func VertexAttribI4sv(index uint32, v *int16) {
-	C.glowVertexAttribI4sv(gpVertexAttribI4sv, (C.GLuint)(index), (*C.GLshort)(unsafe.Pointer(v)))
-}
-func VertexAttribI4ubv(index uint32, v *uint8) {
-	C.glowVertexAttribI4ubv(gpVertexAttribI4ubv, (C.GLuint)(index), (*C.GLubyte)(unsafe.Pointer(v)))
-}
-func VertexAttribI4ui(index uint32, x uint32, y uint32, z uint32, w uint32) {
-	C.glowVertexAttribI4ui(gpVertexAttribI4ui, (C.GLuint)(index), (C.GLuint)(x), (C.GLuint)(y), (C.GLuint)(z), (C.GLuint)(w))
-}
-func VertexAttribI4uiv(index uint32, v *uint32) {
-	C.glowVertexAttribI4uiv(gpVertexAttribI4uiv, (C.GLuint)(index), (*C.GLuint)(unsafe.Pointer(v)))
-}
-func VertexAttribI4usv(index uint32, v *uint16) {
-	C.glowVertexAttribI4usv(gpVertexAttribI4usv, (C.GLuint)(index), (*C.GLushort)(unsafe.Pointer(v)))
-}
-func VertexAttribIPointer(index uint32, size int32, xtype uint32, stride int32, pointer unsafe.Pointer) {
-	C.glowVertexAttribIPointer(gpVertexAttribIPointer, (C.GLuint)(index), (C.GLint)(size), (C.GLenum)(xtype), (C.GLsizei)(stride), pointer)
-}
 func VertexAttribPointer(index uint32, size int32, xtype uint32, normalized bool, stride int32, pointer unsafe.Pointer) {
 	C.glowVertexAttribPointer(gpVertexAttribPointer, (C.GLuint)(index), (C.GLint)(size), (C.GLenum)(xtype), (C.GLboolean)(boolToInt(normalized)), (C.GLsizei)(stride), pointer)
 }
-func VertexPointer(size int32, xtype uint32, stride int32, pointer unsafe.Pointer) {
-	C.glowVertexPointer(gpVertexPointer, (C.GLint)(size), (C.GLenum)(xtype), (C.GLsizei)(stride), pointer)
-}
 func Viewport(x int32, y int32, width int32, height int32) {
 	C.glowViewport(gpViewport, (C.GLint)(x), (C.GLint)(y), (C.GLsizei)(width), (C.GLsizei)(height))
-}
-func WindowPos2d(x float64, y float64) {
-	C.glowWindowPos2d(gpWindowPos2d, (C.GLdouble)(x), (C.GLdouble)(y))
-}
-func WindowPos2dv(v *float64) {
-	C.glowWindowPos2dv(gpWindowPos2dv, (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func WindowPos2f(x float32, y float32) {
-	C.glowWindowPos2f(gpWindowPos2f, (C.GLfloat)(x), (C.GLfloat)(y))
-}
-func WindowPos2fv(v *float32) {
-	C.glowWindowPos2fv(gpWindowPos2fv, (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func WindowPos2i(x int32, y int32) {
-	C.glowWindowPos2i(gpWindowPos2i, (C.GLint)(x), (C.GLint)(y))
-}
-func WindowPos2iv(v *int32) {
-	C.glowWindowPos2iv(gpWindowPos2iv, (*C.GLint)(unsafe.Pointer(v)))
-}
-func WindowPos2s(x int16, y int16) {
-	C.glowWindowPos2s(gpWindowPos2s, (C.GLshort)(x), (C.GLshort)(y))
-}
-func WindowPos2sv(v *int16) {
-	C.glowWindowPos2sv(gpWindowPos2sv, (*C.GLshort)(unsafe.Pointer(v)))
-}
-func WindowPos3d(x float64, y float64, z float64) {
-	C.glowWindowPos3d(gpWindowPos3d, (C.GLdouble)(x), (C.GLdouble)(y), (C.GLdouble)(z))
-}
-func WindowPos3dv(v *float64) {
-	C.glowWindowPos3dv(gpWindowPos3dv, (*C.GLdouble)(unsafe.Pointer(v)))
-}
-func WindowPos3f(x float32, y float32, z float32) {
-	C.glowWindowPos3f(gpWindowPos3f, (C.GLfloat)(x), (C.GLfloat)(y), (C.GLfloat)(z))
-}
-func WindowPos3fv(v *float32) {
-	C.glowWindowPos3fv(gpWindowPos3fv, (*C.GLfloat)(unsafe.Pointer(v)))
-}
-func WindowPos3i(x int32, y int32, z int32) {
-	C.glowWindowPos3i(gpWindowPos3i, (C.GLint)(x), (C.GLint)(y), (C.GLint)(z))
-}
-func WindowPos3iv(v *int32) {
-	C.glowWindowPos3iv(gpWindowPos3iv, (*C.GLint)(unsafe.Pointer(v)))
-}
-func WindowPos3s(x int16, y int16, z int16) {
-	C.glowWindowPos3s(gpWindowPos3s, (C.GLshort)(x), (C.GLshort)(y), (C.GLshort)(z))
-}
-func WindowPos3sv(v *int16) {
-	C.glowWindowPos3sv(gpWindowPos3sv, (*C.GLshort)(unsafe.Pointer(v)))
 }
 
 // Init initializes the OpenGL bindings by loading the function pointers (for
@@ -5497,45 +1500,13 @@ func Init() error {
 // function pointer loading function. For more cases Init should be used
 // instead.
 func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
-	gpAccum = (C.GPACCUM)(getProcAddr("glAccum"))
-	if gpAccum == nil {
-		return errors.New("glAccum")
-	}
 	gpActiveTexture = (C.GPACTIVETEXTURE)(getProcAddr("glActiveTexture"))
 	if gpActiveTexture == nil {
 		return errors.New("glActiveTexture")
 	}
-	gpAlphaFunc = (C.GPALPHAFUNC)(getProcAddr("glAlphaFunc"))
-	if gpAlphaFunc == nil {
-		return errors.New("glAlphaFunc")
-	}
-	gpAreTexturesResident = (C.GPARETEXTURESRESIDENT)(getProcAddr("glAreTexturesResident"))
-	if gpAreTexturesResident == nil {
-		return errors.New("glAreTexturesResident")
-	}
-	gpArrayElement = (C.GPARRAYELEMENT)(getProcAddr("glArrayElement"))
-	if gpArrayElement == nil {
-		return errors.New("glArrayElement")
-	}
 	gpAttachShader = (C.GPATTACHSHADER)(getProcAddr("glAttachShader"))
 	if gpAttachShader == nil {
 		return errors.New("glAttachShader")
-	}
-	gpBegin = (C.GPBEGIN)(getProcAddr("glBegin"))
-	if gpBegin == nil {
-		return errors.New("glBegin")
-	}
-	gpBeginConditionalRender = (C.GPBEGINCONDITIONALRENDER)(getProcAddr("glBeginConditionalRender"))
-	if gpBeginConditionalRender == nil {
-		return errors.New("glBeginConditionalRender")
-	}
-	gpBeginQuery = (C.GPBEGINQUERY)(getProcAddr("glBeginQuery"))
-	if gpBeginQuery == nil {
-		return errors.New("glBeginQuery")
-	}
-	gpBeginTransformFeedback = (C.GPBEGINTRANSFORMFEEDBACK)(getProcAddr("glBeginTransformFeedback"))
-	if gpBeginTransformFeedback == nil {
-		return errors.New("glBeginTransformFeedback")
 	}
 	gpBindAttribLocation = (C.GPBINDATTRIBLOCATION)(getProcAddr("glBindAttribLocation"))
 	if gpBindAttribLocation == nil {
@@ -5544,18 +1515,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	gpBindBuffer = (C.GPBINDBUFFER)(getProcAddr("glBindBuffer"))
 	if gpBindBuffer == nil {
 		return errors.New("glBindBuffer")
-	}
-	gpBindBufferBase = (C.GPBINDBUFFERBASE)(getProcAddr("glBindBufferBase"))
-	if gpBindBufferBase == nil {
-		return errors.New("glBindBufferBase")
-	}
-	gpBindBufferRange = (C.GPBINDBUFFERRANGE)(getProcAddr("glBindBufferRange"))
-	if gpBindBufferRange == nil {
-		return errors.New("glBindBufferRange")
-	}
-	gpBindFragDataLocation = (C.GPBINDFRAGDATALOCATION)(getProcAddr("glBindFragDataLocation"))
-	if gpBindFragDataLocation == nil {
-		return errors.New("glBindFragDataLocation")
 	}
 	gpBindFramebuffer = (C.GPBINDFRAMEBUFFER)(getProcAddr("glBindFramebuffer"))
 	if gpBindFramebuffer == nil {
@@ -5568,14 +1527,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	gpBindTexture = (C.GPBINDTEXTURE)(getProcAddr("glBindTexture"))
 	if gpBindTexture == nil {
 		return errors.New("glBindTexture")
-	}
-	gpBindVertexArray = (C.GPBINDVERTEXARRAY)(getProcAddr("glBindVertexArray"))
-	if gpBindVertexArray == nil {
-		return errors.New("glBindVertexArray")
-	}
-	gpBitmap = (C.GPBITMAP)(getProcAddr("glBitmap"))
-	if gpBitmap == nil {
-		return errors.New("glBitmap")
 	}
 	gpBlendColor = (C.GPBLENDCOLOR)(getProcAddr("glBlendColor"))
 	if gpBlendColor == nil {
@@ -5597,10 +1548,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpBlendFuncSeparate == nil {
 		return errors.New("glBlendFuncSeparate")
 	}
-	gpBlitFramebuffer = (C.GPBLITFRAMEBUFFER)(getProcAddr("glBlitFramebuffer"))
-	if gpBlitFramebuffer == nil {
-		return errors.New("glBlitFramebuffer")
-	}
 	gpBufferData = (C.GPBUFFERDATA)(getProcAddr("glBufferData"))
 	if gpBufferData == nil {
 		return errors.New("glBufferData")
@@ -5609,265 +1556,45 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpBufferSubData == nil {
 		return errors.New("glBufferSubData")
 	}
-	gpCallList = (C.GPCALLLIST)(getProcAddr("glCallList"))
-	if gpCallList == nil {
-		return errors.New("glCallList")
-	}
-	gpCallLists = (C.GPCALLLISTS)(getProcAddr("glCallLists"))
-	if gpCallLists == nil {
-		return errors.New("glCallLists")
-	}
 	gpCheckFramebufferStatus = (C.GPCHECKFRAMEBUFFERSTATUS)(getProcAddr("glCheckFramebufferStatus"))
 	if gpCheckFramebufferStatus == nil {
 		return errors.New("glCheckFramebufferStatus")
-	}
-	gpClampColor = (C.GPCLAMPCOLOR)(getProcAddr("glClampColor"))
-	if gpClampColor == nil {
-		return errors.New("glClampColor")
 	}
 	gpClear = (C.GPCLEAR)(getProcAddr("glClear"))
 	if gpClear == nil {
 		return errors.New("glClear")
 	}
-	gpClearAccum = (C.GPCLEARACCUM)(getProcAddr("glClearAccum"))
-	if gpClearAccum == nil {
-		return errors.New("glClearAccum")
-	}
-	gpClearBufferfi = (C.GPCLEARBUFFERFI)(getProcAddr("glClearBufferfi"))
-	if gpClearBufferfi == nil {
-		return errors.New("glClearBufferfi")
-	}
-	gpClearBufferfv = (C.GPCLEARBUFFERFV)(getProcAddr("glClearBufferfv"))
-	if gpClearBufferfv == nil {
-		return errors.New("glClearBufferfv")
-	}
-	gpClearBufferiv = (C.GPCLEARBUFFERIV)(getProcAddr("glClearBufferiv"))
-	if gpClearBufferiv == nil {
-		return errors.New("glClearBufferiv")
-	}
-	gpClearBufferuiv = (C.GPCLEARBUFFERUIV)(getProcAddr("glClearBufferuiv"))
-	if gpClearBufferuiv == nil {
-		return errors.New("glClearBufferuiv")
-	}
 	gpClearColor = (C.GPCLEARCOLOR)(getProcAddr("glClearColor"))
 	if gpClearColor == nil {
 		return errors.New("glClearColor")
-	}
-	gpClearDepth = (C.GPCLEARDEPTH)(getProcAddr("glClearDepth"))
-	if gpClearDepth == nil {
-		return errors.New("glClearDepth")
-	}
-	gpClearIndex = (C.GPCLEARINDEX)(getProcAddr("glClearIndex"))
-	if gpClearIndex == nil {
-		return errors.New("glClearIndex")
 	}
 	gpClearStencil = (C.GPCLEARSTENCIL)(getProcAddr("glClearStencil"))
 	if gpClearStencil == nil {
 		return errors.New("glClearStencil")
 	}
-	gpClientActiveTexture = (C.GPCLIENTACTIVETEXTURE)(getProcAddr("glClientActiveTexture"))
-	if gpClientActiveTexture == nil {
-		return errors.New("glClientActiveTexture")
-	}
-	gpClipPlane = (C.GPCLIPPLANE)(getProcAddr("glClipPlane"))
-	if gpClipPlane == nil {
-		return errors.New("glClipPlane")
-	}
-	gpColor3b = (C.GPCOLOR3B)(getProcAddr("glColor3b"))
-	if gpColor3b == nil {
-		return errors.New("glColor3b")
-	}
-	gpColor3bv = (C.GPCOLOR3BV)(getProcAddr("glColor3bv"))
-	if gpColor3bv == nil {
-		return errors.New("glColor3bv")
-	}
-	gpColor3d = (C.GPCOLOR3D)(getProcAddr("glColor3d"))
-	if gpColor3d == nil {
-		return errors.New("glColor3d")
-	}
-	gpColor3dv = (C.GPCOLOR3DV)(getProcAddr("glColor3dv"))
-	if gpColor3dv == nil {
-		return errors.New("glColor3dv")
-	}
-	gpColor3f = (C.GPCOLOR3F)(getProcAddr("glColor3f"))
-	if gpColor3f == nil {
-		return errors.New("glColor3f")
-	}
-	gpColor3fv = (C.GPCOLOR3FV)(getProcAddr("glColor3fv"))
-	if gpColor3fv == nil {
-		return errors.New("glColor3fv")
-	}
-	gpColor3i = (C.GPCOLOR3I)(getProcAddr("glColor3i"))
-	if gpColor3i == nil {
-		return errors.New("glColor3i")
-	}
-	gpColor3iv = (C.GPCOLOR3IV)(getProcAddr("glColor3iv"))
-	if gpColor3iv == nil {
-		return errors.New("glColor3iv")
-	}
-	gpColor3s = (C.GPCOLOR3S)(getProcAddr("glColor3s"))
-	if gpColor3s == nil {
-		return errors.New("glColor3s")
-	}
-	gpColor3sv = (C.GPCOLOR3SV)(getProcAddr("glColor3sv"))
-	if gpColor3sv == nil {
-		return errors.New("glColor3sv")
-	}
-	gpColor3ub = (C.GPCOLOR3UB)(getProcAddr("glColor3ub"))
-	if gpColor3ub == nil {
-		return errors.New("glColor3ub")
-	}
-	gpColor3ubv = (C.GPCOLOR3UBV)(getProcAddr("glColor3ubv"))
-	if gpColor3ubv == nil {
-		return errors.New("glColor3ubv")
-	}
-	gpColor3ui = (C.GPCOLOR3UI)(getProcAddr("glColor3ui"))
-	if gpColor3ui == nil {
-		return errors.New("glColor3ui")
-	}
-	gpColor3uiv = (C.GPCOLOR3UIV)(getProcAddr("glColor3uiv"))
-	if gpColor3uiv == nil {
-		return errors.New("glColor3uiv")
-	}
-	gpColor3us = (C.GPCOLOR3US)(getProcAddr("glColor3us"))
-	if gpColor3us == nil {
-		return errors.New("glColor3us")
-	}
-	gpColor3usv = (C.GPCOLOR3USV)(getProcAddr("glColor3usv"))
-	if gpColor3usv == nil {
-		return errors.New("glColor3usv")
-	}
-	gpColor4b = (C.GPCOLOR4B)(getProcAddr("glColor4b"))
-	if gpColor4b == nil {
-		return errors.New("glColor4b")
-	}
-	gpColor4bv = (C.GPCOLOR4BV)(getProcAddr("glColor4bv"))
-	if gpColor4bv == nil {
-		return errors.New("glColor4bv")
-	}
-	gpColor4d = (C.GPCOLOR4D)(getProcAddr("glColor4d"))
-	if gpColor4d == nil {
-		return errors.New("glColor4d")
-	}
-	gpColor4dv = (C.GPCOLOR4DV)(getProcAddr("glColor4dv"))
-	if gpColor4dv == nil {
-		return errors.New("glColor4dv")
-	}
-	gpColor4f = (C.GPCOLOR4F)(getProcAddr("glColor4f"))
-	if gpColor4f == nil {
-		return errors.New("glColor4f")
-	}
-	gpColor4fv = (C.GPCOLOR4FV)(getProcAddr("glColor4fv"))
-	if gpColor4fv == nil {
-		return errors.New("glColor4fv")
-	}
-	gpColor4i = (C.GPCOLOR4I)(getProcAddr("glColor4i"))
-	if gpColor4i == nil {
-		return errors.New("glColor4i")
-	}
-	gpColor4iv = (C.GPCOLOR4IV)(getProcAddr("glColor4iv"))
-	if gpColor4iv == nil {
-		return errors.New("glColor4iv")
-	}
-	gpColor4s = (C.GPCOLOR4S)(getProcAddr("glColor4s"))
-	if gpColor4s == nil {
-		return errors.New("glColor4s")
-	}
-	gpColor4sv = (C.GPCOLOR4SV)(getProcAddr("glColor4sv"))
-	if gpColor4sv == nil {
-		return errors.New("glColor4sv")
-	}
-	gpColor4ub = (C.GPCOLOR4UB)(getProcAddr("glColor4ub"))
-	if gpColor4ub == nil {
-		return errors.New("glColor4ub")
-	}
-	gpColor4ubv = (C.GPCOLOR4UBV)(getProcAddr("glColor4ubv"))
-	if gpColor4ubv == nil {
-		return errors.New("glColor4ubv")
-	}
-	gpColor4ui = (C.GPCOLOR4UI)(getProcAddr("glColor4ui"))
-	if gpColor4ui == nil {
-		return errors.New("glColor4ui")
-	}
-	gpColor4uiv = (C.GPCOLOR4UIV)(getProcAddr("glColor4uiv"))
-	if gpColor4uiv == nil {
-		return errors.New("glColor4uiv")
-	}
-	gpColor4us = (C.GPCOLOR4US)(getProcAddr("glColor4us"))
-	if gpColor4us == nil {
-		return errors.New("glColor4us")
-	}
-	gpColor4usv = (C.GPCOLOR4USV)(getProcAddr("glColor4usv"))
-	if gpColor4usv == nil {
-		return errors.New("glColor4usv")
-	}
 	gpColorMask = (C.GPCOLORMASK)(getProcAddr("glColorMask"))
 	if gpColorMask == nil {
 		return errors.New("glColorMask")
-	}
-	gpColorMaski = (C.GPCOLORMASKI)(getProcAddr("glColorMaski"))
-	if gpColorMaski == nil {
-		return errors.New("glColorMaski")
-	}
-	gpColorMaterial = (C.GPCOLORMATERIAL)(getProcAddr("glColorMaterial"))
-	if gpColorMaterial == nil {
-		return errors.New("glColorMaterial")
-	}
-	gpColorPointer = (C.GPCOLORPOINTER)(getProcAddr("glColorPointer"))
-	if gpColorPointer == nil {
-		return errors.New("glColorPointer")
 	}
 	gpCompileShader = (C.GPCOMPILESHADER)(getProcAddr("glCompileShader"))
 	if gpCompileShader == nil {
 		return errors.New("glCompileShader")
 	}
-	gpCompressedTexImage1D = (C.GPCOMPRESSEDTEXIMAGE1D)(getProcAddr("glCompressedTexImage1D"))
-	if gpCompressedTexImage1D == nil {
-		return errors.New("glCompressedTexImage1D")
-	}
 	gpCompressedTexImage2D = (C.GPCOMPRESSEDTEXIMAGE2D)(getProcAddr("glCompressedTexImage2D"))
 	if gpCompressedTexImage2D == nil {
 		return errors.New("glCompressedTexImage2D")
-	}
-	gpCompressedTexImage3D = (C.GPCOMPRESSEDTEXIMAGE3D)(getProcAddr("glCompressedTexImage3D"))
-	if gpCompressedTexImage3D == nil {
-		return errors.New("glCompressedTexImage3D")
-	}
-	gpCompressedTexSubImage1D = (C.GPCOMPRESSEDTEXSUBIMAGE1D)(getProcAddr("glCompressedTexSubImage1D"))
-	if gpCompressedTexSubImage1D == nil {
-		return errors.New("glCompressedTexSubImage1D")
 	}
 	gpCompressedTexSubImage2D = (C.GPCOMPRESSEDTEXSUBIMAGE2D)(getProcAddr("glCompressedTexSubImage2D"))
 	if gpCompressedTexSubImage2D == nil {
 		return errors.New("glCompressedTexSubImage2D")
 	}
-	gpCompressedTexSubImage3D = (C.GPCOMPRESSEDTEXSUBIMAGE3D)(getProcAddr("glCompressedTexSubImage3D"))
-	if gpCompressedTexSubImage3D == nil {
-		return errors.New("glCompressedTexSubImage3D")
-	}
-	gpCopyPixels = (C.GPCOPYPIXELS)(getProcAddr("glCopyPixels"))
-	if gpCopyPixels == nil {
-		return errors.New("glCopyPixels")
-	}
-	gpCopyTexImage1D = (C.GPCOPYTEXIMAGE1D)(getProcAddr("glCopyTexImage1D"))
-	if gpCopyTexImage1D == nil {
-		return errors.New("glCopyTexImage1D")
-	}
 	gpCopyTexImage2D = (C.GPCOPYTEXIMAGE2D)(getProcAddr("glCopyTexImage2D"))
 	if gpCopyTexImage2D == nil {
 		return errors.New("glCopyTexImage2D")
 	}
-	gpCopyTexSubImage1D = (C.GPCOPYTEXSUBIMAGE1D)(getProcAddr("glCopyTexSubImage1D"))
-	if gpCopyTexSubImage1D == nil {
-		return errors.New("glCopyTexSubImage1D")
-	}
 	gpCopyTexSubImage2D = (C.GPCOPYTEXSUBIMAGE2D)(getProcAddr("glCopyTexSubImage2D"))
 	if gpCopyTexSubImage2D == nil {
 		return errors.New("glCopyTexSubImage2D")
-	}
-	gpCopyTexSubImage3D = (C.GPCOPYTEXSUBIMAGE3D)(getProcAddr("glCopyTexSubImage3D"))
-	if gpCopyTexSubImage3D == nil {
-		return errors.New("glCopyTexSubImage3D")
 	}
 	gpCreateProgram = (C.GPCREATEPROGRAM)(getProcAddr("glCreateProgram"))
 	if gpCreateProgram == nil {
@@ -5889,17 +1616,9 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpDeleteFramebuffers == nil {
 		return errors.New("glDeleteFramebuffers")
 	}
-	gpDeleteLists = (C.GPDELETELISTS)(getProcAddr("glDeleteLists"))
-	if gpDeleteLists == nil {
-		return errors.New("glDeleteLists")
-	}
 	gpDeleteProgram = (C.GPDELETEPROGRAM)(getProcAddr("glDeleteProgram"))
 	if gpDeleteProgram == nil {
 		return errors.New("glDeleteProgram")
-	}
-	gpDeleteQueries = (C.GPDELETEQUERIES)(getProcAddr("glDeleteQueries"))
-	if gpDeleteQueries == nil {
-		return errors.New("glDeleteQueries")
 	}
 	gpDeleteRenderbuffers = (C.GPDELETERENDERBUFFERS)(getProcAddr("glDeleteRenderbuffers"))
 	if gpDeleteRenderbuffers == nil {
@@ -5913,10 +1632,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpDeleteTextures == nil {
 		return errors.New("glDeleteTextures")
 	}
-	gpDeleteVertexArrays = (C.GPDELETEVERTEXARRAYS)(getProcAddr("glDeleteVertexArrays"))
-	if gpDeleteVertexArrays == nil {
-		return errors.New("glDeleteVertexArrays")
-	}
 	gpDepthFunc = (C.GPDEPTHFUNC)(getProcAddr("glDepthFunc"))
 	if gpDepthFunc == nil {
 		return errors.New("glDepthFunc")
@@ -5924,10 +1639,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	gpDepthMask = (C.GPDEPTHMASK)(getProcAddr("glDepthMask"))
 	if gpDepthMask == nil {
 		return errors.New("glDepthMask")
-	}
-	gpDepthRange = (C.GPDEPTHRANGE)(getProcAddr("glDepthRange"))
-	if gpDepthRange == nil {
-		return errors.New("glDepthRange")
 	}
 	gpDetachShader = (C.GPDETACHSHADER)(getProcAddr("glDetachShader"))
 	if gpDetachShader == nil {
@@ -5937,141 +1648,25 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpDisable == nil {
 		return errors.New("glDisable")
 	}
-	gpDisableClientState = (C.GPDISABLECLIENTSTATE)(getProcAddr("glDisableClientState"))
-	if gpDisableClientState == nil {
-		return errors.New("glDisableClientState")
-	}
 	gpDisableVertexAttribArray = (C.GPDISABLEVERTEXATTRIBARRAY)(getProcAddr("glDisableVertexAttribArray"))
 	if gpDisableVertexAttribArray == nil {
 		return errors.New("glDisableVertexAttribArray")
-	}
-	gpDisablei = (C.GPDISABLEI)(getProcAddr("glDisablei"))
-	if gpDisablei == nil {
-		return errors.New("glDisablei")
 	}
 	gpDrawArrays = (C.GPDRAWARRAYS)(getProcAddr("glDrawArrays"))
 	if gpDrawArrays == nil {
 		return errors.New("glDrawArrays")
 	}
-	gpDrawBuffer = (C.GPDRAWBUFFER)(getProcAddr("glDrawBuffer"))
-	if gpDrawBuffer == nil {
-		return errors.New("glDrawBuffer")
-	}
-	gpDrawBuffers = (C.GPDRAWBUFFERS)(getProcAddr("glDrawBuffers"))
-	if gpDrawBuffers == nil {
-		return errors.New("glDrawBuffers")
-	}
 	gpDrawElements = (C.GPDRAWELEMENTS)(getProcAddr("glDrawElements"))
 	if gpDrawElements == nil {
 		return errors.New("glDrawElements")
-	}
-	gpDrawPixels = (C.GPDRAWPIXELS)(getProcAddr("glDrawPixels"))
-	if gpDrawPixels == nil {
-		return errors.New("glDrawPixels")
-	}
-	gpDrawRangeElements = (C.GPDRAWRANGEELEMENTS)(getProcAddr("glDrawRangeElements"))
-	if gpDrawRangeElements == nil {
-		return errors.New("glDrawRangeElements")
-	}
-	gpEdgeFlag = (C.GPEDGEFLAG)(getProcAddr("glEdgeFlag"))
-	if gpEdgeFlag == nil {
-		return errors.New("glEdgeFlag")
-	}
-	gpEdgeFlagPointer = (C.GPEDGEFLAGPOINTER)(getProcAddr("glEdgeFlagPointer"))
-	if gpEdgeFlagPointer == nil {
-		return errors.New("glEdgeFlagPointer")
-	}
-	gpEdgeFlagv = (C.GPEDGEFLAGV)(getProcAddr("glEdgeFlagv"))
-	if gpEdgeFlagv == nil {
-		return errors.New("glEdgeFlagv")
 	}
 	gpEnable = (C.GPENABLE)(getProcAddr("glEnable"))
 	if gpEnable == nil {
 		return errors.New("glEnable")
 	}
-	gpEnableClientState = (C.GPENABLECLIENTSTATE)(getProcAddr("glEnableClientState"))
-	if gpEnableClientState == nil {
-		return errors.New("glEnableClientState")
-	}
 	gpEnableVertexAttribArray = (C.GPENABLEVERTEXATTRIBARRAY)(getProcAddr("glEnableVertexAttribArray"))
 	if gpEnableVertexAttribArray == nil {
 		return errors.New("glEnableVertexAttribArray")
-	}
-	gpEnablei = (C.GPENABLEI)(getProcAddr("glEnablei"))
-	if gpEnablei == nil {
-		return errors.New("glEnablei")
-	}
-	gpEnd = (C.GPEND)(getProcAddr("glEnd"))
-	if gpEnd == nil {
-		return errors.New("glEnd")
-	}
-	gpEndConditionalRender = (C.GPENDCONDITIONALRENDER)(getProcAddr("glEndConditionalRender"))
-	if gpEndConditionalRender == nil {
-		return errors.New("glEndConditionalRender")
-	}
-	gpEndList = (C.GPENDLIST)(getProcAddr("glEndList"))
-	if gpEndList == nil {
-		return errors.New("glEndList")
-	}
-	gpEndQuery = (C.GPENDQUERY)(getProcAddr("glEndQuery"))
-	if gpEndQuery == nil {
-		return errors.New("glEndQuery")
-	}
-	gpEndTransformFeedback = (C.GPENDTRANSFORMFEEDBACK)(getProcAddr("glEndTransformFeedback"))
-	if gpEndTransformFeedback == nil {
-		return errors.New("glEndTransformFeedback")
-	}
-	gpEvalCoord1d = (C.GPEVALCOORD1D)(getProcAddr("glEvalCoord1d"))
-	if gpEvalCoord1d == nil {
-		return errors.New("glEvalCoord1d")
-	}
-	gpEvalCoord1dv = (C.GPEVALCOORD1DV)(getProcAddr("glEvalCoord1dv"))
-	if gpEvalCoord1dv == nil {
-		return errors.New("glEvalCoord1dv")
-	}
-	gpEvalCoord1f = (C.GPEVALCOORD1F)(getProcAddr("glEvalCoord1f"))
-	if gpEvalCoord1f == nil {
-		return errors.New("glEvalCoord1f")
-	}
-	gpEvalCoord1fv = (C.GPEVALCOORD1FV)(getProcAddr("glEvalCoord1fv"))
-	if gpEvalCoord1fv == nil {
-		return errors.New("glEvalCoord1fv")
-	}
-	gpEvalCoord2d = (C.GPEVALCOORD2D)(getProcAddr("glEvalCoord2d"))
-	if gpEvalCoord2d == nil {
-		return errors.New("glEvalCoord2d")
-	}
-	gpEvalCoord2dv = (C.GPEVALCOORD2DV)(getProcAddr("glEvalCoord2dv"))
-	if gpEvalCoord2dv == nil {
-		return errors.New("glEvalCoord2dv")
-	}
-	gpEvalCoord2f = (C.GPEVALCOORD2F)(getProcAddr("glEvalCoord2f"))
-	if gpEvalCoord2f == nil {
-		return errors.New("glEvalCoord2f")
-	}
-	gpEvalCoord2fv = (C.GPEVALCOORD2FV)(getProcAddr("glEvalCoord2fv"))
-	if gpEvalCoord2fv == nil {
-		return errors.New("glEvalCoord2fv")
-	}
-	gpEvalMesh1 = (C.GPEVALMESH1)(getProcAddr("glEvalMesh1"))
-	if gpEvalMesh1 == nil {
-		return errors.New("glEvalMesh1")
-	}
-	gpEvalMesh2 = (C.GPEVALMESH2)(getProcAddr("glEvalMesh2"))
-	if gpEvalMesh2 == nil {
-		return errors.New("glEvalMesh2")
-	}
-	gpEvalPoint1 = (C.GPEVALPOINT1)(getProcAddr("glEvalPoint1"))
-	if gpEvalPoint1 == nil {
-		return errors.New("glEvalPoint1")
-	}
-	gpEvalPoint2 = (C.GPEVALPOINT2)(getProcAddr("glEvalPoint2"))
-	if gpEvalPoint2 == nil {
-		return errors.New("glEvalPoint2")
-	}
-	gpFeedbackBuffer = (C.GPFEEDBACKBUFFER)(getProcAddr("glFeedbackBuffer"))
-	if gpFeedbackBuffer == nil {
-		return errors.New("glFeedbackBuffer")
 	}
 	gpFinish = (C.GPFINISH)(getProcAddr("glFinish"))
 	if gpFinish == nil {
@@ -6081,73 +1676,17 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpFlush == nil {
 		return errors.New("glFlush")
 	}
-	gpFlushMappedBufferRange = (C.GPFLUSHMAPPEDBUFFERRANGE)(getProcAddr("glFlushMappedBufferRange"))
-	if gpFlushMappedBufferRange == nil {
-		return errors.New("glFlushMappedBufferRange")
-	}
-	gpFogCoordPointer = (C.GPFOGCOORDPOINTER)(getProcAddr("glFogCoordPointer"))
-	if gpFogCoordPointer == nil {
-		return errors.New("glFogCoordPointer")
-	}
-	gpFogCoordd = (C.GPFOGCOORDD)(getProcAddr("glFogCoordd"))
-	if gpFogCoordd == nil {
-		return errors.New("glFogCoordd")
-	}
-	gpFogCoorddv = (C.GPFOGCOORDDV)(getProcAddr("glFogCoorddv"))
-	if gpFogCoorddv == nil {
-		return errors.New("glFogCoorddv")
-	}
-	gpFogCoordf = (C.GPFOGCOORDF)(getProcAddr("glFogCoordf"))
-	if gpFogCoordf == nil {
-		return errors.New("glFogCoordf")
-	}
-	gpFogCoordfv = (C.GPFOGCOORDFV)(getProcAddr("glFogCoordfv"))
-	if gpFogCoordfv == nil {
-		return errors.New("glFogCoordfv")
-	}
-	gpFogf = (C.GPFOGF)(getProcAddr("glFogf"))
-	if gpFogf == nil {
-		return errors.New("glFogf")
-	}
-	gpFogfv = (C.GPFOGFV)(getProcAddr("glFogfv"))
-	if gpFogfv == nil {
-		return errors.New("glFogfv")
-	}
-	gpFogi = (C.GPFOGI)(getProcAddr("glFogi"))
-	if gpFogi == nil {
-		return errors.New("glFogi")
-	}
-	gpFogiv = (C.GPFOGIV)(getProcAddr("glFogiv"))
-	if gpFogiv == nil {
-		return errors.New("glFogiv")
-	}
 	gpFramebufferRenderbuffer = (C.GPFRAMEBUFFERRENDERBUFFER)(getProcAddr("glFramebufferRenderbuffer"))
 	if gpFramebufferRenderbuffer == nil {
 		return errors.New("glFramebufferRenderbuffer")
-	}
-	gpFramebufferTexture1D = (C.GPFRAMEBUFFERTEXTURE1D)(getProcAddr("glFramebufferTexture1D"))
-	if gpFramebufferTexture1D == nil {
-		return errors.New("glFramebufferTexture1D")
 	}
 	gpFramebufferTexture2D = (C.GPFRAMEBUFFERTEXTURE2D)(getProcAddr("glFramebufferTexture2D"))
 	if gpFramebufferTexture2D == nil {
 		return errors.New("glFramebufferTexture2D")
 	}
-	gpFramebufferTexture3D = (C.GPFRAMEBUFFERTEXTURE3D)(getProcAddr("glFramebufferTexture3D"))
-	if gpFramebufferTexture3D == nil {
-		return errors.New("glFramebufferTexture3D")
-	}
-	gpFramebufferTextureLayer = (C.GPFRAMEBUFFERTEXTURELAYER)(getProcAddr("glFramebufferTextureLayer"))
-	if gpFramebufferTextureLayer == nil {
-		return errors.New("glFramebufferTextureLayer")
-	}
 	gpFrontFace = (C.GPFRONTFACE)(getProcAddr("glFrontFace"))
 	if gpFrontFace == nil {
 		return errors.New("glFrontFace")
-	}
-	gpFrustum = (C.GPFRUSTUM)(getProcAddr("glFrustum"))
-	if gpFrustum == nil {
-		return errors.New("glFrustum")
 	}
 	gpGenBuffers = (C.GPGENBUFFERS)(getProcAddr("glGenBuffers"))
 	if gpGenBuffers == nil {
@@ -6157,14 +1696,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpGenFramebuffers == nil {
 		return errors.New("glGenFramebuffers")
 	}
-	gpGenLists = (C.GPGENLISTS)(getProcAddr("glGenLists"))
-	if gpGenLists == nil {
-		return errors.New("glGenLists")
-	}
-	gpGenQueries = (C.GPGENQUERIES)(getProcAddr("glGenQueries"))
-	if gpGenQueries == nil {
-		return errors.New("glGenQueries")
-	}
 	gpGenRenderbuffers = (C.GPGENRENDERBUFFERS)(getProcAddr("glGenRenderbuffers"))
 	if gpGenRenderbuffers == nil {
 		return errors.New("glGenRenderbuffers")
@@ -6172,10 +1703,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	gpGenTextures = (C.GPGENTEXTURES)(getProcAddr("glGenTextures"))
 	if gpGenTextures == nil {
 		return errors.New("glGenTextures")
-	}
-	gpGenVertexArrays = (C.GPGENVERTEXARRAYS)(getProcAddr("glGenVertexArrays"))
-	if gpGenVertexArrays == nil {
-		return errors.New("glGenVertexArrays")
 	}
 	gpGenerateMipmap = (C.GPGENERATEMIPMAP)(getProcAddr("glGenerateMipmap"))
 	if gpGenerateMipmap == nil {
@@ -6197,10 +1724,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpGetAttribLocation == nil {
 		return errors.New("glGetAttribLocation")
 	}
-	gpGetBooleani_v = (C.GPGETBOOLEANI_V)(getProcAddr("glGetBooleani_v"))
-	if gpGetBooleani_v == nil {
-		return errors.New("glGetBooleani_v")
-	}
 	gpGetBooleanv = (C.GPGETBOOLEANV)(getProcAddr("glGetBooleanv"))
 	if gpGetBooleanv == nil {
 		return errors.New("glGetBooleanv")
@@ -6208,26 +1731,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	gpGetBufferParameteriv = (C.GPGETBUFFERPARAMETERIV)(getProcAddr("glGetBufferParameteriv"))
 	if gpGetBufferParameteriv == nil {
 		return errors.New("glGetBufferParameteriv")
-	}
-	gpGetBufferPointerv = (C.GPGETBUFFERPOINTERV)(getProcAddr("glGetBufferPointerv"))
-	if gpGetBufferPointerv == nil {
-		return errors.New("glGetBufferPointerv")
-	}
-	gpGetBufferSubData = (C.GPGETBUFFERSUBDATA)(getProcAddr("glGetBufferSubData"))
-	if gpGetBufferSubData == nil {
-		return errors.New("glGetBufferSubData")
-	}
-	gpGetClipPlane = (C.GPGETCLIPPLANE)(getProcAddr("glGetClipPlane"))
-	if gpGetClipPlane == nil {
-		return errors.New("glGetClipPlane")
-	}
-	gpGetCompressedTexImage = (C.GPGETCOMPRESSEDTEXIMAGE)(getProcAddr("glGetCompressedTexImage"))
-	if gpGetCompressedTexImage == nil {
-		return errors.New("glGetCompressedTexImage")
-	}
-	gpGetDoublev = (C.GPGETDOUBLEV)(getProcAddr("glGetDoublev"))
-	if gpGetDoublev == nil {
-		return errors.New("glGetDoublev")
 	}
 	gpGetError = (C.GPGETERROR)(getProcAddr("glGetError"))
 	if gpGetError == nil {
@@ -6237,69 +1740,13 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpGetFloatv == nil {
 		return errors.New("glGetFloatv")
 	}
-	gpGetFragDataLocation = (C.GPGETFRAGDATALOCATION)(getProcAddr("glGetFragDataLocation"))
-	if gpGetFragDataLocation == nil {
-		return errors.New("glGetFragDataLocation")
-	}
 	gpGetFramebufferAttachmentParameteriv = (C.GPGETFRAMEBUFFERATTACHMENTPARAMETERIV)(getProcAddr("glGetFramebufferAttachmentParameteriv"))
 	if gpGetFramebufferAttachmentParameteriv == nil {
 		return errors.New("glGetFramebufferAttachmentParameteriv")
 	}
-	gpGetIntegeri_v = (C.GPGETINTEGERI_V)(getProcAddr("glGetIntegeri_v"))
-	if gpGetIntegeri_v == nil {
-		return errors.New("glGetIntegeri_v")
-	}
 	gpGetIntegerv = (C.GPGETINTEGERV)(getProcAddr("glGetIntegerv"))
 	if gpGetIntegerv == nil {
 		return errors.New("glGetIntegerv")
-	}
-	gpGetLightfv = (C.GPGETLIGHTFV)(getProcAddr("glGetLightfv"))
-	if gpGetLightfv == nil {
-		return errors.New("glGetLightfv")
-	}
-	gpGetLightiv = (C.GPGETLIGHTIV)(getProcAddr("glGetLightiv"))
-	if gpGetLightiv == nil {
-		return errors.New("glGetLightiv")
-	}
-	gpGetMapdv = (C.GPGETMAPDV)(getProcAddr("glGetMapdv"))
-	if gpGetMapdv == nil {
-		return errors.New("glGetMapdv")
-	}
-	gpGetMapfv = (C.GPGETMAPFV)(getProcAddr("glGetMapfv"))
-	if gpGetMapfv == nil {
-		return errors.New("glGetMapfv")
-	}
-	gpGetMapiv = (C.GPGETMAPIV)(getProcAddr("glGetMapiv"))
-	if gpGetMapiv == nil {
-		return errors.New("glGetMapiv")
-	}
-	gpGetMaterialfv = (C.GPGETMATERIALFV)(getProcAddr("glGetMaterialfv"))
-	if gpGetMaterialfv == nil {
-		return errors.New("glGetMaterialfv")
-	}
-	gpGetMaterialiv = (C.GPGETMATERIALIV)(getProcAddr("glGetMaterialiv"))
-	if gpGetMaterialiv == nil {
-		return errors.New("glGetMaterialiv")
-	}
-	gpGetPixelMapfv = (C.GPGETPIXELMAPFV)(getProcAddr("glGetPixelMapfv"))
-	if gpGetPixelMapfv == nil {
-		return errors.New("glGetPixelMapfv")
-	}
-	gpGetPixelMapuiv = (C.GPGETPIXELMAPUIV)(getProcAddr("glGetPixelMapuiv"))
-	if gpGetPixelMapuiv == nil {
-		return errors.New("glGetPixelMapuiv")
-	}
-	gpGetPixelMapusv = (C.GPGETPIXELMAPUSV)(getProcAddr("glGetPixelMapusv"))
-	if gpGetPixelMapusv == nil {
-		return errors.New("glGetPixelMapusv")
-	}
-	gpGetPointerv = (C.GPGETPOINTERV)(getProcAddr("glGetPointerv"))
-	if gpGetPointerv == nil {
-		return errors.New("glGetPointerv")
-	}
-	gpGetPolygonStipple = (C.GPGETPOLYGONSTIPPLE)(getProcAddr("glGetPolygonStipple"))
-	if gpGetPolygonStipple == nil {
-		return errors.New("glGetPolygonStipple")
 	}
 	gpGetProgramInfoLog = (C.GPGETPROGRAMINFOLOG)(getProcAddr("glGetProgramInfoLog"))
 	if gpGetProgramInfoLog == nil {
@@ -6308,18 +1755,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	gpGetProgramiv = (C.GPGETPROGRAMIV)(getProcAddr("glGetProgramiv"))
 	if gpGetProgramiv == nil {
 		return errors.New("glGetProgramiv")
-	}
-	gpGetQueryObjectiv = (C.GPGETQUERYOBJECTIV)(getProcAddr("glGetQueryObjectiv"))
-	if gpGetQueryObjectiv == nil {
-		return errors.New("glGetQueryObjectiv")
-	}
-	gpGetQueryObjectuiv = (C.GPGETQUERYOBJECTUIV)(getProcAddr("glGetQueryObjectuiv"))
-	if gpGetQueryObjectuiv == nil {
-		return errors.New("glGetQueryObjectuiv")
-	}
-	gpGetQueryiv = (C.GPGETQUERYIV)(getProcAddr("glGetQueryiv"))
-	if gpGetQueryiv == nil {
-		return errors.New("glGetQueryiv")
 	}
 	gpGetRenderbufferParameteriv = (C.GPGETRENDERBUFFERPARAMETERIV)(getProcAddr("glGetRenderbufferParameteriv"))
 	if gpGetRenderbufferParameteriv == nil {
@@ -6341,50 +1776,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpGetString == nil {
 		return errors.New("glGetString")
 	}
-	gpGetStringi = (C.GPGETSTRINGI)(getProcAddr("glGetStringi"))
-	if gpGetStringi == nil {
-		return errors.New("glGetStringi")
-	}
-	gpGetTexEnvfv = (C.GPGETTEXENVFV)(getProcAddr("glGetTexEnvfv"))
-	if gpGetTexEnvfv == nil {
-		return errors.New("glGetTexEnvfv")
-	}
-	gpGetTexEnviv = (C.GPGETTEXENVIV)(getProcAddr("glGetTexEnviv"))
-	if gpGetTexEnviv == nil {
-		return errors.New("glGetTexEnviv")
-	}
-	gpGetTexGendv = (C.GPGETTEXGENDV)(getProcAddr("glGetTexGendv"))
-	if gpGetTexGendv == nil {
-		return errors.New("glGetTexGendv")
-	}
-	gpGetTexGenfv = (C.GPGETTEXGENFV)(getProcAddr("glGetTexGenfv"))
-	if gpGetTexGenfv == nil {
-		return errors.New("glGetTexGenfv")
-	}
-	gpGetTexGeniv = (C.GPGETTEXGENIV)(getProcAddr("glGetTexGeniv"))
-	if gpGetTexGeniv == nil {
-		return errors.New("glGetTexGeniv")
-	}
-	gpGetTexImage = (C.GPGETTEXIMAGE)(getProcAddr("glGetTexImage"))
-	if gpGetTexImage == nil {
-		return errors.New("glGetTexImage")
-	}
-	gpGetTexLevelParameterfv = (C.GPGETTEXLEVELPARAMETERFV)(getProcAddr("glGetTexLevelParameterfv"))
-	if gpGetTexLevelParameterfv == nil {
-		return errors.New("glGetTexLevelParameterfv")
-	}
-	gpGetTexLevelParameteriv = (C.GPGETTEXLEVELPARAMETERIV)(getProcAddr("glGetTexLevelParameteriv"))
-	if gpGetTexLevelParameteriv == nil {
-		return errors.New("glGetTexLevelParameteriv")
-	}
-	gpGetTexParameterIiv = (C.GPGETTEXPARAMETERIIV)(getProcAddr("glGetTexParameterIiv"))
-	if gpGetTexParameterIiv == nil {
-		return errors.New("glGetTexParameterIiv")
-	}
-	gpGetTexParameterIuiv = (C.GPGETTEXPARAMETERIUIV)(getProcAddr("glGetTexParameterIuiv"))
-	if gpGetTexParameterIuiv == nil {
-		return errors.New("glGetTexParameterIuiv")
-	}
 	gpGetTexParameterfv = (C.GPGETTEXPARAMETERFV)(getProcAddr("glGetTexParameterfv"))
 	if gpGetTexParameterfv == nil {
 		return errors.New("glGetTexParameterfv")
@@ -6392,10 +1783,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	gpGetTexParameteriv = (C.GPGETTEXPARAMETERIV)(getProcAddr("glGetTexParameteriv"))
 	if gpGetTexParameteriv == nil {
 		return errors.New("glGetTexParameteriv")
-	}
-	gpGetTransformFeedbackVarying = (C.GPGETTRANSFORMFEEDBACKVARYING)(getProcAddr("glGetTransformFeedbackVarying"))
-	if gpGetTransformFeedbackVarying == nil {
-		return errors.New("glGetTransformFeedbackVarying")
 	}
 	gpGetUniformLocation = (C.GPGETUNIFORMLOCATION)(getProcAddr("glGetUniformLocation"))
 	if gpGetUniformLocation == nil {
@@ -6409,25 +1796,9 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpGetUniformiv == nil {
 		return errors.New("glGetUniformiv")
 	}
-	gpGetUniformuiv = (C.GPGETUNIFORMUIV)(getProcAddr("glGetUniformuiv"))
-	if gpGetUniformuiv == nil {
-		return errors.New("glGetUniformuiv")
-	}
-	gpGetVertexAttribIiv = (C.GPGETVERTEXATTRIBIIV)(getProcAddr("glGetVertexAttribIiv"))
-	if gpGetVertexAttribIiv == nil {
-		return errors.New("glGetVertexAttribIiv")
-	}
-	gpGetVertexAttribIuiv = (C.GPGETVERTEXATTRIBIUIV)(getProcAddr("glGetVertexAttribIuiv"))
-	if gpGetVertexAttribIuiv == nil {
-		return errors.New("glGetVertexAttribIuiv")
-	}
 	gpGetVertexAttribPointerv = (C.GPGETVERTEXATTRIBPOINTERV)(getProcAddr("glGetVertexAttribPointerv"))
 	if gpGetVertexAttribPointerv == nil {
 		return errors.New("glGetVertexAttribPointerv")
-	}
-	gpGetVertexAttribdv = (C.GPGETVERTEXATTRIBDV)(getProcAddr("glGetVertexAttribdv"))
-	if gpGetVertexAttribdv == nil {
-		return errors.New("glGetVertexAttribdv")
 	}
 	gpGetVertexAttribfv = (C.GPGETVERTEXATTRIBFV)(getProcAddr("glGetVertexAttribfv"))
 	if gpGetVertexAttribfv == nil {
@@ -6441,62 +1812,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpHint == nil {
 		return errors.New("glHint")
 	}
-	gpIndexMask = (C.GPINDEXMASK)(getProcAddr("glIndexMask"))
-	if gpIndexMask == nil {
-		return errors.New("glIndexMask")
-	}
-	gpIndexPointer = (C.GPINDEXPOINTER)(getProcAddr("glIndexPointer"))
-	if gpIndexPointer == nil {
-		return errors.New("glIndexPointer")
-	}
-	gpIndexd = (C.GPINDEXD)(getProcAddr("glIndexd"))
-	if gpIndexd == nil {
-		return errors.New("glIndexd")
-	}
-	gpIndexdv = (C.GPINDEXDV)(getProcAddr("glIndexdv"))
-	if gpIndexdv == nil {
-		return errors.New("glIndexdv")
-	}
-	gpIndexf = (C.GPINDEXF)(getProcAddr("glIndexf"))
-	if gpIndexf == nil {
-		return errors.New("glIndexf")
-	}
-	gpIndexfv = (C.GPINDEXFV)(getProcAddr("glIndexfv"))
-	if gpIndexfv == nil {
-		return errors.New("glIndexfv")
-	}
-	gpIndexi = (C.GPINDEXI)(getProcAddr("glIndexi"))
-	if gpIndexi == nil {
-		return errors.New("glIndexi")
-	}
-	gpIndexiv = (C.GPINDEXIV)(getProcAddr("glIndexiv"))
-	if gpIndexiv == nil {
-		return errors.New("glIndexiv")
-	}
-	gpIndexs = (C.GPINDEXS)(getProcAddr("glIndexs"))
-	if gpIndexs == nil {
-		return errors.New("glIndexs")
-	}
-	gpIndexsv = (C.GPINDEXSV)(getProcAddr("glIndexsv"))
-	if gpIndexsv == nil {
-		return errors.New("glIndexsv")
-	}
-	gpIndexub = (C.GPINDEXUB)(getProcAddr("glIndexub"))
-	if gpIndexub == nil {
-		return errors.New("glIndexub")
-	}
-	gpIndexubv = (C.GPINDEXUBV)(getProcAddr("glIndexubv"))
-	if gpIndexubv == nil {
-		return errors.New("glIndexubv")
-	}
-	gpInitNames = (C.GPINITNAMES)(getProcAddr("glInitNames"))
-	if gpInitNames == nil {
-		return errors.New("glInitNames")
-	}
-	gpInterleavedArrays = (C.GPINTERLEAVEDARRAYS)(getProcAddr("glInterleavedArrays"))
-	if gpInterleavedArrays == nil {
-		return errors.New("glInterleavedArrays")
-	}
 	gpIsBuffer = (C.GPISBUFFER)(getProcAddr("glIsBuffer"))
 	if gpIsBuffer == nil {
 		return errors.New("glIsBuffer")
@@ -6505,25 +1820,13 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpIsEnabled == nil {
 		return errors.New("glIsEnabled")
 	}
-	gpIsEnabledi = (C.GPISENABLEDI)(getProcAddr("glIsEnabledi"))
-	if gpIsEnabledi == nil {
-		return errors.New("glIsEnabledi")
-	}
 	gpIsFramebuffer = (C.GPISFRAMEBUFFER)(getProcAddr("glIsFramebuffer"))
 	if gpIsFramebuffer == nil {
 		return errors.New("glIsFramebuffer")
 	}
-	gpIsList = (C.GPISLIST)(getProcAddr("glIsList"))
-	if gpIsList == nil {
-		return errors.New("glIsList")
-	}
 	gpIsProgram = (C.GPISPROGRAM)(getProcAddr("glIsProgram"))
 	if gpIsProgram == nil {
 		return errors.New("glIsProgram")
-	}
-	gpIsQuery = (C.GPISQUERY)(getProcAddr("glIsQuery"))
-	if gpIsQuery == nil {
-		return errors.New("glIsQuery")
 	}
 	gpIsRenderbuffer = (C.GPISRENDERBUFFER)(getProcAddr("glIsRenderbuffer"))
 	if gpIsRenderbuffer == nil {
@@ -6537,46 +1840,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpIsTexture == nil {
 		return errors.New("glIsTexture")
 	}
-	gpIsVertexArray = (C.GPISVERTEXARRAY)(getProcAddr("glIsVertexArray"))
-	if gpIsVertexArray == nil {
-		return errors.New("glIsVertexArray")
-	}
-	gpLightModelf = (C.GPLIGHTMODELF)(getProcAddr("glLightModelf"))
-	if gpLightModelf == nil {
-		return errors.New("glLightModelf")
-	}
-	gpLightModelfv = (C.GPLIGHTMODELFV)(getProcAddr("glLightModelfv"))
-	if gpLightModelfv == nil {
-		return errors.New("glLightModelfv")
-	}
-	gpLightModeli = (C.GPLIGHTMODELI)(getProcAddr("glLightModeli"))
-	if gpLightModeli == nil {
-		return errors.New("glLightModeli")
-	}
-	gpLightModeliv = (C.GPLIGHTMODELIV)(getProcAddr("glLightModeliv"))
-	if gpLightModeliv == nil {
-		return errors.New("glLightModeliv")
-	}
-	gpLightf = (C.GPLIGHTF)(getProcAddr("glLightf"))
-	if gpLightf == nil {
-		return errors.New("glLightf")
-	}
-	gpLightfv = (C.GPLIGHTFV)(getProcAddr("glLightfv"))
-	if gpLightfv == nil {
-		return errors.New("glLightfv")
-	}
-	gpLighti = (C.GPLIGHTI)(getProcAddr("glLighti"))
-	if gpLighti == nil {
-		return errors.New("glLighti")
-	}
-	gpLightiv = (C.GPLIGHTIV)(getProcAddr("glLightiv"))
-	if gpLightiv == nil {
-		return errors.New("glLightiv")
-	}
-	gpLineStipple = (C.GPLINESTIPPLE)(getProcAddr("glLineStipple"))
-	if gpLineStipple == nil {
-		return errors.New("glLineStipple")
-	}
 	gpLineWidth = (C.GPLINEWIDTH)(getProcAddr("glLineWidth"))
 	if gpLineWidth == nil {
 		return errors.New("glLineWidth")
@@ -6585,653 +1848,29 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpLinkProgram == nil {
 		return errors.New("glLinkProgram")
 	}
-	gpListBase = (C.GPLISTBASE)(getProcAddr("glListBase"))
-	if gpListBase == nil {
-		return errors.New("glListBase")
-	}
-	gpLoadIdentity = (C.GPLOADIDENTITY)(getProcAddr("glLoadIdentity"))
-	if gpLoadIdentity == nil {
-		return errors.New("glLoadIdentity")
-	}
-	gpLoadMatrixd = (C.GPLOADMATRIXD)(getProcAddr("glLoadMatrixd"))
-	if gpLoadMatrixd == nil {
-		return errors.New("glLoadMatrixd")
-	}
-	gpLoadMatrixf = (C.GPLOADMATRIXF)(getProcAddr("glLoadMatrixf"))
-	if gpLoadMatrixf == nil {
-		return errors.New("glLoadMatrixf")
-	}
-	gpLoadName = (C.GPLOADNAME)(getProcAddr("glLoadName"))
-	if gpLoadName == nil {
-		return errors.New("glLoadName")
-	}
-	gpLoadTransposeMatrixd = (C.GPLOADTRANSPOSEMATRIXD)(getProcAddr("glLoadTransposeMatrixd"))
-	if gpLoadTransposeMatrixd == nil {
-		return errors.New("glLoadTransposeMatrixd")
-	}
-	gpLoadTransposeMatrixf = (C.GPLOADTRANSPOSEMATRIXF)(getProcAddr("glLoadTransposeMatrixf"))
-	if gpLoadTransposeMatrixf == nil {
-		return errors.New("glLoadTransposeMatrixf")
-	}
-	gpLogicOp = (C.GPLOGICOP)(getProcAddr("glLogicOp"))
-	if gpLogicOp == nil {
-		return errors.New("glLogicOp")
-	}
-	gpMap1d = (C.GPMAP1D)(getProcAddr("glMap1d"))
-	if gpMap1d == nil {
-		return errors.New("glMap1d")
-	}
-	gpMap1f = (C.GPMAP1F)(getProcAddr("glMap1f"))
-	if gpMap1f == nil {
-		return errors.New("glMap1f")
-	}
-	gpMap2d = (C.GPMAP2D)(getProcAddr("glMap2d"))
-	if gpMap2d == nil {
-		return errors.New("glMap2d")
-	}
-	gpMap2f = (C.GPMAP2F)(getProcAddr("glMap2f"))
-	if gpMap2f == nil {
-		return errors.New("glMap2f")
-	}
-	gpMapBuffer = (C.GPMAPBUFFER)(getProcAddr("glMapBuffer"))
-	if gpMapBuffer == nil {
-		return errors.New("glMapBuffer")
-	}
-	gpMapBufferRange = (C.GPMAPBUFFERRANGE)(getProcAddr("glMapBufferRange"))
-	if gpMapBufferRange == nil {
-		return errors.New("glMapBufferRange")
-	}
-	gpMapGrid1d = (C.GPMAPGRID1D)(getProcAddr("glMapGrid1d"))
-	if gpMapGrid1d == nil {
-		return errors.New("glMapGrid1d")
-	}
-	gpMapGrid1f = (C.GPMAPGRID1F)(getProcAddr("glMapGrid1f"))
-	if gpMapGrid1f == nil {
-		return errors.New("glMapGrid1f")
-	}
-	gpMapGrid2d = (C.GPMAPGRID2D)(getProcAddr("glMapGrid2d"))
-	if gpMapGrid2d == nil {
-		return errors.New("glMapGrid2d")
-	}
-	gpMapGrid2f = (C.GPMAPGRID2F)(getProcAddr("glMapGrid2f"))
-	if gpMapGrid2f == nil {
-		return errors.New("glMapGrid2f")
-	}
-	gpMaterialf = (C.GPMATERIALF)(getProcAddr("glMaterialf"))
-	if gpMaterialf == nil {
-		return errors.New("glMaterialf")
-	}
-	gpMaterialfv = (C.GPMATERIALFV)(getProcAddr("glMaterialfv"))
-	if gpMaterialfv == nil {
-		return errors.New("glMaterialfv")
-	}
-	gpMateriali = (C.GPMATERIALI)(getProcAddr("glMateriali"))
-	if gpMateriali == nil {
-		return errors.New("glMateriali")
-	}
-	gpMaterialiv = (C.GPMATERIALIV)(getProcAddr("glMaterialiv"))
-	if gpMaterialiv == nil {
-		return errors.New("glMaterialiv")
-	}
-	gpMatrixMode = (C.GPMATRIXMODE)(getProcAddr("glMatrixMode"))
-	if gpMatrixMode == nil {
-		return errors.New("glMatrixMode")
-	}
-	gpMultMatrixd = (C.GPMULTMATRIXD)(getProcAddr("glMultMatrixd"))
-	if gpMultMatrixd == nil {
-		return errors.New("glMultMatrixd")
-	}
-	gpMultMatrixf = (C.GPMULTMATRIXF)(getProcAddr("glMultMatrixf"))
-	if gpMultMatrixf == nil {
-		return errors.New("glMultMatrixf")
-	}
-	gpMultTransposeMatrixd = (C.GPMULTTRANSPOSEMATRIXD)(getProcAddr("glMultTransposeMatrixd"))
-	if gpMultTransposeMatrixd == nil {
-		return errors.New("glMultTransposeMatrixd")
-	}
-	gpMultTransposeMatrixf = (C.GPMULTTRANSPOSEMATRIXF)(getProcAddr("glMultTransposeMatrixf"))
-	if gpMultTransposeMatrixf == nil {
-		return errors.New("glMultTransposeMatrixf")
-	}
-	gpMultiDrawArrays = (C.GPMULTIDRAWARRAYS)(getProcAddr("glMultiDrawArrays"))
-	if gpMultiDrawArrays == nil {
-		return errors.New("glMultiDrawArrays")
-	}
-	gpMultiDrawElements = (C.GPMULTIDRAWELEMENTS)(getProcAddr("glMultiDrawElements"))
-	if gpMultiDrawElements == nil {
-		return errors.New("glMultiDrawElements")
-	}
-	gpMultiTexCoord1d = (C.GPMULTITEXCOORD1D)(getProcAddr("glMultiTexCoord1d"))
-	if gpMultiTexCoord1d == nil {
-		return errors.New("glMultiTexCoord1d")
-	}
-	gpMultiTexCoord1dv = (C.GPMULTITEXCOORD1DV)(getProcAddr("glMultiTexCoord1dv"))
-	if gpMultiTexCoord1dv == nil {
-		return errors.New("glMultiTexCoord1dv")
-	}
-	gpMultiTexCoord1f = (C.GPMULTITEXCOORD1F)(getProcAddr("glMultiTexCoord1f"))
-	if gpMultiTexCoord1f == nil {
-		return errors.New("glMultiTexCoord1f")
-	}
-	gpMultiTexCoord1fv = (C.GPMULTITEXCOORD1FV)(getProcAddr("glMultiTexCoord1fv"))
-	if gpMultiTexCoord1fv == nil {
-		return errors.New("glMultiTexCoord1fv")
-	}
-	gpMultiTexCoord1i = (C.GPMULTITEXCOORD1I)(getProcAddr("glMultiTexCoord1i"))
-	if gpMultiTexCoord1i == nil {
-		return errors.New("glMultiTexCoord1i")
-	}
-	gpMultiTexCoord1iv = (C.GPMULTITEXCOORD1IV)(getProcAddr("glMultiTexCoord1iv"))
-	if gpMultiTexCoord1iv == nil {
-		return errors.New("glMultiTexCoord1iv")
-	}
-	gpMultiTexCoord1s = (C.GPMULTITEXCOORD1S)(getProcAddr("glMultiTexCoord1s"))
-	if gpMultiTexCoord1s == nil {
-		return errors.New("glMultiTexCoord1s")
-	}
-	gpMultiTexCoord1sv = (C.GPMULTITEXCOORD1SV)(getProcAddr("glMultiTexCoord1sv"))
-	if gpMultiTexCoord1sv == nil {
-		return errors.New("glMultiTexCoord1sv")
-	}
-	gpMultiTexCoord2d = (C.GPMULTITEXCOORD2D)(getProcAddr("glMultiTexCoord2d"))
-	if gpMultiTexCoord2d == nil {
-		return errors.New("glMultiTexCoord2d")
-	}
-	gpMultiTexCoord2dv = (C.GPMULTITEXCOORD2DV)(getProcAddr("glMultiTexCoord2dv"))
-	if gpMultiTexCoord2dv == nil {
-		return errors.New("glMultiTexCoord2dv")
-	}
-	gpMultiTexCoord2f = (C.GPMULTITEXCOORD2F)(getProcAddr("glMultiTexCoord2f"))
-	if gpMultiTexCoord2f == nil {
-		return errors.New("glMultiTexCoord2f")
-	}
-	gpMultiTexCoord2fv = (C.GPMULTITEXCOORD2FV)(getProcAddr("glMultiTexCoord2fv"))
-	if gpMultiTexCoord2fv == nil {
-		return errors.New("glMultiTexCoord2fv")
-	}
-	gpMultiTexCoord2i = (C.GPMULTITEXCOORD2I)(getProcAddr("glMultiTexCoord2i"))
-	if gpMultiTexCoord2i == nil {
-		return errors.New("glMultiTexCoord2i")
-	}
-	gpMultiTexCoord2iv = (C.GPMULTITEXCOORD2IV)(getProcAddr("glMultiTexCoord2iv"))
-	if gpMultiTexCoord2iv == nil {
-		return errors.New("glMultiTexCoord2iv")
-	}
-	gpMultiTexCoord2s = (C.GPMULTITEXCOORD2S)(getProcAddr("glMultiTexCoord2s"))
-	if gpMultiTexCoord2s == nil {
-		return errors.New("glMultiTexCoord2s")
-	}
-	gpMultiTexCoord2sv = (C.GPMULTITEXCOORD2SV)(getProcAddr("glMultiTexCoord2sv"))
-	if gpMultiTexCoord2sv == nil {
-		return errors.New("glMultiTexCoord2sv")
-	}
-	gpMultiTexCoord3d = (C.GPMULTITEXCOORD3D)(getProcAddr("glMultiTexCoord3d"))
-	if gpMultiTexCoord3d == nil {
-		return errors.New("glMultiTexCoord3d")
-	}
-	gpMultiTexCoord3dv = (C.GPMULTITEXCOORD3DV)(getProcAddr("glMultiTexCoord3dv"))
-	if gpMultiTexCoord3dv == nil {
-		return errors.New("glMultiTexCoord3dv")
-	}
-	gpMultiTexCoord3f = (C.GPMULTITEXCOORD3F)(getProcAddr("glMultiTexCoord3f"))
-	if gpMultiTexCoord3f == nil {
-		return errors.New("glMultiTexCoord3f")
-	}
-	gpMultiTexCoord3fv = (C.GPMULTITEXCOORD3FV)(getProcAddr("glMultiTexCoord3fv"))
-	if gpMultiTexCoord3fv == nil {
-		return errors.New("glMultiTexCoord3fv")
-	}
-	gpMultiTexCoord3i = (C.GPMULTITEXCOORD3I)(getProcAddr("glMultiTexCoord3i"))
-	if gpMultiTexCoord3i == nil {
-		return errors.New("glMultiTexCoord3i")
-	}
-	gpMultiTexCoord3iv = (C.GPMULTITEXCOORD3IV)(getProcAddr("glMultiTexCoord3iv"))
-	if gpMultiTexCoord3iv == nil {
-		return errors.New("glMultiTexCoord3iv")
-	}
-	gpMultiTexCoord3s = (C.GPMULTITEXCOORD3S)(getProcAddr("glMultiTexCoord3s"))
-	if gpMultiTexCoord3s == nil {
-		return errors.New("glMultiTexCoord3s")
-	}
-	gpMultiTexCoord3sv = (C.GPMULTITEXCOORD3SV)(getProcAddr("glMultiTexCoord3sv"))
-	if gpMultiTexCoord3sv == nil {
-		return errors.New("glMultiTexCoord3sv")
-	}
-	gpMultiTexCoord4d = (C.GPMULTITEXCOORD4D)(getProcAddr("glMultiTexCoord4d"))
-	if gpMultiTexCoord4d == nil {
-		return errors.New("glMultiTexCoord4d")
-	}
-	gpMultiTexCoord4dv = (C.GPMULTITEXCOORD4DV)(getProcAddr("glMultiTexCoord4dv"))
-	if gpMultiTexCoord4dv == nil {
-		return errors.New("glMultiTexCoord4dv")
-	}
-	gpMultiTexCoord4f = (C.GPMULTITEXCOORD4F)(getProcAddr("glMultiTexCoord4f"))
-	if gpMultiTexCoord4f == nil {
-		return errors.New("glMultiTexCoord4f")
-	}
-	gpMultiTexCoord4fv = (C.GPMULTITEXCOORD4FV)(getProcAddr("glMultiTexCoord4fv"))
-	if gpMultiTexCoord4fv == nil {
-		return errors.New("glMultiTexCoord4fv")
-	}
-	gpMultiTexCoord4i = (C.GPMULTITEXCOORD4I)(getProcAddr("glMultiTexCoord4i"))
-	if gpMultiTexCoord4i == nil {
-		return errors.New("glMultiTexCoord4i")
-	}
-	gpMultiTexCoord4iv = (C.GPMULTITEXCOORD4IV)(getProcAddr("glMultiTexCoord4iv"))
-	if gpMultiTexCoord4iv == nil {
-		return errors.New("glMultiTexCoord4iv")
-	}
-	gpMultiTexCoord4s = (C.GPMULTITEXCOORD4S)(getProcAddr("glMultiTexCoord4s"))
-	if gpMultiTexCoord4s == nil {
-		return errors.New("glMultiTexCoord4s")
-	}
-	gpMultiTexCoord4sv = (C.GPMULTITEXCOORD4SV)(getProcAddr("glMultiTexCoord4sv"))
-	if gpMultiTexCoord4sv == nil {
-		return errors.New("glMultiTexCoord4sv")
-	}
-	gpNewList = (C.GPNEWLIST)(getProcAddr("glNewList"))
-	if gpNewList == nil {
-		return errors.New("glNewList")
-	}
-	gpNormal3b = (C.GPNORMAL3B)(getProcAddr("glNormal3b"))
-	if gpNormal3b == nil {
-		return errors.New("glNormal3b")
-	}
-	gpNormal3bv = (C.GPNORMAL3BV)(getProcAddr("glNormal3bv"))
-	if gpNormal3bv == nil {
-		return errors.New("glNormal3bv")
-	}
-	gpNormal3d = (C.GPNORMAL3D)(getProcAddr("glNormal3d"))
-	if gpNormal3d == nil {
-		return errors.New("glNormal3d")
-	}
-	gpNormal3dv = (C.GPNORMAL3DV)(getProcAddr("glNormal3dv"))
-	if gpNormal3dv == nil {
-		return errors.New("glNormal3dv")
-	}
-	gpNormal3f = (C.GPNORMAL3F)(getProcAddr("glNormal3f"))
-	if gpNormal3f == nil {
-		return errors.New("glNormal3f")
-	}
-	gpNormal3fv = (C.GPNORMAL3FV)(getProcAddr("glNormal3fv"))
-	if gpNormal3fv == nil {
-		return errors.New("glNormal3fv")
-	}
-	gpNormal3i = (C.GPNORMAL3I)(getProcAddr("glNormal3i"))
-	if gpNormal3i == nil {
-		return errors.New("glNormal3i")
-	}
-	gpNormal3iv = (C.GPNORMAL3IV)(getProcAddr("glNormal3iv"))
-	if gpNormal3iv == nil {
-		return errors.New("glNormal3iv")
-	}
-	gpNormal3s = (C.GPNORMAL3S)(getProcAddr("glNormal3s"))
-	if gpNormal3s == nil {
-		return errors.New("glNormal3s")
-	}
-	gpNormal3sv = (C.GPNORMAL3SV)(getProcAddr("glNormal3sv"))
-	if gpNormal3sv == nil {
-		return errors.New("glNormal3sv")
-	}
-	gpNormalPointer = (C.GPNORMALPOINTER)(getProcAddr("glNormalPointer"))
-	if gpNormalPointer == nil {
-		return errors.New("glNormalPointer")
-	}
-	gpOrtho = (C.GPORTHO)(getProcAddr("glOrtho"))
-	if gpOrtho == nil {
-		return errors.New("glOrtho")
-	}
-	gpPassThrough = (C.GPPASSTHROUGH)(getProcAddr("glPassThrough"))
-	if gpPassThrough == nil {
-		return errors.New("glPassThrough")
-	}
-	gpPixelMapfv = (C.GPPIXELMAPFV)(getProcAddr("glPixelMapfv"))
-	if gpPixelMapfv == nil {
-		return errors.New("glPixelMapfv")
-	}
-	gpPixelMapuiv = (C.GPPIXELMAPUIV)(getProcAddr("glPixelMapuiv"))
-	if gpPixelMapuiv == nil {
-		return errors.New("glPixelMapuiv")
-	}
-	gpPixelMapusv = (C.GPPIXELMAPUSV)(getProcAddr("glPixelMapusv"))
-	if gpPixelMapusv == nil {
-		return errors.New("glPixelMapusv")
-	}
-	gpPixelStoref = (C.GPPIXELSTOREF)(getProcAddr("glPixelStoref"))
-	if gpPixelStoref == nil {
-		return errors.New("glPixelStoref")
-	}
 	gpPixelStorei = (C.GPPIXELSTOREI)(getProcAddr("glPixelStorei"))
 	if gpPixelStorei == nil {
 		return errors.New("glPixelStorei")
-	}
-	gpPixelTransferf = (C.GPPIXELTRANSFERF)(getProcAddr("glPixelTransferf"))
-	if gpPixelTransferf == nil {
-		return errors.New("glPixelTransferf")
-	}
-	gpPixelTransferi = (C.GPPIXELTRANSFERI)(getProcAddr("glPixelTransferi"))
-	if gpPixelTransferi == nil {
-		return errors.New("glPixelTransferi")
-	}
-	gpPixelZoom = (C.GPPIXELZOOM)(getProcAddr("glPixelZoom"))
-	if gpPixelZoom == nil {
-		return errors.New("glPixelZoom")
-	}
-	gpPointParameterf = (C.GPPOINTPARAMETERF)(getProcAddr("glPointParameterf"))
-	if gpPointParameterf == nil {
-		return errors.New("glPointParameterf")
-	}
-	gpPointParameterfv = (C.GPPOINTPARAMETERFV)(getProcAddr("glPointParameterfv"))
-	if gpPointParameterfv == nil {
-		return errors.New("glPointParameterfv")
-	}
-	gpPointParameteri = (C.GPPOINTPARAMETERI)(getProcAddr("glPointParameteri"))
-	if gpPointParameteri == nil {
-		return errors.New("glPointParameteri")
-	}
-	gpPointParameteriv = (C.GPPOINTPARAMETERIV)(getProcAddr("glPointParameteriv"))
-	if gpPointParameteriv == nil {
-		return errors.New("glPointParameteriv")
-	}
-	gpPointSize = (C.GPPOINTSIZE)(getProcAddr("glPointSize"))
-	if gpPointSize == nil {
-		return errors.New("glPointSize")
-	}
-	gpPolygonMode = (C.GPPOLYGONMODE)(getProcAddr("glPolygonMode"))
-	if gpPolygonMode == nil {
-		return errors.New("glPolygonMode")
 	}
 	gpPolygonOffset = (C.GPPOLYGONOFFSET)(getProcAddr("glPolygonOffset"))
 	if gpPolygonOffset == nil {
 		return errors.New("glPolygonOffset")
 	}
-	gpPolygonStipple = (C.GPPOLYGONSTIPPLE)(getProcAddr("glPolygonStipple"))
-	if gpPolygonStipple == nil {
-		return errors.New("glPolygonStipple")
-	}
-	gpPopAttrib = (C.GPPOPATTRIB)(getProcAddr("glPopAttrib"))
-	if gpPopAttrib == nil {
-		return errors.New("glPopAttrib")
-	}
-	gpPopClientAttrib = (C.GPPOPCLIENTATTRIB)(getProcAddr("glPopClientAttrib"))
-	if gpPopClientAttrib == nil {
-		return errors.New("glPopClientAttrib")
-	}
-	gpPopMatrix = (C.GPPOPMATRIX)(getProcAddr("glPopMatrix"))
-	if gpPopMatrix == nil {
-		return errors.New("glPopMatrix")
-	}
-	gpPopName = (C.GPPOPNAME)(getProcAddr("glPopName"))
-	if gpPopName == nil {
-		return errors.New("glPopName")
-	}
-	gpPrioritizeTextures = (C.GPPRIORITIZETEXTURES)(getProcAddr("glPrioritizeTextures"))
-	if gpPrioritizeTextures == nil {
-		return errors.New("glPrioritizeTextures")
-	}
-	gpPushAttrib = (C.GPPUSHATTRIB)(getProcAddr("glPushAttrib"))
-	if gpPushAttrib == nil {
-		return errors.New("glPushAttrib")
-	}
-	gpPushClientAttrib = (C.GPPUSHCLIENTATTRIB)(getProcAddr("glPushClientAttrib"))
-	if gpPushClientAttrib == nil {
-		return errors.New("glPushClientAttrib")
-	}
-	gpPushMatrix = (C.GPPUSHMATRIX)(getProcAddr("glPushMatrix"))
-	if gpPushMatrix == nil {
-		return errors.New("glPushMatrix")
-	}
-	gpPushName = (C.GPPUSHNAME)(getProcAddr("glPushName"))
-	if gpPushName == nil {
-		return errors.New("glPushName")
-	}
-	gpRasterPos2d = (C.GPRASTERPOS2D)(getProcAddr("glRasterPos2d"))
-	if gpRasterPos2d == nil {
-		return errors.New("glRasterPos2d")
-	}
-	gpRasterPos2dv = (C.GPRASTERPOS2DV)(getProcAddr("glRasterPos2dv"))
-	if gpRasterPos2dv == nil {
-		return errors.New("glRasterPos2dv")
-	}
-	gpRasterPos2f = (C.GPRASTERPOS2F)(getProcAddr("glRasterPos2f"))
-	if gpRasterPos2f == nil {
-		return errors.New("glRasterPos2f")
-	}
-	gpRasterPos2fv = (C.GPRASTERPOS2FV)(getProcAddr("glRasterPos2fv"))
-	if gpRasterPos2fv == nil {
-		return errors.New("glRasterPos2fv")
-	}
-	gpRasterPos2i = (C.GPRASTERPOS2I)(getProcAddr("glRasterPos2i"))
-	if gpRasterPos2i == nil {
-		return errors.New("glRasterPos2i")
-	}
-	gpRasterPos2iv = (C.GPRASTERPOS2IV)(getProcAddr("glRasterPos2iv"))
-	if gpRasterPos2iv == nil {
-		return errors.New("glRasterPos2iv")
-	}
-	gpRasterPos2s = (C.GPRASTERPOS2S)(getProcAddr("glRasterPos2s"))
-	if gpRasterPos2s == nil {
-		return errors.New("glRasterPos2s")
-	}
-	gpRasterPos2sv = (C.GPRASTERPOS2SV)(getProcAddr("glRasterPos2sv"))
-	if gpRasterPos2sv == nil {
-		return errors.New("glRasterPos2sv")
-	}
-	gpRasterPos3d = (C.GPRASTERPOS3D)(getProcAddr("glRasterPos3d"))
-	if gpRasterPos3d == nil {
-		return errors.New("glRasterPos3d")
-	}
-	gpRasterPos3dv = (C.GPRASTERPOS3DV)(getProcAddr("glRasterPos3dv"))
-	if gpRasterPos3dv == nil {
-		return errors.New("glRasterPos3dv")
-	}
-	gpRasterPos3f = (C.GPRASTERPOS3F)(getProcAddr("glRasterPos3f"))
-	if gpRasterPos3f == nil {
-		return errors.New("glRasterPos3f")
-	}
-	gpRasterPos3fv = (C.GPRASTERPOS3FV)(getProcAddr("glRasterPos3fv"))
-	if gpRasterPos3fv == nil {
-		return errors.New("glRasterPos3fv")
-	}
-	gpRasterPos3i = (C.GPRASTERPOS3I)(getProcAddr("glRasterPos3i"))
-	if gpRasterPos3i == nil {
-		return errors.New("glRasterPos3i")
-	}
-	gpRasterPos3iv = (C.GPRASTERPOS3IV)(getProcAddr("glRasterPos3iv"))
-	if gpRasterPos3iv == nil {
-		return errors.New("glRasterPos3iv")
-	}
-	gpRasterPos3s = (C.GPRASTERPOS3S)(getProcAddr("glRasterPos3s"))
-	if gpRasterPos3s == nil {
-		return errors.New("glRasterPos3s")
-	}
-	gpRasterPos3sv = (C.GPRASTERPOS3SV)(getProcAddr("glRasterPos3sv"))
-	if gpRasterPos3sv == nil {
-		return errors.New("glRasterPos3sv")
-	}
-	gpRasterPos4d = (C.GPRASTERPOS4D)(getProcAddr("glRasterPos4d"))
-	if gpRasterPos4d == nil {
-		return errors.New("glRasterPos4d")
-	}
-	gpRasterPos4dv = (C.GPRASTERPOS4DV)(getProcAddr("glRasterPos4dv"))
-	if gpRasterPos4dv == nil {
-		return errors.New("glRasterPos4dv")
-	}
-	gpRasterPos4f = (C.GPRASTERPOS4F)(getProcAddr("glRasterPos4f"))
-	if gpRasterPos4f == nil {
-		return errors.New("glRasterPos4f")
-	}
-	gpRasterPos4fv = (C.GPRASTERPOS4FV)(getProcAddr("glRasterPos4fv"))
-	if gpRasterPos4fv == nil {
-		return errors.New("glRasterPos4fv")
-	}
-	gpRasterPos4i = (C.GPRASTERPOS4I)(getProcAddr("glRasterPos4i"))
-	if gpRasterPos4i == nil {
-		return errors.New("glRasterPos4i")
-	}
-	gpRasterPos4iv = (C.GPRASTERPOS4IV)(getProcAddr("glRasterPos4iv"))
-	if gpRasterPos4iv == nil {
-		return errors.New("glRasterPos4iv")
-	}
-	gpRasterPos4s = (C.GPRASTERPOS4S)(getProcAddr("glRasterPos4s"))
-	if gpRasterPos4s == nil {
-		return errors.New("glRasterPos4s")
-	}
-	gpRasterPos4sv = (C.GPRASTERPOS4SV)(getProcAddr("glRasterPos4sv"))
-	if gpRasterPos4sv == nil {
-		return errors.New("glRasterPos4sv")
-	}
-	gpReadBuffer = (C.GPREADBUFFER)(getProcAddr("glReadBuffer"))
-	if gpReadBuffer == nil {
-		return errors.New("glReadBuffer")
-	}
 	gpReadPixels = (C.GPREADPIXELS)(getProcAddr("glReadPixels"))
 	if gpReadPixels == nil {
 		return errors.New("glReadPixels")
-	}
-	gpRectd = (C.GPRECTD)(getProcAddr("glRectd"))
-	if gpRectd == nil {
-		return errors.New("glRectd")
-	}
-	gpRectdv = (C.GPRECTDV)(getProcAddr("glRectdv"))
-	if gpRectdv == nil {
-		return errors.New("glRectdv")
-	}
-	gpRectf = (C.GPRECTF)(getProcAddr("glRectf"))
-	if gpRectf == nil {
-		return errors.New("glRectf")
-	}
-	gpRectfv = (C.GPRECTFV)(getProcAddr("glRectfv"))
-	if gpRectfv == nil {
-		return errors.New("glRectfv")
-	}
-	gpRecti = (C.GPRECTI)(getProcAddr("glRecti"))
-	if gpRecti == nil {
-		return errors.New("glRecti")
-	}
-	gpRectiv = (C.GPRECTIV)(getProcAddr("glRectiv"))
-	if gpRectiv == nil {
-		return errors.New("glRectiv")
-	}
-	gpRects = (C.GPRECTS)(getProcAddr("glRects"))
-	if gpRects == nil {
-		return errors.New("glRects")
-	}
-	gpRectsv = (C.GPRECTSV)(getProcAddr("glRectsv"))
-	if gpRectsv == nil {
-		return errors.New("glRectsv")
-	}
-	gpRenderMode = (C.GPRENDERMODE)(getProcAddr("glRenderMode"))
-	if gpRenderMode == nil {
-		return errors.New("glRenderMode")
 	}
 	gpRenderbufferStorage = (C.GPRENDERBUFFERSTORAGE)(getProcAddr("glRenderbufferStorage"))
 	if gpRenderbufferStorage == nil {
 		return errors.New("glRenderbufferStorage")
 	}
-	gpRenderbufferStorageMultisample = (C.GPRENDERBUFFERSTORAGEMULTISAMPLE)(getProcAddr("glRenderbufferStorageMultisample"))
-	if gpRenderbufferStorageMultisample == nil {
-		return errors.New("glRenderbufferStorageMultisample")
-	}
-	gpRotated = (C.GPROTATED)(getProcAddr("glRotated"))
-	if gpRotated == nil {
-		return errors.New("glRotated")
-	}
-	gpRotatef = (C.GPROTATEF)(getProcAddr("glRotatef"))
-	if gpRotatef == nil {
-		return errors.New("glRotatef")
-	}
 	gpSampleCoverage = (C.GPSAMPLECOVERAGE)(getProcAddr("glSampleCoverage"))
 	if gpSampleCoverage == nil {
 		return errors.New("glSampleCoverage")
 	}
-	gpScaled = (C.GPSCALED)(getProcAddr("glScaled"))
-	if gpScaled == nil {
-		return errors.New("glScaled")
-	}
-	gpScalef = (C.GPSCALEF)(getProcAddr("glScalef"))
-	if gpScalef == nil {
-		return errors.New("glScalef")
-	}
 	gpScissor = (C.GPSCISSOR)(getProcAddr("glScissor"))
 	if gpScissor == nil {
 		return errors.New("glScissor")
-	}
-	gpSecondaryColor3b = (C.GPSECONDARYCOLOR3B)(getProcAddr("glSecondaryColor3b"))
-	if gpSecondaryColor3b == nil {
-		return errors.New("glSecondaryColor3b")
-	}
-	gpSecondaryColor3bv = (C.GPSECONDARYCOLOR3BV)(getProcAddr("glSecondaryColor3bv"))
-	if gpSecondaryColor3bv == nil {
-		return errors.New("glSecondaryColor3bv")
-	}
-	gpSecondaryColor3d = (C.GPSECONDARYCOLOR3D)(getProcAddr("glSecondaryColor3d"))
-	if gpSecondaryColor3d == nil {
-		return errors.New("glSecondaryColor3d")
-	}
-	gpSecondaryColor3dv = (C.GPSECONDARYCOLOR3DV)(getProcAddr("glSecondaryColor3dv"))
-	if gpSecondaryColor3dv == nil {
-		return errors.New("glSecondaryColor3dv")
-	}
-	gpSecondaryColor3f = (C.GPSECONDARYCOLOR3F)(getProcAddr("glSecondaryColor3f"))
-	if gpSecondaryColor3f == nil {
-		return errors.New("glSecondaryColor3f")
-	}
-	gpSecondaryColor3fv = (C.GPSECONDARYCOLOR3FV)(getProcAddr("glSecondaryColor3fv"))
-	if gpSecondaryColor3fv == nil {
-		return errors.New("glSecondaryColor3fv")
-	}
-	gpSecondaryColor3i = (C.GPSECONDARYCOLOR3I)(getProcAddr("glSecondaryColor3i"))
-	if gpSecondaryColor3i == nil {
-		return errors.New("glSecondaryColor3i")
-	}
-	gpSecondaryColor3iv = (C.GPSECONDARYCOLOR3IV)(getProcAddr("glSecondaryColor3iv"))
-	if gpSecondaryColor3iv == nil {
-		return errors.New("glSecondaryColor3iv")
-	}
-	gpSecondaryColor3s = (C.GPSECONDARYCOLOR3S)(getProcAddr("glSecondaryColor3s"))
-	if gpSecondaryColor3s == nil {
-		return errors.New("glSecondaryColor3s")
-	}
-	gpSecondaryColor3sv = (C.GPSECONDARYCOLOR3SV)(getProcAddr("glSecondaryColor3sv"))
-	if gpSecondaryColor3sv == nil {
-		return errors.New("glSecondaryColor3sv")
-	}
-	gpSecondaryColor3ub = (C.GPSECONDARYCOLOR3UB)(getProcAddr("glSecondaryColor3ub"))
-	if gpSecondaryColor3ub == nil {
-		return errors.New("glSecondaryColor3ub")
-	}
-	gpSecondaryColor3ubv = (C.GPSECONDARYCOLOR3UBV)(getProcAddr("glSecondaryColor3ubv"))
-	if gpSecondaryColor3ubv == nil {
-		return errors.New("glSecondaryColor3ubv")
-	}
-	gpSecondaryColor3ui = (C.GPSECONDARYCOLOR3UI)(getProcAddr("glSecondaryColor3ui"))
-	if gpSecondaryColor3ui == nil {
-		return errors.New("glSecondaryColor3ui")
-	}
-	gpSecondaryColor3uiv = (C.GPSECONDARYCOLOR3UIV)(getProcAddr("glSecondaryColor3uiv"))
-	if gpSecondaryColor3uiv == nil {
-		return errors.New("glSecondaryColor3uiv")
-	}
-	gpSecondaryColor3us = (C.GPSECONDARYCOLOR3US)(getProcAddr("glSecondaryColor3us"))
-	if gpSecondaryColor3us == nil {
-		return errors.New("glSecondaryColor3us")
-	}
-	gpSecondaryColor3usv = (C.GPSECONDARYCOLOR3USV)(getProcAddr("glSecondaryColor3usv"))
-	if gpSecondaryColor3usv == nil {
-		return errors.New("glSecondaryColor3usv")
-	}
-	gpSecondaryColorPointer = (C.GPSECONDARYCOLORPOINTER)(getProcAddr("glSecondaryColorPointer"))
-	if gpSecondaryColorPointer == nil {
-		return errors.New("glSecondaryColorPointer")
-	}
-	gpSelectBuffer = (C.GPSELECTBUFFER)(getProcAddr("glSelectBuffer"))
-	if gpSelectBuffer == nil {
-		return errors.New("glSelectBuffer")
-	}
-	gpShadeModel = (C.GPSHADEMODEL)(getProcAddr("glShadeModel"))
-	if gpShadeModel == nil {
-		return errors.New("glShadeModel")
 	}
 	gpShaderSource = (C.GPSHADERSOURCE)(getProcAddr("glShaderSource"))
 	if gpShaderSource == nil {
@@ -7261,197 +1900,9 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpStencilOpSeparate == nil {
 		return errors.New("glStencilOpSeparate")
 	}
-	gpTexCoord1d = (C.GPTEXCOORD1D)(getProcAddr("glTexCoord1d"))
-	if gpTexCoord1d == nil {
-		return errors.New("glTexCoord1d")
-	}
-	gpTexCoord1dv = (C.GPTEXCOORD1DV)(getProcAddr("glTexCoord1dv"))
-	if gpTexCoord1dv == nil {
-		return errors.New("glTexCoord1dv")
-	}
-	gpTexCoord1f = (C.GPTEXCOORD1F)(getProcAddr("glTexCoord1f"))
-	if gpTexCoord1f == nil {
-		return errors.New("glTexCoord1f")
-	}
-	gpTexCoord1fv = (C.GPTEXCOORD1FV)(getProcAddr("glTexCoord1fv"))
-	if gpTexCoord1fv == nil {
-		return errors.New("glTexCoord1fv")
-	}
-	gpTexCoord1i = (C.GPTEXCOORD1I)(getProcAddr("glTexCoord1i"))
-	if gpTexCoord1i == nil {
-		return errors.New("glTexCoord1i")
-	}
-	gpTexCoord1iv = (C.GPTEXCOORD1IV)(getProcAddr("glTexCoord1iv"))
-	if gpTexCoord1iv == nil {
-		return errors.New("glTexCoord1iv")
-	}
-	gpTexCoord1s = (C.GPTEXCOORD1S)(getProcAddr("glTexCoord1s"))
-	if gpTexCoord1s == nil {
-		return errors.New("glTexCoord1s")
-	}
-	gpTexCoord1sv = (C.GPTEXCOORD1SV)(getProcAddr("glTexCoord1sv"))
-	if gpTexCoord1sv == nil {
-		return errors.New("glTexCoord1sv")
-	}
-	gpTexCoord2d = (C.GPTEXCOORD2D)(getProcAddr("glTexCoord2d"))
-	if gpTexCoord2d == nil {
-		return errors.New("glTexCoord2d")
-	}
-	gpTexCoord2dv = (C.GPTEXCOORD2DV)(getProcAddr("glTexCoord2dv"))
-	if gpTexCoord2dv == nil {
-		return errors.New("glTexCoord2dv")
-	}
-	gpTexCoord2f = (C.GPTEXCOORD2F)(getProcAddr("glTexCoord2f"))
-	if gpTexCoord2f == nil {
-		return errors.New("glTexCoord2f")
-	}
-	gpTexCoord2fv = (C.GPTEXCOORD2FV)(getProcAddr("glTexCoord2fv"))
-	if gpTexCoord2fv == nil {
-		return errors.New("glTexCoord2fv")
-	}
-	gpTexCoord2i = (C.GPTEXCOORD2I)(getProcAddr("glTexCoord2i"))
-	if gpTexCoord2i == nil {
-		return errors.New("glTexCoord2i")
-	}
-	gpTexCoord2iv = (C.GPTEXCOORD2IV)(getProcAddr("glTexCoord2iv"))
-	if gpTexCoord2iv == nil {
-		return errors.New("glTexCoord2iv")
-	}
-	gpTexCoord2s = (C.GPTEXCOORD2S)(getProcAddr("glTexCoord2s"))
-	if gpTexCoord2s == nil {
-		return errors.New("glTexCoord2s")
-	}
-	gpTexCoord2sv = (C.GPTEXCOORD2SV)(getProcAddr("glTexCoord2sv"))
-	if gpTexCoord2sv == nil {
-		return errors.New("glTexCoord2sv")
-	}
-	gpTexCoord3d = (C.GPTEXCOORD3D)(getProcAddr("glTexCoord3d"))
-	if gpTexCoord3d == nil {
-		return errors.New("glTexCoord3d")
-	}
-	gpTexCoord3dv = (C.GPTEXCOORD3DV)(getProcAddr("glTexCoord3dv"))
-	if gpTexCoord3dv == nil {
-		return errors.New("glTexCoord3dv")
-	}
-	gpTexCoord3f = (C.GPTEXCOORD3F)(getProcAddr("glTexCoord3f"))
-	if gpTexCoord3f == nil {
-		return errors.New("glTexCoord3f")
-	}
-	gpTexCoord3fv = (C.GPTEXCOORD3FV)(getProcAddr("glTexCoord3fv"))
-	if gpTexCoord3fv == nil {
-		return errors.New("glTexCoord3fv")
-	}
-	gpTexCoord3i = (C.GPTEXCOORD3I)(getProcAddr("glTexCoord3i"))
-	if gpTexCoord3i == nil {
-		return errors.New("glTexCoord3i")
-	}
-	gpTexCoord3iv = (C.GPTEXCOORD3IV)(getProcAddr("glTexCoord3iv"))
-	if gpTexCoord3iv == nil {
-		return errors.New("glTexCoord3iv")
-	}
-	gpTexCoord3s = (C.GPTEXCOORD3S)(getProcAddr("glTexCoord3s"))
-	if gpTexCoord3s == nil {
-		return errors.New("glTexCoord3s")
-	}
-	gpTexCoord3sv = (C.GPTEXCOORD3SV)(getProcAddr("glTexCoord3sv"))
-	if gpTexCoord3sv == nil {
-		return errors.New("glTexCoord3sv")
-	}
-	gpTexCoord4d = (C.GPTEXCOORD4D)(getProcAddr("glTexCoord4d"))
-	if gpTexCoord4d == nil {
-		return errors.New("glTexCoord4d")
-	}
-	gpTexCoord4dv = (C.GPTEXCOORD4DV)(getProcAddr("glTexCoord4dv"))
-	if gpTexCoord4dv == nil {
-		return errors.New("glTexCoord4dv")
-	}
-	gpTexCoord4f = (C.GPTEXCOORD4F)(getProcAddr("glTexCoord4f"))
-	if gpTexCoord4f == nil {
-		return errors.New("glTexCoord4f")
-	}
-	gpTexCoord4fv = (C.GPTEXCOORD4FV)(getProcAddr("glTexCoord4fv"))
-	if gpTexCoord4fv == nil {
-		return errors.New("glTexCoord4fv")
-	}
-	gpTexCoord4i = (C.GPTEXCOORD4I)(getProcAddr("glTexCoord4i"))
-	if gpTexCoord4i == nil {
-		return errors.New("glTexCoord4i")
-	}
-	gpTexCoord4iv = (C.GPTEXCOORD4IV)(getProcAddr("glTexCoord4iv"))
-	if gpTexCoord4iv == nil {
-		return errors.New("glTexCoord4iv")
-	}
-	gpTexCoord4s = (C.GPTEXCOORD4S)(getProcAddr("glTexCoord4s"))
-	if gpTexCoord4s == nil {
-		return errors.New("glTexCoord4s")
-	}
-	gpTexCoord4sv = (C.GPTEXCOORD4SV)(getProcAddr("glTexCoord4sv"))
-	if gpTexCoord4sv == nil {
-		return errors.New("glTexCoord4sv")
-	}
-	gpTexCoordPointer = (C.GPTEXCOORDPOINTER)(getProcAddr("glTexCoordPointer"))
-	if gpTexCoordPointer == nil {
-		return errors.New("glTexCoordPointer")
-	}
-	gpTexEnvf = (C.GPTEXENVF)(getProcAddr("glTexEnvf"))
-	if gpTexEnvf == nil {
-		return errors.New("glTexEnvf")
-	}
-	gpTexEnvfv = (C.GPTEXENVFV)(getProcAddr("glTexEnvfv"))
-	if gpTexEnvfv == nil {
-		return errors.New("glTexEnvfv")
-	}
-	gpTexEnvi = (C.GPTEXENVI)(getProcAddr("glTexEnvi"))
-	if gpTexEnvi == nil {
-		return errors.New("glTexEnvi")
-	}
-	gpTexEnviv = (C.GPTEXENVIV)(getProcAddr("glTexEnviv"))
-	if gpTexEnviv == nil {
-		return errors.New("glTexEnviv")
-	}
-	gpTexGend = (C.GPTEXGEND)(getProcAddr("glTexGend"))
-	if gpTexGend == nil {
-		return errors.New("glTexGend")
-	}
-	gpTexGendv = (C.GPTEXGENDV)(getProcAddr("glTexGendv"))
-	if gpTexGendv == nil {
-		return errors.New("glTexGendv")
-	}
-	gpTexGenf = (C.GPTEXGENF)(getProcAddr("glTexGenf"))
-	if gpTexGenf == nil {
-		return errors.New("glTexGenf")
-	}
-	gpTexGenfv = (C.GPTEXGENFV)(getProcAddr("glTexGenfv"))
-	if gpTexGenfv == nil {
-		return errors.New("glTexGenfv")
-	}
-	gpTexGeni = (C.GPTEXGENI)(getProcAddr("glTexGeni"))
-	if gpTexGeni == nil {
-		return errors.New("glTexGeni")
-	}
-	gpTexGeniv = (C.GPTEXGENIV)(getProcAddr("glTexGeniv"))
-	if gpTexGeniv == nil {
-		return errors.New("glTexGeniv")
-	}
-	gpTexImage1D = (C.GPTEXIMAGE1D)(getProcAddr("glTexImage1D"))
-	if gpTexImage1D == nil {
-		return errors.New("glTexImage1D")
-	}
 	gpTexImage2D = (C.GPTEXIMAGE2D)(getProcAddr("glTexImage2D"))
 	if gpTexImage2D == nil {
 		return errors.New("glTexImage2D")
-	}
-	gpTexImage3D = (C.GPTEXIMAGE3D)(getProcAddr("glTexImage3D"))
-	if gpTexImage3D == nil {
-		return errors.New("glTexImage3D")
-	}
-	gpTexParameterIiv = (C.GPTEXPARAMETERIIV)(getProcAddr("glTexParameterIiv"))
-	if gpTexParameterIiv == nil {
-		return errors.New("glTexParameterIiv")
-	}
-	gpTexParameterIuiv = (C.GPTEXPARAMETERIUIV)(getProcAddr("glTexParameterIuiv"))
-	if gpTexParameterIuiv == nil {
-		return errors.New("glTexParameterIuiv")
 	}
 	gpTexParameterf = (C.GPTEXPARAMETERF)(getProcAddr("glTexParameterf"))
 	if gpTexParameterf == nil {
@@ -7469,29 +1920,9 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpTexParameteriv == nil {
 		return errors.New("glTexParameteriv")
 	}
-	gpTexSubImage1D = (C.GPTEXSUBIMAGE1D)(getProcAddr("glTexSubImage1D"))
-	if gpTexSubImage1D == nil {
-		return errors.New("glTexSubImage1D")
-	}
 	gpTexSubImage2D = (C.GPTEXSUBIMAGE2D)(getProcAddr("glTexSubImage2D"))
 	if gpTexSubImage2D == nil {
 		return errors.New("glTexSubImage2D")
-	}
-	gpTexSubImage3D = (C.GPTEXSUBIMAGE3D)(getProcAddr("glTexSubImage3D"))
-	if gpTexSubImage3D == nil {
-		return errors.New("glTexSubImage3D")
-	}
-	gpTransformFeedbackVaryings = (C.GPTRANSFORMFEEDBACKVARYINGS)(getProcAddr("glTransformFeedbackVaryings"))
-	if gpTransformFeedbackVaryings == nil {
-		return errors.New("glTransformFeedbackVaryings")
-	}
-	gpTranslated = (C.GPTRANSLATED)(getProcAddr("glTranslated"))
-	if gpTranslated == nil {
-		return errors.New("glTranslated")
-	}
-	gpTranslatef = (C.GPTRANSLATEF)(getProcAddr("glTranslatef"))
-	if gpTranslatef == nil {
-		return errors.New("glTranslatef")
 	}
 	gpUniform1f = (C.GPUNIFORM1F)(getProcAddr("glUniform1f"))
 	if gpUniform1f == nil {
@@ -7509,14 +1940,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpUniform1iv == nil {
 		return errors.New("glUniform1iv")
 	}
-	gpUniform1ui = (C.GPUNIFORM1UI)(getProcAddr("glUniform1ui"))
-	if gpUniform1ui == nil {
-		return errors.New("glUniform1ui")
-	}
-	gpUniform1uiv = (C.GPUNIFORM1UIV)(getProcAddr("glUniform1uiv"))
-	if gpUniform1uiv == nil {
-		return errors.New("glUniform1uiv")
-	}
 	gpUniform2f = (C.GPUNIFORM2F)(getProcAddr("glUniform2f"))
 	if gpUniform2f == nil {
 		return errors.New("glUniform2f")
@@ -7532,14 +1955,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	gpUniform2iv = (C.GPUNIFORM2IV)(getProcAddr("glUniform2iv"))
 	if gpUniform2iv == nil {
 		return errors.New("glUniform2iv")
-	}
-	gpUniform2ui = (C.GPUNIFORM2UI)(getProcAddr("glUniform2ui"))
-	if gpUniform2ui == nil {
-		return errors.New("glUniform2ui")
-	}
-	gpUniform2uiv = (C.GPUNIFORM2UIV)(getProcAddr("glUniform2uiv"))
-	if gpUniform2uiv == nil {
-		return errors.New("glUniform2uiv")
 	}
 	gpUniform3f = (C.GPUNIFORM3F)(getProcAddr("glUniform3f"))
 	if gpUniform3f == nil {
@@ -7557,14 +1972,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpUniform3iv == nil {
 		return errors.New("glUniform3iv")
 	}
-	gpUniform3ui = (C.GPUNIFORM3UI)(getProcAddr("glUniform3ui"))
-	if gpUniform3ui == nil {
-		return errors.New("glUniform3ui")
-	}
-	gpUniform3uiv = (C.GPUNIFORM3UIV)(getProcAddr("glUniform3uiv"))
-	if gpUniform3uiv == nil {
-		return errors.New("glUniform3uiv")
-	}
 	gpUniform4f = (C.GPUNIFORM4F)(getProcAddr("glUniform4f"))
 	if gpUniform4f == nil {
 		return errors.New("glUniform4f")
@@ -7581,53 +1988,17 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpUniform4iv == nil {
 		return errors.New("glUniform4iv")
 	}
-	gpUniform4ui = (C.GPUNIFORM4UI)(getProcAddr("glUniform4ui"))
-	if gpUniform4ui == nil {
-		return errors.New("glUniform4ui")
-	}
-	gpUniform4uiv = (C.GPUNIFORM4UIV)(getProcAddr("glUniform4uiv"))
-	if gpUniform4uiv == nil {
-		return errors.New("glUniform4uiv")
-	}
 	gpUniformMatrix2fv = (C.GPUNIFORMMATRIX2FV)(getProcAddr("glUniformMatrix2fv"))
 	if gpUniformMatrix2fv == nil {
 		return errors.New("glUniformMatrix2fv")
-	}
-	gpUniformMatrix2x3fv = (C.GPUNIFORMMATRIX2X3FV)(getProcAddr("glUniformMatrix2x3fv"))
-	if gpUniformMatrix2x3fv == nil {
-		return errors.New("glUniformMatrix2x3fv")
-	}
-	gpUniformMatrix2x4fv = (C.GPUNIFORMMATRIX2X4FV)(getProcAddr("glUniformMatrix2x4fv"))
-	if gpUniformMatrix2x4fv == nil {
-		return errors.New("glUniformMatrix2x4fv")
 	}
 	gpUniformMatrix3fv = (C.GPUNIFORMMATRIX3FV)(getProcAddr("glUniformMatrix3fv"))
 	if gpUniformMatrix3fv == nil {
 		return errors.New("glUniformMatrix3fv")
 	}
-	gpUniformMatrix3x2fv = (C.GPUNIFORMMATRIX3X2FV)(getProcAddr("glUniformMatrix3x2fv"))
-	if gpUniformMatrix3x2fv == nil {
-		return errors.New("glUniformMatrix3x2fv")
-	}
-	gpUniformMatrix3x4fv = (C.GPUNIFORMMATRIX3X4FV)(getProcAddr("glUniformMatrix3x4fv"))
-	if gpUniformMatrix3x4fv == nil {
-		return errors.New("glUniformMatrix3x4fv")
-	}
 	gpUniformMatrix4fv = (C.GPUNIFORMMATRIX4FV)(getProcAddr("glUniformMatrix4fv"))
 	if gpUniformMatrix4fv == nil {
 		return errors.New("glUniformMatrix4fv")
-	}
-	gpUniformMatrix4x2fv = (C.GPUNIFORMMATRIX4X2FV)(getProcAddr("glUniformMatrix4x2fv"))
-	if gpUniformMatrix4x2fv == nil {
-		return errors.New("glUniformMatrix4x2fv")
-	}
-	gpUniformMatrix4x3fv = (C.GPUNIFORMMATRIX4X3FV)(getProcAddr("glUniformMatrix4x3fv"))
-	if gpUniformMatrix4x3fv == nil {
-		return errors.New("glUniformMatrix4x3fv")
-	}
-	gpUnmapBuffer = (C.GPUNMAPBUFFER)(getProcAddr("glUnmapBuffer"))
-	if gpUnmapBuffer == nil {
-		return errors.New("glUnmapBuffer")
 	}
 	gpUseProgram = (C.GPUSEPROGRAM)(getProcAddr("glUseProgram"))
 	if gpUseProgram == nil {
@@ -7637,110 +2008,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpValidateProgram == nil {
 		return errors.New("glValidateProgram")
 	}
-	gpVertex2d = (C.GPVERTEX2D)(getProcAddr("glVertex2d"))
-	if gpVertex2d == nil {
-		return errors.New("glVertex2d")
-	}
-	gpVertex2dv = (C.GPVERTEX2DV)(getProcAddr("glVertex2dv"))
-	if gpVertex2dv == nil {
-		return errors.New("glVertex2dv")
-	}
-	gpVertex2f = (C.GPVERTEX2F)(getProcAddr("glVertex2f"))
-	if gpVertex2f == nil {
-		return errors.New("glVertex2f")
-	}
-	gpVertex2fv = (C.GPVERTEX2FV)(getProcAddr("glVertex2fv"))
-	if gpVertex2fv == nil {
-		return errors.New("glVertex2fv")
-	}
-	gpVertex2i = (C.GPVERTEX2I)(getProcAddr("glVertex2i"))
-	if gpVertex2i == nil {
-		return errors.New("glVertex2i")
-	}
-	gpVertex2iv = (C.GPVERTEX2IV)(getProcAddr("glVertex2iv"))
-	if gpVertex2iv == nil {
-		return errors.New("glVertex2iv")
-	}
-	gpVertex2s = (C.GPVERTEX2S)(getProcAddr("glVertex2s"))
-	if gpVertex2s == nil {
-		return errors.New("glVertex2s")
-	}
-	gpVertex2sv = (C.GPVERTEX2SV)(getProcAddr("glVertex2sv"))
-	if gpVertex2sv == nil {
-		return errors.New("glVertex2sv")
-	}
-	gpVertex3d = (C.GPVERTEX3D)(getProcAddr("glVertex3d"))
-	if gpVertex3d == nil {
-		return errors.New("glVertex3d")
-	}
-	gpVertex3dv = (C.GPVERTEX3DV)(getProcAddr("glVertex3dv"))
-	if gpVertex3dv == nil {
-		return errors.New("glVertex3dv")
-	}
-	gpVertex3f = (C.GPVERTEX3F)(getProcAddr("glVertex3f"))
-	if gpVertex3f == nil {
-		return errors.New("glVertex3f")
-	}
-	gpVertex3fv = (C.GPVERTEX3FV)(getProcAddr("glVertex3fv"))
-	if gpVertex3fv == nil {
-		return errors.New("glVertex3fv")
-	}
-	gpVertex3i = (C.GPVERTEX3I)(getProcAddr("glVertex3i"))
-	if gpVertex3i == nil {
-		return errors.New("glVertex3i")
-	}
-	gpVertex3iv = (C.GPVERTEX3IV)(getProcAddr("glVertex3iv"))
-	if gpVertex3iv == nil {
-		return errors.New("glVertex3iv")
-	}
-	gpVertex3s = (C.GPVERTEX3S)(getProcAddr("glVertex3s"))
-	if gpVertex3s == nil {
-		return errors.New("glVertex3s")
-	}
-	gpVertex3sv = (C.GPVERTEX3SV)(getProcAddr("glVertex3sv"))
-	if gpVertex3sv == nil {
-		return errors.New("glVertex3sv")
-	}
-	gpVertex4d = (C.GPVERTEX4D)(getProcAddr("glVertex4d"))
-	if gpVertex4d == nil {
-		return errors.New("glVertex4d")
-	}
-	gpVertex4dv = (C.GPVERTEX4DV)(getProcAddr("glVertex4dv"))
-	if gpVertex4dv == nil {
-		return errors.New("glVertex4dv")
-	}
-	gpVertex4f = (C.GPVERTEX4F)(getProcAddr("glVertex4f"))
-	if gpVertex4f == nil {
-		return errors.New("glVertex4f")
-	}
-	gpVertex4fv = (C.GPVERTEX4FV)(getProcAddr("glVertex4fv"))
-	if gpVertex4fv == nil {
-		return errors.New("glVertex4fv")
-	}
-	gpVertex4i = (C.GPVERTEX4I)(getProcAddr("glVertex4i"))
-	if gpVertex4i == nil {
-		return errors.New("glVertex4i")
-	}
-	gpVertex4iv = (C.GPVERTEX4IV)(getProcAddr("glVertex4iv"))
-	if gpVertex4iv == nil {
-		return errors.New("glVertex4iv")
-	}
-	gpVertex4s = (C.GPVERTEX4S)(getProcAddr("glVertex4s"))
-	if gpVertex4s == nil {
-		return errors.New("glVertex4s")
-	}
-	gpVertex4sv = (C.GPVERTEX4SV)(getProcAddr("glVertex4sv"))
-	if gpVertex4sv == nil {
-		return errors.New("glVertex4sv")
-	}
-	gpVertexAttrib1d = (C.GPVERTEXATTRIB1D)(getProcAddr("glVertexAttrib1d"))
-	if gpVertexAttrib1d == nil {
-		return errors.New("glVertexAttrib1d")
-	}
-	gpVertexAttrib1dv = (C.GPVERTEXATTRIB1DV)(getProcAddr("glVertexAttrib1dv"))
-	if gpVertexAttrib1dv == nil {
-		return errors.New("glVertexAttrib1dv")
-	}
 	gpVertexAttrib1f = (C.GPVERTEXATTRIB1F)(getProcAddr("glVertexAttrib1f"))
 	if gpVertexAttrib1f == nil {
 		return errors.New("glVertexAttrib1f")
@@ -7748,22 +2015,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	gpVertexAttrib1fv = (C.GPVERTEXATTRIB1FV)(getProcAddr("glVertexAttrib1fv"))
 	if gpVertexAttrib1fv == nil {
 		return errors.New("glVertexAttrib1fv")
-	}
-	gpVertexAttrib1s = (C.GPVERTEXATTRIB1S)(getProcAddr("glVertexAttrib1s"))
-	if gpVertexAttrib1s == nil {
-		return errors.New("glVertexAttrib1s")
-	}
-	gpVertexAttrib1sv = (C.GPVERTEXATTRIB1SV)(getProcAddr("glVertexAttrib1sv"))
-	if gpVertexAttrib1sv == nil {
-		return errors.New("glVertexAttrib1sv")
-	}
-	gpVertexAttrib2d = (C.GPVERTEXATTRIB2D)(getProcAddr("glVertexAttrib2d"))
-	if gpVertexAttrib2d == nil {
-		return errors.New("glVertexAttrib2d")
-	}
-	gpVertexAttrib2dv = (C.GPVERTEXATTRIB2DV)(getProcAddr("glVertexAttrib2dv"))
-	if gpVertexAttrib2dv == nil {
-		return errors.New("glVertexAttrib2dv")
 	}
 	gpVertexAttrib2f = (C.GPVERTEXATTRIB2F)(getProcAddr("glVertexAttrib2f"))
 	if gpVertexAttrib2f == nil {
@@ -7773,22 +2024,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpVertexAttrib2fv == nil {
 		return errors.New("glVertexAttrib2fv")
 	}
-	gpVertexAttrib2s = (C.GPVERTEXATTRIB2S)(getProcAddr("glVertexAttrib2s"))
-	if gpVertexAttrib2s == nil {
-		return errors.New("glVertexAttrib2s")
-	}
-	gpVertexAttrib2sv = (C.GPVERTEXATTRIB2SV)(getProcAddr("glVertexAttrib2sv"))
-	if gpVertexAttrib2sv == nil {
-		return errors.New("glVertexAttrib2sv")
-	}
-	gpVertexAttrib3d = (C.GPVERTEXATTRIB3D)(getProcAddr("glVertexAttrib3d"))
-	if gpVertexAttrib3d == nil {
-		return errors.New("glVertexAttrib3d")
-	}
-	gpVertexAttrib3dv = (C.GPVERTEXATTRIB3DV)(getProcAddr("glVertexAttrib3dv"))
-	if gpVertexAttrib3dv == nil {
-		return errors.New("glVertexAttrib3dv")
-	}
 	gpVertexAttrib3f = (C.GPVERTEXATTRIB3F)(getProcAddr("glVertexAttrib3f"))
 	if gpVertexAttrib3f == nil {
 		return errors.New("glVertexAttrib3f")
@@ -7796,54 +2031,6 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	gpVertexAttrib3fv = (C.GPVERTEXATTRIB3FV)(getProcAddr("glVertexAttrib3fv"))
 	if gpVertexAttrib3fv == nil {
 		return errors.New("glVertexAttrib3fv")
-	}
-	gpVertexAttrib3s = (C.GPVERTEXATTRIB3S)(getProcAddr("glVertexAttrib3s"))
-	if gpVertexAttrib3s == nil {
-		return errors.New("glVertexAttrib3s")
-	}
-	gpVertexAttrib3sv = (C.GPVERTEXATTRIB3SV)(getProcAddr("glVertexAttrib3sv"))
-	if gpVertexAttrib3sv == nil {
-		return errors.New("glVertexAttrib3sv")
-	}
-	gpVertexAttrib4Nbv = (C.GPVERTEXATTRIB4NBV)(getProcAddr("glVertexAttrib4Nbv"))
-	if gpVertexAttrib4Nbv == nil {
-		return errors.New("glVertexAttrib4Nbv")
-	}
-	gpVertexAttrib4Niv = (C.GPVERTEXATTRIB4NIV)(getProcAddr("glVertexAttrib4Niv"))
-	if gpVertexAttrib4Niv == nil {
-		return errors.New("glVertexAttrib4Niv")
-	}
-	gpVertexAttrib4Nsv = (C.GPVERTEXATTRIB4NSV)(getProcAddr("glVertexAttrib4Nsv"))
-	if gpVertexAttrib4Nsv == nil {
-		return errors.New("glVertexAttrib4Nsv")
-	}
-	gpVertexAttrib4Nub = (C.GPVERTEXATTRIB4NUB)(getProcAddr("glVertexAttrib4Nub"))
-	if gpVertexAttrib4Nub == nil {
-		return errors.New("glVertexAttrib4Nub")
-	}
-	gpVertexAttrib4Nubv = (C.GPVERTEXATTRIB4NUBV)(getProcAddr("glVertexAttrib4Nubv"))
-	if gpVertexAttrib4Nubv == nil {
-		return errors.New("glVertexAttrib4Nubv")
-	}
-	gpVertexAttrib4Nuiv = (C.GPVERTEXATTRIB4NUIV)(getProcAddr("glVertexAttrib4Nuiv"))
-	if gpVertexAttrib4Nuiv == nil {
-		return errors.New("glVertexAttrib4Nuiv")
-	}
-	gpVertexAttrib4Nusv = (C.GPVERTEXATTRIB4NUSV)(getProcAddr("glVertexAttrib4Nusv"))
-	if gpVertexAttrib4Nusv == nil {
-		return errors.New("glVertexAttrib4Nusv")
-	}
-	gpVertexAttrib4bv = (C.GPVERTEXATTRIB4BV)(getProcAddr("glVertexAttrib4bv"))
-	if gpVertexAttrib4bv == nil {
-		return errors.New("glVertexAttrib4bv")
-	}
-	gpVertexAttrib4d = (C.GPVERTEXATTRIB4D)(getProcAddr("glVertexAttrib4d"))
-	if gpVertexAttrib4d == nil {
-		return errors.New("glVertexAttrib4d")
-	}
-	gpVertexAttrib4dv = (C.GPVERTEXATTRIB4DV)(getProcAddr("glVertexAttrib4dv"))
-	if gpVertexAttrib4dv == nil {
-		return errors.New("glVertexAttrib4dv")
 	}
 	gpVertexAttrib4f = (C.GPVERTEXATTRIB4F)(getProcAddr("glVertexAttrib4f"))
 	if gpVertexAttrib4f == nil {
@@ -7853,189 +2040,13 @@ func InitWithProcAddrFunc(getProcAddr func(name string) unsafe.Pointer) error {
 	if gpVertexAttrib4fv == nil {
 		return errors.New("glVertexAttrib4fv")
 	}
-	gpVertexAttrib4iv = (C.GPVERTEXATTRIB4IV)(getProcAddr("glVertexAttrib4iv"))
-	if gpVertexAttrib4iv == nil {
-		return errors.New("glVertexAttrib4iv")
-	}
-	gpVertexAttrib4s = (C.GPVERTEXATTRIB4S)(getProcAddr("glVertexAttrib4s"))
-	if gpVertexAttrib4s == nil {
-		return errors.New("glVertexAttrib4s")
-	}
-	gpVertexAttrib4sv = (C.GPVERTEXATTRIB4SV)(getProcAddr("glVertexAttrib4sv"))
-	if gpVertexAttrib4sv == nil {
-		return errors.New("glVertexAttrib4sv")
-	}
-	gpVertexAttrib4ubv = (C.GPVERTEXATTRIB4UBV)(getProcAddr("glVertexAttrib4ubv"))
-	if gpVertexAttrib4ubv == nil {
-		return errors.New("glVertexAttrib4ubv")
-	}
-	gpVertexAttrib4uiv = (C.GPVERTEXATTRIB4UIV)(getProcAddr("glVertexAttrib4uiv"))
-	if gpVertexAttrib4uiv == nil {
-		return errors.New("glVertexAttrib4uiv")
-	}
-	gpVertexAttrib4usv = (C.GPVERTEXATTRIB4USV)(getProcAddr("glVertexAttrib4usv"))
-	if gpVertexAttrib4usv == nil {
-		return errors.New("glVertexAttrib4usv")
-	}
-	gpVertexAttribI1i = (C.GPVERTEXATTRIBI1I)(getProcAddr("glVertexAttribI1i"))
-	if gpVertexAttribI1i == nil {
-		return errors.New("glVertexAttribI1i")
-	}
-	gpVertexAttribI1iv = (C.GPVERTEXATTRIBI1IV)(getProcAddr("glVertexAttribI1iv"))
-	if gpVertexAttribI1iv == nil {
-		return errors.New("glVertexAttribI1iv")
-	}
-	gpVertexAttribI1ui = (C.GPVERTEXATTRIBI1UI)(getProcAddr("glVertexAttribI1ui"))
-	if gpVertexAttribI1ui == nil {
-		return errors.New("glVertexAttribI1ui")
-	}
-	gpVertexAttribI1uiv = (C.GPVERTEXATTRIBI1UIV)(getProcAddr("glVertexAttribI1uiv"))
-	if gpVertexAttribI1uiv == nil {
-		return errors.New("glVertexAttribI1uiv")
-	}
-	gpVertexAttribI2i = (C.GPVERTEXATTRIBI2I)(getProcAddr("glVertexAttribI2i"))
-	if gpVertexAttribI2i == nil {
-		return errors.New("glVertexAttribI2i")
-	}
-	gpVertexAttribI2iv = (C.GPVERTEXATTRIBI2IV)(getProcAddr("glVertexAttribI2iv"))
-	if gpVertexAttribI2iv == nil {
-		return errors.New("glVertexAttribI2iv")
-	}
-	gpVertexAttribI2ui = (C.GPVERTEXATTRIBI2UI)(getProcAddr("glVertexAttribI2ui"))
-	if gpVertexAttribI2ui == nil {
-		return errors.New("glVertexAttribI2ui")
-	}
-	gpVertexAttribI2uiv = (C.GPVERTEXATTRIBI2UIV)(getProcAddr("glVertexAttribI2uiv"))
-	if gpVertexAttribI2uiv == nil {
-		return errors.New("glVertexAttribI2uiv")
-	}
-	gpVertexAttribI3i = (C.GPVERTEXATTRIBI3I)(getProcAddr("glVertexAttribI3i"))
-	if gpVertexAttribI3i == nil {
-		return errors.New("glVertexAttribI3i")
-	}
-	gpVertexAttribI3iv = (C.GPVERTEXATTRIBI3IV)(getProcAddr("glVertexAttribI3iv"))
-	if gpVertexAttribI3iv == nil {
-		return errors.New("glVertexAttribI3iv")
-	}
-	gpVertexAttribI3ui = (C.GPVERTEXATTRIBI3UI)(getProcAddr("glVertexAttribI3ui"))
-	if gpVertexAttribI3ui == nil {
-		return errors.New("glVertexAttribI3ui")
-	}
-	gpVertexAttribI3uiv = (C.GPVERTEXATTRIBI3UIV)(getProcAddr("glVertexAttribI3uiv"))
-	if gpVertexAttribI3uiv == nil {
-		return errors.New("glVertexAttribI3uiv")
-	}
-	gpVertexAttribI4bv = (C.GPVERTEXATTRIBI4BV)(getProcAddr("glVertexAttribI4bv"))
-	if gpVertexAttribI4bv == nil {
-		return errors.New("glVertexAttribI4bv")
-	}
-	gpVertexAttribI4i = (C.GPVERTEXATTRIBI4I)(getProcAddr("glVertexAttribI4i"))
-	if gpVertexAttribI4i == nil {
-		return errors.New("glVertexAttribI4i")
-	}
-	gpVertexAttribI4iv = (C.GPVERTEXATTRIBI4IV)(getProcAddr("glVertexAttribI4iv"))
-	if gpVertexAttribI4iv == nil {
-		return errors.New("glVertexAttribI4iv")
-	}
-	gpVertexAttribI4sv = (C.GPVERTEXATTRIBI4SV)(getProcAddr("glVertexAttribI4sv"))
-	if gpVertexAttribI4sv == nil {
-		return errors.New("glVertexAttribI4sv")
-	}
-	gpVertexAttribI4ubv = (C.GPVERTEXATTRIBI4UBV)(getProcAddr("glVertexAttribI4ubv"))
-	if gpVertexAttribI4ubv == nil {
-		return errors.New("glVertexAttribI4ubv")
-	}
-	gpVertexAttribI4ui = (C.GPVERTEXATTRIBI4UI)(getProcAddr("glVertexAttribI4ui"))
-	if gpVertexAttribI4ui == nil {
-		return errors.New("glVertexAttribI4ui")
-	}
-	gpVertexAttribI4uiv = (C.GPVERTEXATTRIBI4UIV)(getProcAddr("glVertexAttribI4uiv"))
-	if gpVertexAttribI4uiv == nil {
-		return errors.New("glVertexAttribI4uiv")
-	}
-	gpVertexAttribI4usv = (C.GPVERTEXATTRIBI4USV)(getProcAddr("glVertexAttribI4usv"))
-	if gpVertexAttribI4usv == nil {
-		return errors.New("glVertexAttribI4usv")
-	}
-	gpVertexAttribIPointer = (C.GPVERTEXATTRIBIPOINTER)(getProcAddr("glVertexAttribIPointer"))
-	if gpVertexAttribIPointer == nil {
-		return errors.New("glVertexAttribIPointer")
-	}
 	gpVertexAttribPointer = (C.GPVERTEXATTRIBPOINTER)(getProcAddr("glVertexAttribPointer"))
 	if gpVertexAttribPointer == nil {
 		return errors.New("glVertexAttribPointer")
 	}
-	gpVertexPointer = (C.GPVERTEXPOINTER)(getProcAddr("glVertexPointer"))
-	if gpVertexPointer == nil {
-		return errors.New("glVertexPointer")
-	}
 	gpViewport = (C.GPVIEWPORT)(getProcAddr("glViewport"))
 	if gpViewport == nil {
 		return errors.New("glViewport")
-	}
-	gpWindowPos2d = (C.GPWINDOWPOS2D)(getProcAddr("glWindowPos2d"))
-	if gpWindowPos2d == nil {
-		return errors.New("glWindowPos2d")
-	}
-	gpWindowPos2dv = (C.GPWINDOWPOS2DV)(getProcAddr("glWindowPos2dv"))
-	if gpWindowPos2dv == nil {
-		return errors.New("glWindowPos2dv")
-	}
-	gpWindowPos2f = (C.GPWINDOWPOS2F)(getProcAddr("glWindowPos2f"))
-	if gpWindowPos2f == nil {
-		return errors.New("glWindowPos2f")
-	}
-	gpWindowPos2fv = (C.GPWINDOWPOS2FV)(getProcAddr("glWindowPos2fv"))
-	if gpWindowPos2fv == nil {
-		return errors.New("glWindowPos2fv")
-	}
-	gpWindowPos2i = (C.GPWINDOWPOS2I)(getProcAddr("glWindowPos2i"))
-	if gpWindowPos2i == nil {
-		return errors.New("glWindowPos2i")
-	}
-	gpWindowPos2iv = (C.GPWINDOWPOS2IV)(getProcAddr("glWindowPos2iv"))
-	if gpWindowPos2iv == nil {
-		return errors.New("glWindowPos2iv")
-	}
-	gpWindowPos2s = (C.GPWINDOWPOS2S)(getProcAddr("glWindowPos2s"))
-	if gpWindowPos2s == nil {
-		return errors.New("glWindowPos2s")
-	}
-	gpWindowPos2sv = (C.GPWINDOWPOS2SV)(getProcAddr("glWindowPos2sv"))
-	if gpWindowPos2sv == nil {
-		return errors.New("glWindowPos2sv")
-	}
-	gpWindowPos3d = (C.GPWINDOWPOS3D)(getProcAddr("glWindowPos3d"))
-	if gpWindowPos3d == nil {
-		return errors.New("glWindowPos3d")
-	}
-	gpWindowPos3dv = (C.GPWINDOWPOS3DV)(getProcAddr("glWindowPos3dv"))
-	if gpWindowPos3dv == nil {
-		return errors.New("glWindowPos3dv")
-	}
-	gpWindowPos3f = (C.GPWINDOWPOS3F)(getProcAddr("glWindowPos3f"))
-	if gpWindowPos3f == nil {
-		return errors.New("glWindowPos3f")
-	}
-	gpWindowPos3fv = (C.GPWINDOWPOS3FV)(getProcAddr("glWindowPos3fv"))
-	if gpWindowPos3fv == nil {
-		return errors.New("glWindowPos3fv")
-	}
-	gpWindowPos3i = (C.GPWINDOWPOS3I)(getProcAddr("glWindowPos3i"))
-	if gpWindowPos3i == nil {
-		return errors.New("glWindowPos3i")
-	}
-	gpWindowPos3iv = (C.GPWINDOWPOS3IV)(getProcAddr("glWindowPos3iv"))
-	if gpWindowPos3iv == nil {
-		return errors.New("glWindowPos3iv")
-	}
-	gpWindowPos3s = (C.GPWINDOWPOS3S)(getProcAddr("glWindowPos3s"))
-	if gpWindowPos3s == nil {
-		return errors.New("glWindowPos3s")
-	}
-	gpWindowPos3sv = (C.GPWINDOWPOS3SV)(getProcAddr("glWindowPos3sv"))
-	if gpWindowPos3sv == nil {
-		return errors.New("glWindowPos3sv")
 	}
 	return nil
 }
