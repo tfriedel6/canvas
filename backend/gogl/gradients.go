@@ -24,18 +24,16 @@ type RadialGradient struct {
 }
 
 type gradient struct {
-	b       *GoGLBackend
-	tex     uint32
-	loaded  bool
-	deleted bool
-	opaque  bool
+	b      *GoGLBackend
+	tex    uint32
+	loaded bool
 }
 
 func (b *GoGLBackend) LoadLinearGradient(data backendbase.Gradient) backendbase.LinearGradient {
 	b.activate()
 
 	lg := &LinearGradient{
-		gradient: gradient{b: b, opaque: true},
+		gradient: gradient{b: b},
 	}
 	gl.GenTextures(1, &lg.tex)
 	gl.ActiveTexture(gl.TEXTURE0)
@@ -57,7 +55,7 @@ func (b *GoGLBackend) LoadRadialGradient(data backendbase.Gradient) backendbase.
 	b.activate()
 
 	rg := &RadialGradient{
-		gradient: gradient{b: b, opaque: true},
+		gradient: gradient{b: b},
 	}
 	gl.GenTextures(1, &rg.tex)
 	gl.ActiveTexture(gl.TEXTURE0)
@@ -80,11 +78,7 @@ func (g *gradient) Delete() {
 	g.b.activate()
 
 	gl.DeleteTextures(1, &g.tex)
-	g.deleted = true
 }
-
-func (g *gradient) IsDeleted() bool { return g.deleted }
-func (g *gradient) IsOpaque() bool  { return g.opaque }
 
 func (lg *LinearGradient) Replace(data backendbase.Gradient) { lg.load(data) }
 func (rg *RadialGradient) Replace(data backendbase.Gradient) { rg.load(data) }

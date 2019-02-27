@@ -226,19 +226,6 @@ func (cv *Canvas) parseStyle(value ...interface{}) drawStyle {
 	return style
 }
 
-func (s *drawStyle) isOpaque() bool {
-	if lg := s.linearGradient; lg != nil {
-		return lg.opaque
-	}
-	if rg := s.radialGradient; rg != nil {
-		return rg.opaque
-	}
-	if img := s.image; img != nil {
-		return img.img.IsOpaque()
-	}
-	return s.color.A >= 255
-}
-
 func (cv *Canvas) backendFillStyle(s *drawStyle, alpha float64) backendbase.FillStyle {
 	stl := backendbase.FillStyle{Color: s.color}
 	alpha *= cv.state.globalAlpha

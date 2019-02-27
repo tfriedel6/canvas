@@ -68,13 +68,27 @@ func (cv *Canvas) CreateRadialGradient(x0, y0, r0, x1, y1, r1 float64) *RadialGr
 }
 
 // Delete explicitly deletes the gradient
-func (lg *LinearGradient) Delete() { lg.grad.Delete() }
+func (lg *LinearGradient) Delete() {
+	if lg.deleted {
+		return
+	}
+	lg.grad.Delete()
+	lg.grad = nil
+	lg.deleted = true
+}
 
 // Delete explicitly deletes the gradient
-func (rg *RadialGradient) Delete() { rg.grad.Delete() }
+func (rg *RadialGradient) Delete() {
+	if rg.deleted {
+		return
+	}
+	rg.grad.Delete()
+	rg.grad = nil
+	rg.deleted = true
+}
 
 func (lg *LinearGradient) load() {
-	if lg.loaded || len(lg.data) < 1 {
+	if lg.loaded || len(lg.data) < 1 || lg.deleted {
 		return
 	}
 
@@ -88,7 +102,7 @@ func (lg *LinearGradient) load() {
 }
 
 func (rg *RadialGradient) load() {
-	if rg.loaded || len(rg.data) < 1 {
+	if rg.loaded || len(rg.data) < 1 || rg.deleted {
 		return
 	}
 

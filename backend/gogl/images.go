@@ -12,12 +12,10 @@ import (
 
 // Image represents a loaded image that can be used in various drawing functions
 type Image struct {
-	b       *GoGLBackend
-	w, h    int
-	tex     uint32
-	deleted bool
-	opaque  bool
-	flip    bool
+	b    *GoGLBackend
+	w, h int
+	tex  uint32
+	flip bool
 }
 
 func (b *GoGLBackend) LoadImage(src image.Image) (backendbase.Image, error) {
@@ -38,10 +36,8 @@ func (b *GoGLBackend) LoadImage(src image.Image) (backendbase.Image, error) {
 	img.b = b
 
 	runtime.SetFinalizer(img, func(img *Image) {
-		if !img.deleted {
-			b.glChan <- func() {
-				gl.DeleteTextures(1, &img.tex)
-			}
+		b.glChan <- func() {
+			gl.DeleteTextures(1, &img.tex)
 		}
 	})
 
@@ -74,19 +70,7 @@ func loadImage(src image.Image, tex uint32) (*Image, error) {
 }
 
 func loadImageRGBA(src *image.RGBA, tex uint32) (*Image, error) {
-	img := &Image{tex: tex, w: src.Bounds().Dx(), h: src.Bounds().Dy(), opaque: true}
-
-checkOpaque:
-	for y := 0; y < img.h; y++ {
-		off := src.PixOffset(0, y) + 3
-		for x := 0; x < img.w; x++ {
-			if src.Pix[off] < 255 {
-				img.opaque = false
-				break checkOpaque
-			}
-			off += 4
-		}
-	}
+	img := &Image{tex: tex, w: src.Bounds().Dx(), h: src.Bounds().Dy()}
 
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
@@ -147,7 +131,7 @@ func loadImageGray(src *image.Gray, tex uint32) (*Image, error) {
 }
 
 func loadImageConverted(src image.Image, tex uint32) (*Image, error) {
-	img := &Image{tex: tex, w: src.Bounds().Dx(), h: src.Bounds().Dy(), opaque: true}
+	img := &Image{tex: tex, w: src.Bounds().Dx(), h: src.Bounds().Dy()}
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
@@ -161,9 +145,6 @@ func loadImageConverted(src image.Image, tex uint32) (*Image, error) {
 			ir, ig, ib, ia := src.At(x, y).RGBA()
 			r, g, b, a := uint8(ir>>8), uint8(ig>>8), uint8(ib>>8), uint8(ia>>8)
 			data = append(data, r, g, b, a)
-			if a < 255 {
-				img.opaque = false
-			}
 		}
 	}
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(img.w), int32(img.h), 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(&data[0]))
@@ -192,12 +173,7 @@ func (img *Image) Delete() {
 	img.b.activate()
 
 	gl.DeleteTextures(1, &img.tex)
-	img.deleted = true
 }
-
-// IsDeleted returns true if the Delete function has been
-// called on this image
-func (img *Image) IsDeleted() bool { return img.deleted }
 
 // Replace replaces the image with the new one
 func (img *Image) Replace(src image.Image) error {
@@ -213,10 +189,6 @@ func (img *Image) Replace(src image.Image) error {
 	*img = *newImg
 	return nil
 }
-
-// IsOpaque returns true if all pixels in the image
-// have a full alpha value
-func (img *Image) IsOpaque() bool { return img.opaque }
 
 func (b *GoGLBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh float64, pts [4][2]float64, alpha float64) {
 	b.activate()

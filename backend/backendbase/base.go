@@ -89,15 +89,11 @@ type GradientStop struct {
 
 type LinearGradient interface {
 	Delete()
-	IsDeleted() bool
-	IsOpaque() bool
 	Replace(data Gradient)
 }
 
 type RadialGradient interface {
 	Delete()
-	IsDeleted() bool
-	IsOpaque() bool
 	Replace(data Gradient)
 }
 
@@ -106,7 +102,5 @@ type Image interface {
 	Height() int
 	Size() (w, h int)
 	Delete()
-	IsDeleted() bool
 	Replace(src image.Image) error
-	IsOpaque() bool
 }

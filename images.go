@@ -13,8 +13,9 @@ import (
 )
 
 type Image struct {
-	cv  *Canvas
-	img backendbase.Image
+	cv      *Canvas
+	img     backendbase.Image
+	deleted bool
 }
 
 // LoadImage loads an image. The src parameter can be either an image from the
@@ -113,7 +114,11 @@ func (img *Image) Size() (int, int) { return img.img.Size() }
 
 // Delete deletes the image from memory. Any draw calls with a deleted image
 // will not do anything
-func (img *Image) Delete() { img.img.Delete() }
+func (img *Image) Delete() {
+	img.img.Delete()
+	img.img = nil
+	img.deleted = true
+}
 
 // Replace replaces the image with the new one
 func (img *Image) Replace(src interface{}) error {
@@ -137,20 +142,9 @@ func (img *Image) Replace(src interface{}) error {
 // Where dx/dy/dw/dh are the destination coordinates and sx/sy/sw/sh are the
 // source coordinates
 func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
-	var img *Image
-	// var flip bool
-	// if cv2, ok := image.(*Canvas); ok && cv2.offscreen {
-	// 	img = &cv2.offscrImg
-	// 	flip = true
-	// } else {
-	img = cv.getImage(image)
-	// }
+	img := cv.getImage(image)
 
-	if img == nil {
-		return
-	}
-
-	if img.img.IsDeleted() {
+	if img == nil || img.deleted {
 		return
 	}
 
@@ -168,11 +162,6 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 		dx, dy = coords[4], coords[5]
 		dw, dh = coords[6], coords[7]
 	}
-
-	// if flip {
-	// 	dy += dh
-	// 	dh = -dh
-	// }
 
 	var data [4][2]float64
 	data[0] = cv.tf(vec{dx, dy})
