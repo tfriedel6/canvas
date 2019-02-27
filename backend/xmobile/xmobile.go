@@ -46,11 +46,10 @@ type XMobileBackend struct {
 
 	ptsBuf []float32
 
-	offscreen bool
-	offscrBuf offscreenBuffer
-	offscrImg Image
-
 	glChan chan func()
+
+	activateFn                 func()
+	disableTextureRenderTarget func()
 }
 
 type offscreenBuffer struct {
@@ -73,6 +72,7 @@ func New(glctx gl.Context, x, y, w, h int) (*XMobileBackend, error) {
 		fw:     float64(w),
 		fh:     float64(h),
 		ptsBuf: make([]float32, 0, 4096),
+		glChan: make(chan func()),
 	}
 
 	b.glctx.GetError() // clear error state
@@ -214,32 +214,65 @@ func New(glctx gl.Context, x, y, w, h int) (*XMobileBackend, error) {
 
 	b.glctx.Disable(gl.SCISSOR_TEST)
 
+	b.activateFn = func() {
+		b.glctx.BindFramebuffer(gl.FRAMEBUFFER, gl.Framebuffer{Value: 0})
+		b.glctx.Viewport(b.x, b.y, b.w, b.h)
+	}
+	b.disableTextureRenderTarget = func() {
+		b.glctx.BindFramebuffer(gl.FRAMEBUFFER, gl.Framebuffer{Value: 0})
+	}
+
 	return b, nil
 }
 
-func NewOffscreen(glctx gl.Context, w, h int, alpha bool) (*XMobileBackend, error) {
+type XMobileBackendOffscreen struct {
+	XMobileBackend
+
+	offscrBuf offscreenBuffer
+	offscrImg Image
+}
+
+func NewOffscreen(glctx gl.Context, w, h int, alpha bool) (*XMobileBackendOffscreen, error) {
 	b, err := New(glctx, 0, 0, w, h)
 	if err != nil {
 		return nil, err
 	}
-	b.offscreen = true
-	b.offscrBuf.alpha = alpha
-	return b, nil
+	bo := &XMobileBackendOffscreen{}
+	bo.offscrBuf.alpha = alpha
+
+	b.activateFn = func() {
+		b.enableTextureRenderTarget(&bo.offscrBuf)
+		b.glctx.Viewport(0, 0, b.w, b.h)
+		bo.offscrImg.w = bo.offscrBuf.w
+		bo.offscrImg.h = bo.offscrBuf.h
+		bo.offscrImg.tex = bo.offscrBuf.tex
+		bo.offscrImg.flip = true
+	}
+	b.disableTextureRenderTarget = func() {
+		b.enableTextureRenderTarget(&bo.offscrBuf)
+	}
+
+	bo.XMobileBackend = *b
+
+	return bo, nil
 }
 
 // SetBounds updates the bounds of the canvas. This would
 // usually be called for example when the window is resized
 func (b *XMobileBackend) SetBounds(x, y, w, h int) {
-	if !b.offscreen {
-		b.x, b.y = x, y
-		b.fx, b.fy = float64(x), float64(y)
-	}
+	b.x, b.y = x, y
+	b.fx, b.fy = float64(x), float64(y)
 	b.w, b.h = w, h
 	b.fw, b.fh = float64(w), float64(h)
 	if b == activeContext {
 		b.glctx.Viewport(0, 0, b.w, b.h)
 		b.glctx.Clear(gl.STENCIL_BUFFER_BIT)
 	}
+}
+
+// SetBounds updates the size of the offscreen texture
+func (b *XMobileBackendOffscreen) SetBounds(w, h int) {
+	b.XMobileBackend.SetBounds(0, 0, w, h)
 }
 
 func (b *XMobileBackend) Size() (int, int) {
@@ -259,39 +292,39 @@ var activeContext *XMobileBackend
 func (b *XMobileBackend) activate() {
 	if activeContext != b {
 		activeContext = b
-		if b.offscreen {
-			b.glctx.Viewport(0, 0, b.w, b.h)
-			b.enableTextureRenderTarget(&b.offscrBuf)
-			b.offscrImg.w = b.offscrBuf.w
-			b.offscrImg.h = b.offscrBuf.h
-			b.offscrImg.tex = b.offscrBuf.tex
-		} else {
-			b.glctx.Viewport(b.x, b.y, b.w, b.h)
-			b.disableTextureRenderTarget()
-		}
+		b.activateFn()
 	}
+	b.runGLQueue()
+}
 
-loop:
+func (b *XMobileBackend) runGLQueue() {
 	for {
 		select {
 		case f := <-b.glChan:
 			f()
 		default:
-			break loop
+			return
 		}
 	}
 }
 
-func (b *XMobileBackend) DeleteOffscreen() {
-	if !b.offscreen {
-		return
-	}
+func (b *XMobileBackendOffscreen) Delete() {
 	b.glctx.DeleteTexture(b.offscrBuf.tex)
 	b.glctx.DeleteFramebuffer(b.offscrBuf.frameBuf)
 	b.glctx.DeleteRenderbuffer(b.offscrBuf.renderStencilBuf)
-	b.offscreen = false
+}
 
-	b.activate()
+func (b *XMobileBackend) CanUseAsImage(b2 backendbase.Backend) bool {
+	_, ok := b2.(*XMobileBackendOffscreen)
+	return ok
+}
+
+func (b *XMobileBackend) AsImage() backendbase.Image {
+	return nil
+}
+
+func (b *XMobileBackendOffscreen) AsImage() backendbase.Image {
+	return &b.offscrImg
 }
 
 type glColor struct {
@@ -463,14 +496,6 @@ func (b *XMobileBackend) enableTextureRenderTarget(offscr *offscreenBuffer) {
 		b.glctx.Clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
 	} else {
 		b.glctx.BindFramebuffer(gl.FRAMEBUFFER, offscr.frameBuf)
-	}
-}
-
-func (b *XMobileBackend) disableTextureRenderTarget() {
-	if b.offscreen {
-		b.enableTextureRenderTarget(&b.offscrBuf)
-	} else {
-		b.glctx.BindFramebuffer(gl.FRAMEBUFFER, gl.Framebuffer{Value: 0})
 	}
 }
 

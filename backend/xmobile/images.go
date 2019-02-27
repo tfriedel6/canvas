@@ -17,6 +17,7 @@ type Image struct {
 	tex     gl.Texture
 	deleted bool
 	opaque  bool
+	flip    bool
 }
 
 func (b *XMobileBackend) LoadImage(src image.Image) (backendbase.Image, error) {
@@ -34,6 +35,7 @@ func (b *XMobileBackend) LoadImage(src image.Image) (backendbase.Image, error) {
 	if err != nil {
 		return nil, err
 	}
+	img.b = b
 
 	runtime.SetFinalizer(img, func(img *Image) {
 		if !img.deleted {
@@ -209,6 +211,7 @@ func (img *Image) Replace(src image.Image) error {
 	if err != nil {
 		return err
 	}
+	newImg.b = img.b
 	*img = *newImg
 	return nil
 }
@@ -226,6 +229,11 @@ func (b *XMobileBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh float6
 	sy /= float64(img.h)
 	sw /= float64(img.w)
 	sh /= float64(img.h)
+
+	if img.flip {
+		sy += sh
+		sh = -sh
+	}
 
 	var buf [16]float32
 	data := buf[:0]

@@ -20,9 +20,6 @@ import (
 type Canvas struct {
 	b backendbase.Backend
 
-	w, h   int
-	fw, fh float64
-
 	path   Path2D
 	convex bool
 	rect   bool
@@ -138,8 +135,6 @@ func New(backend backendbase.Backend) *Canvas {
 		stateStack: make([]drawState, 0, 20),
 		images:     make(map[interface{}]*Image),
 	}
-	w, h := backend.Size()
-	cv.setBounds(w, h)
 	cv.state.lineWidth = 1
 	cv.state.lineAlpha = 1
 	cv.state.miterLimitSqr = 100
@@ -150,19 +145,20 @@ func New(backend backendbase.Backend) *Canvas {
 	return cv
 }
 
-func (cv *Canvas) setBounds(w, h int) {
-	cv.w, cv.h = w, h
-	cv.fw, cv.fh = float64(w), float64(h)
+// Width returns the internal width of the canvas
+func (cv *Canvas) Width() int {
+	w, _ := cv.b.Size()
+	return w
 }
 
-// Width returns the internal width of the canvas
-func (cv *Canvas) Width() int { return cv.w }
-
 // Height returns the internal height of the canvas
-func (cv *Canvas) Height() int { return cv.h }
+func (cv *Canvas) Height() int {
+	_, h := cv.b.Size()
+	return h
+}
 
 // Size returns the internal width and height of the canvas
-func (cv *Canvas) Size() (int, int) { return cv.w, cv.h }
+func (cv *Canvas) Size() (int, int) { return cv.b.Size() }
 
 func (cv *Canvas) tf(v vec) vec {
 	v, _ = v.mulMat(cv.state.transform)

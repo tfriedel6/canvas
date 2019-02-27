@@ -252,8 +252,8 @@ func rewriteMain(src string) string {
 		"type XMobileBackend struct {\n\tglctx gl.Context\n\n", 1)
 	src = strings.Replace(src, "func New(x, y, w, h int) (*XMobileBackend, error) {",
 		"func New(glctx gl.Context, x, y, w, h int) (*XMobileBackend, error) {", 1)
-	src = strings.Replace(src, "func NewOffscreen(w, h int, alpha bool) (*XMobileBackend, error)",
-		"func NewOffscreen(glctx gl.Context, w, h int, alpha bool) (*XMobileBackend, error)", 1)
+	src = strings.Replace(src, "func NewOffscreen(w, h int, alpha bool) (*XMobileBackendOffscreen, error)",
+		"func NewOffscreen(glctx gl.Context, w, h int, alpha bool) (*XMobileBackendOffscreen, error)", 1)
 
 	src = rewriteCalls(src, "New", func(params []string) string {
 		return "New(glctx, " + strings.Join(params, ", ") + ")"

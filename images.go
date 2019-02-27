@@ -42,7 +42,8 @@ func (cv *Canvas) LoadImage(src interface{}) (*Image, error) {
 			return nil, err
 		}
 	case *Canvas:
-		src = cv.GetImageData(0, 0, cv.Width(), cv.Height())
+		w, h := cv.b.Size()
+		src = cv.GetImageData(0, 0, w, h)
 	default:
 		return nil, errors.New("Unsupported source type")
 	}
@@ -80,6 +81,19 @@ func (cv *Canvas) getImage(src interface{}) *Image {
 			cv.images[src] = nil
 			return nil
 		}
+		cv.images[v] = img
+		return img
+	case *Canvas:
+		if !cv.b.CanUseAsImage(v.b) {
+			w, h := v.Size()
+			return cv.getImage(v.GetImageData(0, 0, w, h))
+		}
+		bimg := v.b.AsImage()
+		if bimg == nil {
+			w, h := v.Size()
+			return cv.getImage(v.GetImageData(0, 0, w, h))
+		}
+		img := &Image{cv: cv, img: bimg}
 		cv.images[v] = img
 		return img
 	}

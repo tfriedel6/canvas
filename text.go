@@ -96,14 +96,17 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 			curX += float64(kern) / 64
 		}
 
+		w, h := cv.b.Size()
+		fw, fh := float64(w), float64(h)
+
 		p0 := cv.tf(vec{float64(bounds.Min.X) + curX, float64(bounds.Min.Y) + y})
 		p1 := cv.tf(vec{float64(bounds.Min.X) + curX, float64(bounds.Max.Y) + y})
 		p2 := cv.tf(vec{float64(bounds.Max.X) + curX, float64(bounds.Max.Y) + y})
 		p3 := cv.tf(vec{float64(bounds.Max.X) + curX, float64(bounds.Min.Y) + y})
 		inside := (p0[0] >= 0 || p1[0] >= 0 || p2[0] >= 0 || p3[0] >= 0) &&
 			(p0[1] >= 0 || p1[1] >= 0 || p2[1] >= 0 || p3[1] >= 0) &&
-			(p0[0] < cv.fw || p1[0] < cv.fw || p2[0] < cv.fw || p3[0] < cv.fw) &&
-			(p0[1] < cv.fh || p1[1] < cv.fh || p2[1] < cv.fh || p3[1] < cv.fh)
+			(p0[0] < fw || p1[0] < fw || p2[0] < fw || p3[0] < fw) &&
+			(p0[1] < fh || p1[1] < fh || p2[1] < fh || p3[1] < fh)
 
 		if !curInside && inside {
 			curInside = true

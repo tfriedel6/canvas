@@ -26,6 +26,9 @@ type Backend interface {
 
 	GetImageData(x, y, w, h int) *image.RGBA
 	PutImageData(img *image.RGBA, x, y int)
+
+	CanUseAsImage(b Backend) bool
+	AsImage() Image // can return nil if not supported
 }
 
 // FillStyle is the color and other details on how to fill
