@@ -236,14 +236,14 @@ func NewOffscreen(w, h int, alpha bool) (*GoGLBackendOffscreen, error) {
 	}
 	bo := &GoGLBackendOffscreen{}
 	bo.offscrBuf.alpha = alpha
+	bo.offscrImg.flip = true
 
 	b.activateFn = func() {
 		b.enableTextureRenderTarget(&bo.offscrBuf)
-		gl.Viewport(0, 0, int32(b.w), int32(b.h))
+		gl.Viewport(0, 0, int32(bo.GoGLBackend.w), int32(bo.GoGLBackend.h))
 		bo.offscrImg.w = bo.offscrBuf.w
 		bo.offscrImg.h = bo.offscrBuf.h
 		bo.offscrImg.tex = bo.offscrBuf.tex
-		bo.offscrImg.flip = true
 	}
 	b.disableTextureRenderTarget = func() {
 		b.enableTextureRenderTarget(&bo.offscrBuf)
@@ -270,6 +270,9 @@ func (b *GoGLBackend) SetBounds(x, y, w, h int) {
 // SetBounds updates the size of the offscreen texture
 func (b *GoGLBackendOffscreen) SetBounds(w, h int) {
 	b.GoGLBackend.SetBounds(0, 0, w, h)
+	b.enableTextureRenderTarget(&b.offscrBuf)
+	b.offscrImg.w = b.offscrBuf.w
+	b.offscrImg.h = b.offscrBuf.h
 }
 
 func (b *GoGLBackend) Size() (int, int) {
@@ -452,48 +455,53 @@ func (b *GoGLBackend) useAlphaShader(style *backendbase.FillStyle, alphaTexSlot 
 }
 
 func (b *GoGLBackend) enableTextureRenderTarget(offscr *offscreenBuffer) {
-	if offscr.w != b.w || offscr.h != b.h {
-		if offscr.w != 0 && offscr.h != 0 {
-			gl.DeleteTextures(1, &offscr.tex)
-			gl.DeleteFramebuffers(1, &offscr.frameBuf)
-			gl.DeleteRenderbuffers(1, &offscr.renderStencilBuf)
-		}
-		offscr.w = b.w
-		offscr.h = b.h
-
-		gl.ActiveTexture(gl.TEXTURE0)
-		gl.GenTextures(1, &offscr.tex)
-		gl.BindTexture(gl.TEXTURE_2D, offscr.tex)
-		// todo do non-power-of-two textures work everywhere?
-		if offscr.alpha {
-			gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(b.w), int32(b.h), 0, gl.RGBA, gl.UNSIGNED_BYTE, nil)
-		} else {
-			gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGB, int32(b.w), int32(b.h), 0, gl.RGB, gl.UNSIGNED_BYTE, nil)
-		}
-		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-
-		gl.GenFramebuffers(1, &offscr.frameBuf)
+	if offscr.w == b.w && offscr.h == b.h {
 		gl.BindFramebuffer(gl.FRAMEBUFFER, offscr.frameBuf)
-
-		gl.GenRenderbuffers(1, &offscr.renderStencilBuf)
-		gl.BindRenderbuffer(gl.RENDERBUFFER, offscr.renderStencilBuf)
-		gl.RenderbufferStorage(gl.RENDERBUFFER, gl.STENCIL_INDEX8, int32(b.w), int32(b.h))
-		gl.FramebufferRenderbuffer(gl.FRAMEBUFFER, gl.STENCIL_ATTACHMENT, gl.RENDERBUFFER, offscr.renderStencilBuf)
-
-		gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, offscr.tex, 0)
-
-		if err := gl.CheckFramebufferStatus(gl.FRAMEBUFFER); err != gl.FRAMEBUFFER_COMPLETE {
-			// todo this should maybe not panic
-			panic(fmt.Sprintf("Failed to set up framebuffer for offscreen texture: %x", err))
-		}
-
-		gl.Clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
-	} else {
-		gl.BindFramebuffer(gl.FRAMEBUFFER, offscr.frameBuf)
+		return
 	}
+
+	if b.w == 0 || b.h == 0 {
+		return
+	}
+
+	if offscr.w != 0 && offscr.h != 0 {
+		gl.DeleteTextures(1, &offscr.tex)
+		gl.DeleteFramebuffers(1, &offscr.frameBuf)
+		gl.DeleteRenderbuffers(1, &offscr.renderStencilBuf)
+	}
+	offscr.w = b.w
+	offscr.h = b.h
+
+	gl.ActiveTexture(gl.TEXTURE0)
+	gl.GenTextures(1, &offscr.tex)
+	gl.BindTexture(gl.TEXTURE_2D, offscr.tex)
+	// todo do non-power-of-two textures work everywhere?
+	if offscr.alpha {
+		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(b.w), int32(b.h), 0, gl.RGBA, gl.UNSIGNED_BYTE, nil)
+	} else {
+		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGB, int32(b.w), int32(b.h), 0, gl.RGB, gl.UNSIGNED_BYTE, nil)
+	}
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+
+	gl.GenFramebuffers(1, &offscr.frameBuf)
+	gl.BindFramebuffer(gl.FRAMEBUFFER, offscr.frameBuf)
+
+	gl.GenRenderbuffers(1, &offscr.renderStencilBuf)
+	gl.BindRenderbuffer(gl.RENDERBUFFER, offscr.renderStencilBuf)
+	gl.RenderbufferStorage(gl.RENDERBUFFER, gl.STENCIL_INDEX8, int32(b.w), int32(b.h))
+	gl.FramebufferRenderbuffer(gl.FRAMEBUFFER, gl.STENCIL_ATTACHMENT, gl.RENDERBUFFER, offscr.renderStencilBuf)
+
+	gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, offscr.tex, 0)
+
+	if err := gl.CheckFramebufferStatus(gl.FRAMEBUFFER); err != gl.FRAMEBUFFER_COMPLETE {
+		// todo this should maybe not panic
+		panic(fmt.Sprintf("Failed to set up framebuffer for offscreen texture: %x", err))
+	}
+
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
 }
 
 type vec [2]float64

@@ -1,11 +1,12 @@
 package main
 
 import (
+	"log"
 	"math"
 	"time"
 
 	"github.com/tfriedel6/canvas"
-	"github.com/tfriedel6/canvas/glimpl/xmobile"
+	"github.com/tfriedel6/canvas/backend/xmobile"
 	"golang.org/x/mobile/app"
 	"golang.org/x/mobile/event/lifecycle"
 	"golang.org/x/mobile/event/paint"
@@ -16,6 +17,8 @@ import (
 func main() {
 	app.Main(func(a app.App) {
 		var cv, painter *canvas.Canvas
+		var cvb *xmobilebackend.XMobileBackendOffscreen
+		var painterb *xmobilebackend.XMobileBackend
 		var w, h int
 
 		var glctx gl.Context
@@ -24,30 +27,35 @@ func main() {
 			case lifecycle.Event:
 				switch e.Crosses(lifecycle.StageVisible) {
 				case lifecycle.CrossOn:
-					glctx, _ = e.DrawContext.(gl.Context)
-					canvas.LoadGL(glimplxmobile.New(glctx))
-					cv = canvas.NewOffscreen(0, 0)
-					painter = canvas.New(0, 0, 0, 0)
+					var err error
+					glctx = e.DrawContext.(gl.Context)
+					cvb, err = xmobilebackend.NewOffscreen(glctx, 0, 0, false)
+					if err != nil {
+						log.Fatalln(err)
+					}
+					painterb, err = xmobilebackend.New(glctx, 0, 0, 0, 0)
+					if err != nil {
+						log.Fatalln(err)
+					}
+					cv = canvas.New(cvb)
+					painter = canvas.New(painterb)
 					a.Send(paint.Event{})
 				case lifecycle.CrossOff:
+					cvb.Delete()
 					glctx = nil
 				}
 			case size.Event:
 				w, h = e.WidthPx, e.HeightPx
 			case paint.Event:
 				if glctx != nil {
-					glctx.ClearColor(0, 0, 0, 0)
-					glctx.Clear(gl.COLOR_BUFFER_BIT)
-
-					cv.SetBounds(0, 0, w, h)
-					painter.SetBounds(0, 0, w, h)
-
 					fw, fh := float64(w), float64(h)
 					color := math.Sin(float64(time.Now().UnixNano())*0.000000002)*0.3 + 0.7
 
+					cvb.SetBounds(w, h)
 					cv.SetFillStyle(color*0.2, color*0.2, color*0.8)
 					cv.FillRect(fw*0.25, fh*0.25, fw*0.5, fh*0.5)
 
+					painterb.SetBounds(0, 0, w, h)
 					painter.DrawImage(cv)
 
 					a.Publish()
