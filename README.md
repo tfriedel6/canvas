@@ -1,8 +1,6 @@
-[GoDoc is available here](https://godoc.org/github.com/tfriedel6/canvas)
+# Go canvas [![GoDoc](https://godoc.org/github.com/tfriedel6/canvas?status.svg)](https://godoc.org/github.com/tfriedel6/canvas)
 
-# Go canvas
-
-Canvas is a Go library based on OpenGL that tries to provide the HTML5 canvas API as closely as possible.
+Canvas is a pure Go library based on OpenGL that provides drawing functionality as similar as possible to the HTML5 canvas API. It has nothing to do with HTML or Javascript, the functions are just made to be approximately the same.
 
 Many of the basic functions are supported, but it is still a work in progress. The library aims to accept a lot of different parameters on each function in a similar way as the Javascript API does.
 
@@ -129,3 +127,13 @@ These features *should* work just like their HTML5 counterparts, but there are l
 - isPointInStroke
 - textBaseline hanging and ideographic (currently work just like top and bottom)
 - full self intersecting polygon support
+
+# Version history
+
+v0.7.0
+
+Restuctured the code to have a single frontend and multiple backends, although currently only Go-GL and an automatically generated xmobile GL backend are available. This should in theory make it possible to write a software backend as well, or maybe Vulkan or some other libraries.
+
+Got rid of the OpenGL interface and used Go-GL for Android and iOS. I also tried using it for Shiny and gomobile, but for some reason once the xmobile GL context is created, Go-GL no longer works, so those use the xmobile GL backend.
+
+SetLineEnd is now SetLineCap
