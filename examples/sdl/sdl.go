@@ -63,7 +63,7 @@ func main() {
 	gl.Enable(gl.MULTISAMPLE)
 
 	// load GL backend
-	backend, err := goglbackend.New(0, 0, 0, 0)
+	backend, err := goglbackend.New(0, 0, 0, 0, nil)
 	if err != nil {
 		log.Fatalf("Error loading canvas GL assets: %v", err)
 	}

@@ -67,7 +67,7 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 	gl.Enable(gl.MULTISAMPLE)
 
 	// load canvas GL backend
-	backend, err := goglbackend.New(0, 0, w, h)
+	backend, err := goglbackend.New(0, 0, w, h, nil)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error loading GoGL backend: %v", err)
 	}

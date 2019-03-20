@@ -15,7 +15,7 @@ func TouchEvent(typ string, x, y int) {
 }
 
 func LoadGL(w, h int) {
-	backend, err := goglbackend.New(0, 0, w, h)
+	backend, err := goglbackend.New(0, 0, w, h, nil)
 	if err != nil {
 		panic(err)
 	}

@@ -29,11 +29,15 @@ func main() {
 				case lifecycle.CrossOn:
 					var err error
 					glctx = e.DrawContext.(gl.Context)
-					cvb, err = xmobilebackend.NewOffscreen(glctx, 0, 0, false)
+					ctx, err := xmobilebackend.NewGLContext(glctx)
+					if err != nil {
+						log.Fatal(err)
+					}
+					cvb, err = xmobilebackend.NewOffscreen(0, 0, false, ctx)
 					if err != nil {
 						log.Fatalln(err)
 					}
-					painterb, err = xmobilebackend.New(glctx, 0, 0, 0, 0)
+					painterb, err = xmobilebackend.New(0, 0, 0, 0, ctx)
 					if err != nil {
 						log.Fatalln(err)
 					}
@@ -51,7 +55,7 @@ func main() {
 					fw, fh := float64(w), float64(h)
 					color := math.Sin(float64(time.Now().UnixNano())*0.000000002)*0.3 + 0.7
 
-					cvb.SetBounds(w, h)
+					cvb.SetSize(w, h)
 					cv.SetFillStyle(color*0.2, color*0.2, color*0.8)
 					cv.FillRect(fw*0.25, fh*0.25, fw*0.5, fh*0.5)
 

@@ -18,7 +18,7 @@ func OnSurfaceCreated() {
 }
 
 func OnSurfaceChanged(w, h int) {
-	backend, err := goglbackend.New(0, 0, w, h)
+	backend, err := goglbackend.New(0, 0, w, h, nil)
 	if err != nil {
 		panic(err)
 	}

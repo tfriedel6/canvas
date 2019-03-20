@@ -12,12 +12,10 @@ import (
 
 // Image represents a loaded image that can be used in various drawing functions
 type Image struct {
-	b       *XMobileBackend
-	w, h    int
-	tex     gl.Texture
-	deleted bool
-	opaque  bool
-	flip    bool
+	b    *XMobileBackend
+	w, h int
+	tex  gl.Texture
+	flip bool
 }
 
 func (b *XMobileBackend) LoadImage(src image.Image) (backendbase.Image, error) {
@@ -38,10 +36,8 @@ func (b *XMobileBackend) LoadImage(src image.Image) (backendbase.Image, error) {
 	img.b = b
 
 	runtime.SetFinalizer(img, func(img *Image) {
-		if !img.deleted {
-			b.glChan <- func() {
-				b.glctx.DeleteTexture(img.tex)
-			}
+		b.glChan <- func() {
+			b.glctx.DeleteTexture(img.tex)
 		}
 	})
 
@@ -74,19 +70,7 @@ func loadImage(b *XMobileBackend, src image.Image, tex gl.Texture) (*Image, erro
 }
 
 func loadImageRGBA(b *XMobileBackend, src *image.RGBA, tex gl.Texture) (*Image, error) {
-	img := &Image{tex: tex, w: src.Bounds().Dx(), h: src.Bounds().Dy(), opaque: true}
-
-checkOpaque:
-	for y := 0; y < img.h; y++ {
-		off := src.PixOffset(0, y) + 3
-		for x := 0; x < img.w; x++ {
-			if src.Pix[off] < 255 {
-				img.opaque = false
-				break checkOpaque
-			}
-			off += 4
-		}
-	}
+	img := &Image{tex: tex, w: src.Bounds().Dx(), h: src.Bounds().Dy()}
 
 	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
@@ -147,7 +131,7 @@ func loadImageGray(b *XMobileBackend, src *image.Gray, tex gl.Texture) (*Image, 
 }
 
 func loadImageConverted(b *XMobileBackend, src image.Image, tex gl.Texture) (*Image, error) {
-	img := &Image{tex: tex, w: src.Bounds().Dx(), h: src.Bounds().Dy(), opaque: true}
+	img := &Image{tex: tex, w: src.Bounds().Dx(), h: src.Bounds().Dy()}
 	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
@@ -161,9 +145,6 @@ func loadImageConverted(b *XMobileBackend, src image.Image, tex gl.Texture) (*Im
 			ir, ig, ib, ia := src.At(x, y).RGBA()
 			r, g, b, a := uint8(ir>>8), uint8(ig>>8), uint8(ib>>8), uint8(ia>>8)
 			data = append(data, r, g, b, a)
-			if a < 255 {
-				img.opaque = false
-			}
 		}
 	}
 	b.glctx.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, img.w, img.h, gl.RGBA, gl.UNSIGNED_BYTE, data[0:])
@@ -193,12 +174,7 @@ func (img *Image) Delete() {
 	img.b.activate()
 
 	b.glctx.DeleteTexture(img.tex)
-	img.deleted = true
 }
-
-// IsDeleted returns true if the Delete function has been
-// called on this image
-func (img *Image) IsDeleted() bool { return img.deleted }
 
 // Replace replaces the image with the new one
 func (img *Image) Replace(src image.Image) error {
@@ -215,10 +191,6 @@ func (img *Image) Replace(src image.Image) error {
 	*img = *newImg
 	return nil
 }
-
-// IsOpaque returns true if all pixels in the image
-// have a full alpha value
-func (img *Image) IsOpaque() bool { return img.opaque }
 
 func (b *XMobileBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh float64, pts [4][2]float64, alpha float64) {
 	b.activate()

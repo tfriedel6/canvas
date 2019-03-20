@@ -248,16 +248,16 @@ func rewrite(filename, src string) (string, string) {
 }
 
 func rewriteMain(src string) string {
+	src = strings.Replace(src, "type GLContext struct {\n",
+		"type GLContext struct {\n\tglctx gl.Context\n\n", 1)
+	src = strings.Replace(src, "ctx := &GLContext{\n",
+		"ctx := &GLContext{\n\t\tglctx: glctx,\n\n", 1)
+	src = strings.Replace(src, "\tb.glctx.GetError() // clear error state\n",
+		"\tb := &XMobileBackend{GLContext: ctx}\n\n\tb.glctx.GetError() // clear error state\n\n", 1)
 	src = strings.Replace(src, "type XMobileBackend struct {\n",
-		"type XMobileBackend struct {\n\tglctx gl.Context\n\n", 1)
-	src = strings.Replace(src, "func New(x, y, w, h int) (*XMobileBackend, error) {",
-		"func New(glctx gl.Context, x, y, w, h int) (*XMobileBackend, error) {", 1)
-	src = strings.Replace(src, "func NewOffscreen(w, h int, alpha bool) (*XMobileBackendOffscreen, error)",
-		"func NewOffscreen(glctx gl.Context, w, h int, alpha bool) (*XMobileBackendOffscreen, error)", 1)
-
-	src = rewriteCalls(src, "New", func(params []string) string {
-		return "New(glctx, " + strings.Join(params, ", ") + ")"
-	})
+		"type XMobileBackend struct {\n", 1)
+	src = strings.Replace(src, "func NewGLContext() (*GLContext, error) {",
+		"func NewGLContext(glctx gl.Context) (*GLContext, error) {", 1)
 
 	src = strings.Replace(src,
 		`	err := gl.Init()
@@ -268,8 +268,37 @@ func rewriteMain(src string) string {
 `, `	var err error
 
 `, 1)
-	src = strings.Replace(src, "\tb := &XMobileBackend{\n",
-		"\tb := &XMobileBackend{\n\t\tglctx: glctx,\n\n", 1)
+
+	src = strings.Replace(src,
+		`// New returns a new canvas backend. x, y, w, h define the target
+// rectangle in the window. ctx is a GLContext created with
+// NewGLContext, but can be nil for a default one. It makes sense
+// to pass one in when using for example an onscreen and an
+// offscreen backend using the same GL context.
+`, `// New returns a new canvas backend. x, y, w, h define the target
+// rectangle in the window. ctx is a GLContext created with
+// NewGLContext
+`, 1)
+	src = strings.Replace(src,
+		`// NewOffscreen returns a new offscreen canvas backend. w, h define
+// the size of the offscreen texture. ctx is a GLContext created
+// with NewGLContext, but can be nil for a default one. It makes
+// sense to pass one in when using for example an onscreen and an
+// offscreen backend using the same GL context.
+`, `// NewOffscreen returns a new offscreen canvas backend. w, h define
+// the size of the offscreen texture. ctx is a GLContext created
+// with NewGLContext
+`, 1)
+	src = strings.Replace(src,
+		`	if ctx == nil {
+		var err error
+		ctx, err = NewGLContext()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+`, "", 1)
 
 	src = strings.Replace(src,
 		`	buf       uint32

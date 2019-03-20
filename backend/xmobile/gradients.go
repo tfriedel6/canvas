@@ -24,18 +24,16 @@ type RadialGradient struct {
 }
 
 type gradient struct {
-	b       *XMobileBackend
-	tex     gl.Texture
-	loaded  bool
-	deleted bool
-	opaque  bool
+	b      *XMobileBackend
+	tex    gl.Texture
+	loaded bool
 }
 
 func (b *XMobileBackend) LoadLinearGradient(data backendbase.Gradient) backendbase.LinearGradient {
 	b.activate()
 
 	lg := &LinearGradient{
-		gradient: gradient{b: b, opaque: true},
+		gradient: gradient{b: b},
 	}
 	lg.tex = b.glctx.CreateTexture()
 	b.glctx.ActiveTexture(gl.TEXTURE0)
@@ -57,7 +55,7 @@ func (b *XMobileBackend) LoadRadialGradient(data backendbase.Gradient) backendba
 	b.activate()
 
 	rg := &RadialGradient{
-		gradient: gradient{b: b, opaque: true},
+		gradient: gradient{b: b},
 	}
 	rg.tex = b.glctx.CreateTexture()
 	b.glctx.ActiveTexture(gl.TEXTURE0)
@@ -81,11 +79,7 @@ func (g *gradient) Delete() {
 	g.b.activate()
 
 	b.glctx.DeleteTexture(g.tex)
-	g.deleted = true
 }
-
-func (g *gradient) IsDeleted() bool { return g.deleted }
-func (g *gradient) IsOpaque() bool  { return g.opaque }
 
 func (lg *LinearGradient) Replace(data backendbase.Gradient) { lg.load(data) }
 func (rg *RadialGradient) Replace(data backendbase.Gradient) { rg.load(data) }

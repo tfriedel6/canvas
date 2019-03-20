@@ -19,7 +19,11 @@ func main() {
 	gldriver.Main(func(s screen.Screen) {
 		glw := glwidget.NewGL(draw)
 		sheet = widget.NewSheet(glw)
-		backend, err := xmobilebackend.New(glw.Ctx, 0, 0, 600, 600)
+		ctx, err := xmobilebackend.NewGLContext(glw.Ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+		backend, err := xmobilebackend.New(0, 0, 600, 600, ctx)
 		if err != nil {
 			log.Fatal(err)
 		}

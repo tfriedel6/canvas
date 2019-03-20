@@ -15,11 +15,10 @@ const alphaTexSize = 2048
 
 var zeroes [alphaTexSize]byte
 
-type XMobileBackend struct {
+// GLContext is a context that contains all the
+// shaders and buffers necessary for rendering
+type GLContext struct {
 	glctx gl.Context
-
-	x, y, w, h     int
-	fx, fy, fw, fh float64
 
 	buf       gl.Buffer
 	shadowBuf gl.Buffer
@@ -47,157 +46,145 @@ type XMobileBackend struct {
 	ptsBuf []float32
 
 	glChan chan func()
-
-	activateFn                 func()
-	disableTextureRenderTarget func()
 }
 
-type offscreenBuffer struct {
-	tex              gl.Texture
-	w                int
-	h                int
-	renderStencilBuf gl.Renderbuffer
-	frameBuf         gl.Framebuffer
-	alpha            bool
-}
-
-func New(glctx gl.Context, x, y, w, h int) (*XMobileBackend, error) {
-	var err error
-
-	b := &XMobileBackend{
+// NewGLContext creates all the necessary GL resources,
+// like shaders and buffers
+func NewGLContext(glctx gl.Context) (*GLContext, error) {
+	ctx := &GLContext{
 		glctx: glctx,
 
-		w:      w,
-		h:      h,
-		fw:     float64(w),
-		fh:     float64(h),
 		ptsBuf: make([]float32, 0, 4096),
 		glChan: make(chan func()),
 	}
 
+	var err error
+
+	b := &XMobileBackend{GLContext: ctx}
+
 	b.glctx.GetError() // clear error state
 
-	err = loadShader(b, solidVS, solidFS, &b.sr.shaderProgram)
+	err = loadShader(b, solidVS, solidFS, &ctx.sr.shaderProgram)
 	if err != nil {
 		return nil, err
 	}
-	b.sr.shaderProgram.mustLoadLocations(&b.sr)
+	ctx.sr.shaderProgram.mustLoadLocations(&ctx.sr)
 	if err = glError(b); err != nil {
 		return nil, err
 	}
 
-	err = loadShader(b, linearGradientVS, linearGradientFS, &b.lgr.shaderProgram)
+	err = loadShader(b, linearGradientVS, linearGradientFS, &ctx.lgr.shaderProgram)
 	if err != nil {
 		return nil, err
 	}
-	b.lgr.shaderProgram.mustLoadLocations(&b.lgr)
+	ctx.lgr.shaderProgram.mustLoadLocations(&ctx.lgr)
 	if err = glError(b); err != nil {
 		return nil, err
 	}
 
-	err = loadShader(b, radialGradientVS, radialGradientFS, &b.rgr.shaderProgram)
+	err = loadShader(b, radialGradientVS, radialGradientFS, &ctx.rgr.shaderProgram)
 	if err != nil {
 		return nil, err
 	}
-	b.rgr.shaderProgram.mustLoadLocations(&b.rgr)
+	ctx.rgr.shaderProgram.mustLoadLocations(&ctx.rgr)
 	if err = glError(b); err != nil {
 		return nil, err
 	}
 
-	err = loadShader(b, imagePatternVS, imagePatternFS, &b.ipr.shaderProgram)
+	err = loadShader(b, imagePatternVS, imagePatternFS, &ctx.ipr.shaderProgram)
 	if err != nil {
 		return nil, err
 	}
-	b.ipr.shaderProgram.mustLoadLocations(&b.ipr)
+	ctx.ipr.shaderProgram.mustLoadLocations(&ctx.ipr)
 	if err = glError(b); err != nil {
 		return nil, err
 	}
 
-	err = loadShader(b, solidAlphaVS, solidAlphaFS, &b.sar.shaderProgram)
+	err = loadShader(b, solidAlphaVS, solidAlphaFS, &ctx.sar.shaderProgram)
 	if err != nil {
 		return nil, err
 	}
-	b.sar.shaderProgram.mustLoadLocations(&b.sar)
+	ctx.sar.shaderProgram.mustLoadLocations(&ctx.sar)
 	if err = glError(b); err != nil {
 		return nil, err
 	}
 
-	err = loadShader(b, linearGradientAlphaVS, linearGradientFS, &b.lgar.shaderProgram)
+	err = loadShader(b, linearGradientAlphaVS, linearGradientFS, &ctx.lgar.shaderProgram)
 	if err != nil {
 		return nil, err
 	}
-	b.lgar.shaderProgram.mustLoadLocations(&b.lgar)
+	ctx.lgar.shaderProgram.mustLoadLocations(&ctx.lgar)
 	if err = glError(b); err != nil {
 		return nil, err
 	}
 
-	err = loadShader(b, radialGradientAlphaVS, radialGradientAlphaFS, &b.rgar.shaderProgram)
+	err = loadShader(b, radialGradientAlphaVS, radialGradientAlphaFS, &ctx.rgar.shaderProgram)
 	if err != nil {
 		return nil, err
 	}
-	b.rgar.shaderProgram.mustLoadLocations(&b.rgar)
+	ctx.rgar.shaderProgram.mustLoadLocations(&ctx.rgar)
 	if err = glError(b); err != nil {
 		return nil, err
 	}
 
-	err = loadShader(b, imagePatternAlphaVS, imagePatternAlphaFS, &b.ipar.shaderProgram)
+	err = loadShader(b, imagePatternAlphaVS, imagePatternAlphaFS, &ctx.ipar.shaderProgram)
 	if err != nil {
 		return nil, err
 	}
-	b.ipar.shaderProgram.mustLoadLocations(&b.ipar)
+	ctx.ipar.shaderProgram.mustLoadLocations(&ctx.ipar)
 	if err = glError(b); err != nil {
 		return nil, err
 	}
 
-	err = loadShader(b, imageVS, imageFS, &b.ir.shaderProgram)
+	err = loadShader(b, imageVS, imageFS, &ctx.ir.shaderProgram)
 	if err != nil {
 		return nil, err
 	}
-	b.ir.shaderProgram.mustLoadLocations(&b.ir)
+	ctx.ir.shaderProgram.mustLoadLocations(&ctx.ir)
 	if err = glError(b); err != nil {
 		return nil, err
 	}
 
-	err = loadShader(b, gaussian15VS, gaussian15FS, &b.gauss15r.shaderProgram)
+	err = loadShader(b, gaussian15VS, gaussian15FS, &ctx.gauss15r.shaderProgram)
 	if err != nil {
 		return nil, err
 	}
-	b.gauss15r.shaderProgram.mustLoadLocations(&b.gauss15r)
+	ctx.gauss15r.shaderProgram.mustLoadLocations(&ctx.gauss15r)
 	if err = glError(b); err != nil {
 		return nil, err
 	}
 
-	err = loadShader(b, gaussian63VS, gaussian63FS, &b.gauss63r.shaderProgram)
+	err = loadShader(b, gaussian63VS, gaussian63FS, &ctx.gauss63r.shaderProgram)
 	if err != nil {
 		return nil, err
 	}
-	b.gauss63r.shaderProgram.mustLoadLocations(&b.gauss63r)
+	ctx.gauss63r.shaderProgram.mustLoadLocations(&ctx.gauss63r)
 	if err = glError(b); err != nil {
 		return nil, err
 	}
 
-	err = loadShader(b, gaussian127VS, gaussian127FS, &b.gauss127r.shaderProgram)
+	err = loadShader(b, gaussian127VS, gaussian127FS, &ctx.gauss127r.shaderProgram)
 	if err != nil {
 		return nil, err
 	}
-	b.gauss127r.shaderProgram.mustLoadLocations(&b.gauss127r)
+	ctx.gauss127r.shaderProgram.mustLoadLocations(&ctx.gauss127r)
 	if err = glError(b); err != nil {
 		return nil, err
 	}
 
-	b.buf = b.glctx.CreateBuffer()
+	ctx.buf = b.glctx.CreateBuffer()
 	if err = glError(b); err != nil {
 		return nil, err
 	}
 
-	b.shadowBuf = b.glctx.CreateBuffer()
+	ctx.shadowBuf = b.glctx.CreateBuffer()
 	if err = glError(b); err != nil {
 		return nil, err
 	}
 
 	b.glctx.ActiveTexture(gl.TEXTURE0)
-	b.alphaTex = b.glctx.CreateTexture()
-	b.glctx.BindTexture(gl.TEXTURE_2D, b.alphaTex)
+	ctx.alphaTex = b.glctx.CreateTexture()
+	b.glctx.BindTexture(gl.TEXTURE_2D, ctx.alphaTex)
 	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
 	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
@@ -214,6 +201,41 @@ func New(glctx gl.Context, x, y, w, h int) (*XMobileBackend, error) {
 
 	b.glctx.Disable(gl.SCISSOR_TEST)
 
+	return ctx, nil
+}
+
+// XMobileBackend is a canvas backend using Go-GL
+type XMobileBackend struct {
+	x, y, w, h     int
+	fx, fy, fw, fh float64
+
+	*GLContext
+
+	activateFn                 func()
+	disableTextureRenderTarget func()
+}
+
+type offscreenBuffer struct {
+	tex              gl.Texture
+	w                int
+	h                int
+	renderStencilBuf gl.Renderbuffer
+	frameBuf         gl.Framebuffer
+	alpha            bool
+}
+
+// New returns a new canvas backend. x, y, w, h define the target
+// rectangle in the window. ctx is a GLContext created with
+// NewGLContext
+func New(x, y, w, h int, ctx *GLContext) (*XMobileBackend, error) {
+	b := &XMobileBackend{
+		w:         w,
+		h:         h,
+		fw:        float64(w),
+		fh:        float64(h),
+		GLContext: ctx,
+	}
+
 	b.activateFn = func() {
 		b.glctx.BindFramebuffer(gl.FRAMEBUFFER, gl.Framebuffer{Value: 0})
 		b.glctx.Viewport(b.x, b.y, b.w, b.h)
@@ -225,6 +247,8 @@ func New(glctx gl.Context, x, y, w, h int) (*XMobileBackend, error) {
 	return b, nil
 }
 
+// XMobileBackendOffscreen is a canvas backend using an offscreen
+// texture
 type XMobileBackendOffscreen struct {
 	XMobileBackend
 
@@ -232,8 +256,11 @@ type XMobileBackendOffscreen struct {
 	offscrImg Image
 }
 
-func NewOffscreen(glctx gl.Context, w, h int, alpha bool) (*XMobileBackendOffscreen, error) {
-	b, err := New(glctx, 0, 0, w, h)
+// NewOffscreen returns a new offscreen canvas backend. w, h define
+// the size of the offscreen texture. ctx is a GLContext created
+// with NewGLContext
+func NewOffscreen(w, h int, alpha bool, ctx *GLContext) (*XMobileBackendOffscreen, error) {
+	b, err := New(0, 0, w, h, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -270,14 +297,16 @@ func (b *XMobileBackend) SetBounds(x, y, w, h int) {
 	}
 }
 
-// SetBounds updates the size of the offscreen texture
-func (b *XMobileBackendOffscreen) SetBounds(w, h int) {
+// SetSize updates the size of the offscreen texture
+func (b *XMobileBackendOffscreen) SetSize(w, h int) {
 	b.XMobileBackend.SetBounds(0, 0, w, h)
 	b.enableTextureRenderTarget(&b.offscrBuf)
 	b.offscrImg.w = b.offscrBuf.w
 	b.offscrImg.h = b.offscrBuf.h
 }
 
+// Size returns the size of the window or offscreen
+// texture
 func (b *XMobileBackend) Size() (int, int) {
 	return b.w, b.h
 }
@@ -311,21 +340,31 @@ func (b *XMobileBackend) runGLQueue() {
 	}
 }
 
+// Delete deletes the offscreen texture. After calling this
+// the backend can no longer be used
 func (b *XMobileBackendOffscreen) Delete() {
 	b.glctx.DeleteTexture(b.offscrBuf.tex)
 	b.glctx.DeleteFramebuffer(b.offscrBuf.frameBuf)
 	b.glctx.DeleteRenderbuffer(b.offscrBuf.renderStencilBuf)
 }
 
+// CanUseAsImage returns true if the given backend can be
+// directly used by this backend to avoid a conversion.
+// Used internally
 func (b *XMobileBackend) CanUseAsImage(b2 backendbase.Backend) bool {
 	_, ok := b2.(*XMobileBackendOffscreen)
 	return ok
 }
 
+// AsImage returns nil, since this backend cannot be directly
+// used as an image. Used internally
 func (b *XMobileBackend) AsImage() backendbase.Image {
 	return nil
 }
 
+// AsImage returns an implementation of the Image interface
+// that can be used to render this offscreen texture
+// directly. Used internally
 func (b *XMobileBackendOffscreen) AsImage() backendbase.Image {
 	return &b.offscrImg
 }
@@ -509,8 +548,8 @@ func (b *XMobileBackend) enableTextureRenderTarget(offscr *offscreenBuffer) {
 
 type vec [2]float64
 
-func (v1 vec) sub(v2 vec) vec {
-	return vec{v1[0] - v2[0], v1[1] - v2[1]}
+func (v vec) sub(v2 vec) vec {
+	return vec{v[0] - v2[0], v[1] - v2[1]}
 }
 
 func (v vec) len() float64 {
