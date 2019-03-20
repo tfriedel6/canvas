@@ -258,6 +258,7 @@ func rewriteMain(src string) string {
 		"type XMobileBackend struct {\n", 1)
 	src = strings.Replace(src, "func NewGLContext() (*GLContext, error) {",
 		"func NewGLContext(glctx gl.Context) (*GLContext, error) {", 1)
+	src = strings.Replace(src, "TextureID uint32", "TextureID gl.Texture", 1)
 
 	src = strings.Replace(src,
 		`	err := gl.Init()

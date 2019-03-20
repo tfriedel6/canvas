@@ -252,6 +252,8 @@ func New(x, y, w, h int, ctx *GLContext) (*XMobileBackend, error) {
 type XMobileBackendOffscreen struct {
 	XMobileBackend
 
+	TextureID gl.Texture
+
 	offscrBuf offscreenBuffer
 	offscrImg Image
 }
@@ -274,6 +276,7 @@ func NewOffscreen(w, h int, alpha bool, ctx *GLContext) (*XMobileBackendOffscree
 		bo.offscrImg.w = bo.offscrBuf.w
 		bo.offscrImg.h = bo.offscrBuf.h
 		bo.offscrImg.tex = bo.offscrBuf.tex
+		bo.TextureID = bo.offscrBuf.tex
 	}
 	b.disableTextureRenderTarget = func() {
 		b.enableTextureRenderTarget(&bo.offscrBuf)
@@ -317,6 +320,13 @@ func glError(b *XMobileBackend) error {
 		return fmt.Errorf("GL Error: %x", glErr)
 	}
 	return nil
+}
+
+// Activate only needs to be called if there is other
+// code also using the GL state
+func (b *XMobileBackend) Activate() {
+	activeContext = nil
+	b.activate()
 }
 
 var activeContext *XMobileBackend

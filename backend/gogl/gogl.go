@@ -257,6 +257,8 @@ func New(x, y, w, h int, ctx *GLContext) (*GoGLBackend, error) {
 type GoGLBackendOffscreen struct {
 	GoGLBackend
 
+	TextureID uint32
+
 	offscrBuf offscreenBuffer
 	offscrImg Image
 }
@@ -281,6 +283,7 @@ func NewOffscreen(w, h int, alpha bool, ctx *GLContext) (*GoGLBackendOffscreen, 
 		bo.offscrImg.w = bo.offscrBuf.w
 		bo.offscrImg.h = bo.offscrBuf.h
 		bo.offscrImg.tex = bo.offscrBuf.tex
+		bo.TextureID = bo.offscrBuf.tex
 	}
 	b.disableTextureRenderTarget = func() {
 		b.enableTextureRenderTarget(&bo.offscrBuf)
@@ -324,6 +327,13 @@ func glError() error {
 		return fmt.Errorf("GL Error: %x", glErr)
 	}
 	return nil
+}
+
+// Activate only needs to be called if there is other
+// code also using the GL state
+func (b *GoGLBackend) Activate() {
+	activeContext = nil
+	b.activate()
 }
 
 var activeContext *GoGLBackend
