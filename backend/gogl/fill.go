@@ -100,10 +100,12 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 	if style.Color.A >= 255 {
 		vertex := b.useShader(style)
 
+		gl.StencilFunc(gl.EQUAL, 0, 0xFF)
 		gl.EnableVertexAttribArray(vertex)
 		gl.VertexAttribPointer(vertex, 2, gl.FLOAT, false, 0, nil)
 		gl.DrawArrays(mode, 4, int32(len(pts)))
 		gl.DisableVertexAttribArray(vertex)
+		gl.StencilFunc(gl.ALWAYS, 0, 0xFF)
 	} else {
 		gl.ColorMask(false, false, false, false)
 		gl.StencilFunc(gl.ALWAYS, 1, 0xFF)

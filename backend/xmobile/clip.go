@@ -7,6 +7,7 @@ import (
 )
 
 func (b *XMobileBackend) ClearClip() {
+	b.curClip = nil
 	b.activate()
 
 	b.glctx.StencilMask(0xFF)
@@ -14,7 +15,9 @@ func (b *XMobileBackend) ClearClip() {
 }
 
 func (b *XMobileBackend) Clip(pts [][2]float64) {
+	b.curClip = nil
 	b.activate()
+	b.curClip = pts
 
 	b.ptsBuf = b.ptsBuf[:0]
 	b.ptsBuf = append(b.ptsBuf,

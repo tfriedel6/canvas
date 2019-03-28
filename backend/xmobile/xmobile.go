@@ -211,6 +211,8 @@ type XMobileBackend struct {
 
 	*GLContext
 
+	curClip [][2]float64
+
 	activateFn                 func()
 	disableTextureRenderTarget func()
 }
@@ -239,6 +241,11 @@ func New(x, y, w, h int, ctx *GLContext) (*XMobileBackend, error) {
 	b.activateFn = func() {
 		b.glctx.BindFramebuffer(gl.FRAMEBUFFER, gl.Framebuffer{Value: 0})
 		b.glctx.Viewport(b.x, b.y, b.w, b.h)
+		b.glctx.Clear(gl.STENCIL_BUFFER_BIT)
+		if c := b.curClip; c != nil {
+			b.curClip = nil
+			b.Clip(c)
+		}
 	}
 	b.disableTextureRenderTarget = func() {
 		b.glctx.BindFramebuffer(gl.FRAMEBUFFER, gl.Framebuffer{Value: 0})

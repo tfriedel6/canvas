@@ -100,10 +100,12 @@ func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 	if style.Color.A >= 255 {
 		vertex := b.useShader(style)
 
+		b.glctx.StencilFunc(gl.EQUAL, 0, 0xFF)
 		b.glctx.EnableVertexAttribArray(vertex)
 		b.glctx.VertexAttribPointer(vertex, 2, gl.FLOAT, false, 0, 0)
 		b.glctx.DrawArrays(mode, 4, len(pts))
 		b.glctx.DisableVertexAttribArray(vertex)
+		b.glctx.StencilFunc(gl.ALWAYS, 0, 0xFF)
 	} else {
 		b.glctx.ColorMask(false, false, false, false)
 		b.glctx.StencilFunc(gl.ALWAYS, 1, 0xFF)
