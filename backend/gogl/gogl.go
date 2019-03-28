@@ -441,8 +441,8 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle) (vertexLoc uint32)
 		gl.Uniform1f(b.rgr.GlobalAlpha, float32(style.Color.A)/255)
 		return b.rgr.Vertex
 	}
-	if img := style.Image; img != nil {
-		img := img.(*Image)
+	if ip := style.ImagePattern; ip != nil {
+		img := ip.(*ImagePattern).data.Image.(*Image)
 		gl.UseProgram(b.ipr.ID)
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, img.tex)
@@ -498,8 +498,8 @@ func (b *GoGLBackend) useAlphaShader(style *backendbase.FillStyle, alphaTexSlot 
 		gl.Uniform1f(b.rgar.GlobalAlpha, float32(style.Color.A)/255)
 		return b.rgar.Vertex, b.rgar.AlphaTexCoord
 	}
-	if img := style.Image; img != nil {
-		img := img.(*Image)
+	if ip := style.ImagePattern; ip != nil {
+		img := ip.(*ImagePattern).data.Image.(*Image)
 		gl.UseProgram(b.ipar.ID)
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, img.tex)

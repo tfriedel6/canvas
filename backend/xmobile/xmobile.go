@@ -434,8 +434,8 @@ func (b *XMobileBackend) useShader(style *backendbase.FillStyle) (vertexLoc gl.A
 		b.glctx.Uniform1f(b.rgr.GlobalAlpha, float32(style.Color.A)/255)
 		return b.rgr.Vertex
 	}
-	if img := style.Image; img != nil {
-		img := img.(*Image)
+	if ip := style.ImagePattern; ip != nil {
+		img := ip.(*ImagePattern).data.Image.(*Image)
 		b.glctx.UseProgram(b.ipr.ID)
 		b.glctx.ActiveTexture(gl.TEXTURE0)
 		b.glctx.BindTexture(gl.TEXTURE_2D, img.tex)
@@ -491,8 +491,8 @@ func (b *XMobileBackend) useAlphaShader(style *backendbase.FillStyle, alphaTexSl
 		b.glctx.Uniform1f(b.rgar.GlobalAlpha, float32(style.Color.A)/255)
 		return b.rgar.Vertex, b.rgar.AlphaTexCoord
 	}
-	if img := style.Image; img != nil {
-		img := img.(*Image)
+	if ip := style.ImagePattern; ip != nil {
+		img := ip.(*ImagePattern).data.Image.(*Image)
 		b.glctx.UseProgram(b.ipar.ID)
 		b.glctx.ActiveTexture(gl.TEXTURE0)
 		b.glctx.BindTexture(gl.TEXTURE_2D, img.tex)

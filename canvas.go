@@ -74,7 +74,7 @@ type drawStyle struct {
 	color          color.RGBA
 	radialGradient *RadialGradient
 	linearGradient *LinearGradient
-	image          *Image
+	imagePattern   *ImagePattern
 }
 
 type lineJoin uint8
@@ -202,6 +202,8 @@ func (cv *Canvas) SetStrokeStyle(value ...interface{}) {
 	cv.state.stroke = cv.parseStyle(value...)
 }
 
+var imagePatterns = make(map[interface{}]*ImagePattern)
+
 func (cv *Canvas) parseStyle(value ...interface{}) drawStyle {
 	var style drawStyle
 	if len(value) == 1 {
@@ -220,7 +222,12 @@ func (cv *Canvas) parseStyle(value ...interface{}) drawStyle {
 	} else if len(value) == 1 {
 		switch v := value[0].(type) {
 		case *Image, string:
-			style.image = cv.getImage(v)
+			if _, ok := imagePatterns[v]; !ok {
+				imagePatterns[v] = cv.CreatePattern(v, "")
+			}
+			style.imagePattern = imagePatterns[v]
+		case *ImagePattern:
+			style.imagePattern = v
 		}
 	}
 	return style
@@ -249,8 +256,12 @@ func (cv *Canvas) backendFillStyle(s *drawStyle, alpha float64) backendbase.Fill
 		stl.Gradient.RadFrom = rg.radFrom
 		stl.Gradient.RadTo = rg.radTo
 		stl.RadialGradient = rg.grad
-	} else if img := s.image; img != nil {
-		stl.Image = img.img
+	} else if ip := s.imagePattern; ip != nil {
+		if ip.ip == nil {
+			stl.Color = color.RGBA{}
+		} else {
+			stl.ImagePattern = ip.ip
+		}
 	} else {
 		alpha *= float64(s.color.A) / 255
 	}

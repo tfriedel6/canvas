@@ -183,3 +183,30 @@ func (cv *Canvas) GetImageData(x, y, w, h int) *image.RGBA {
 func (cv *Canvas) PutImageData(img *image.RGBA, x, y int) {
 	cv.b.PutImageData(img, x, y)
 }
+
+// ImagePattern is an image pattern that can be used for any
+// fill call
+type ImagePattern struct {
+	cv  *Canvas
+	img *Image
+	ip  backendbase.ImagePattern
+}
+
+func (ip *ImagePattern) data() backendbase.ImagePatternData {
+	return backendbase.ImagePatternData{
+		Image: ip.img.img,
+	}
+}
+
+// CreatePattern creates a new image pattern with the specified
+// image and repetition
+func (cv *Canvas) CreatePattern(src interface{}, repetition string) *ImagePattern {
+	ip := &ImagePattern{
+		cv:  cv,
+		img: cv.getImage(src),
+	}
+	if ip.img != nil {
+		ip.ip = cv.b.LoadImagePattern(ip.data())
+	}
+	return ip
+}

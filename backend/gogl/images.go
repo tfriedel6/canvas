@@ -239,3 +239,18 @@ func (b *GoGLBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh float64, 
 
 	gl.StencilFunc(gl.ALWAYS, 0, 0xFF)
 }
+
+type ImagePattern struct {
+	b    *GoGLBackend
+	data backendbase.ImagePatternData
+}
+
+func (b *GoGLBackend) LoadImagePattern(data backendbase.ImagePatternData) backendbase.ImagePattern {
+	return &ImagePattern{
+		b:    b,
+		data: data,
+	}
+}
+
+func (ip *ImagePattern) Delete()                                   {}
+func (ip *ImagePattern) Replace(data backendbase.ImagePatternData) { ip.data = data }

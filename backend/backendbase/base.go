@@ -13,6 +13,7 @@ type Backend interface {
 	Size() (int, int)
 
 	LoadImage(img image.Image) (Image, error)
+	LoadImagePattern(data ImagePatternData) ImagePattern
 	LoadLinearGradient(data Gradient) LinearGradient
 	LoadRadialGradient(data Gradient) RadialGradient
 
@@ -43,7 +44,7 @@ type FillStyle struct {
 		RadFrom float64
 		RadTo   float64
 	}
-	Image Image
+	ImagePattern ImagePattern
 }
 
 type Gradient []GradientStop
@@ -103,4 +104,13 @@ type Image interface {
 	Size() (w, h int)
 	Delete()
 	Replace(src image.Image) error
+}
+
+type ImagePatternData struct {
+	Image Image
+}
+
+type ImagePattern interface {
+	Delete()
+	Replace(data ImagePatternData)
 }

@@ -241,3 +241,18 @@ func (b *XMobileBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh float6
 
 	b.glctx.StencilFunc(gl.ALWAYS, 0, 0xFF)
 }
+
+type ImagePattern struct {
+	b    *XMobileBackend
+	data backendbase.ImagePatternData
+}
+
+func (b *XMobileBackend) LoadImagePattern(data backendbase.ImagePatternData) backendbase.ImagePattern {
+	return &ImagePattern{
+		b:    b,
+		data: data,
+	}
+}
+
+func (ip *ImagePattern) Delete()                                   {}
+func (ip *ImagePattern) Replace(data backendbase.ImagePatternData) { ip.data = data }
