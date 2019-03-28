@@ -161,8 +161,7 @@ func (cv *Canvas) Height() int {
 func (cv *Canvas) Size() (int, int) { return cv.b.Size() }
 
 func (cv *Canvas) tf(v vec) vec {
-	v, _ = v.mulMat(cv.state.transform)
-	return v
+	return v.mulMat(cv.state.transform)
 }
 
 const alphaTexSize = 2048
@@ -418,12 +417,12 @@ func (cv *Canvas) Rotate(angle float64) {
 
 // Transform updates the current transformation with the given matrix
 func (cv *Canvas) Transform(a, b, c, d, e, f float64) {
-	cv.state.transform = mat{a, b, 0, c, d, 0, e, f, 1}.mul(cv.state.transform)
+	cv.state.transform = mat{a, b, c, d, e, f}.mul(cv.state.transform)
 }
 
 // SetTransform replaces the current transformation with the given matrix
 func (cv *Canvas) SetTransform(a, b, c, d, e, f float64) {
-	cv.state.transform = mat{a, b, 0, c, d, 0, e, f, 1}
+	cv.state.transform = mat{a, b, c, d, e, f}
 }
 
 // SetShadowColor sets the color of the shadow. If it is fully transparent (default)
