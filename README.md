@@ -131,10 +131,15 @@ These features *should* work just like their HTML5 counterparts, but there are l
 
 # Version history
 
+v0.7.1
+
+- Line strokes are now scaled and transformed correctly
+- Added an ImagePattern type and a CreatePattern function (still missing repeat and transform)
+
 v0.7.0
 
-Restuctured the code to have a single frontend and multiple backends, although currently only Go-GL and an automatically generated xmobile GL backend are available. This should in theory make it possible to write a software backend as well, or maybe Vulkan or some other libraries.
+- Restuctured the code to have a single frontend and multiple backends, although currently only Go-GL and an automatically generated xmobile GL backend are available. This should in theory make it possible to write a software backend as well, or maybe Vulkan or some other libraries.
 
-Got rid of the OpenGL interface and used Go-GL for Android and iOS. I also tried using it for Shiny and gomobile, but for some reason once the xmobile GL context is created, Go-GL no longer works, so those use the xmobile GL backend.
+- Got rid of the OpenGL interface and used Go-GL for Android and iOS. I also tried using it for Shiny and gomobile, but for some reason once the xmobile GL context is created, Go-GL no longer works, so those use the xmobile GL backend.
 
-SetLineEnd is now SetLineCap
+- SetLineEnd is now SetLineCap
