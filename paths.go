@@ -74,26 +74,29 @@ func (cv *Canvas) ClosePath() {
 
 // Stroke uses the current StrokeStyle to draw the current path
 func (cv *Canvas) Stroke() {
-	cv.strokePath(&cv.path)
+	cv.strokePath(&cv.path, cv.state.transform.invert(), true)
 }
 
 // StrokePath uses the current StrokeStyle to draw the given path
 func (cv *Canvas) StrokePath(path *Path2D) {
+	// todo avoid allocation
 	path2 := Path2D{
 		p: make([]pathPoint, len(path.p)),
 	}
-	// todo avoid allocation
-	for i, pt := range path.p {
-		path2.p[i].pos = cv.tf(pt.pos)
-		path2.p[i].next = cv.tf(pt.next)
-		path2.p[i].flags = pt.flags
-	}
-	cv.strokePath(&path2)
+	copy(path2.p, path.p)
+	cv.strokePath(&path2, mat{}, false)
 }
 
-func (cv *Canvas) strokePath(path *Path2D) {
+func (cv *Canvas) strokePath(path *Path2D, inv mat, doInv bool) {
 	if len(path.p) == 0 {
 		return
+	}
+
+	if doInv {
+		for i, pt := range path.p {
+			path.p[i].pos = pt.pos.mulMat(inv)
+			path.p[i].next = pt.next.mulMat(inv)
+		}
 	}
 
 	dashedPath := cv.applyLineDash(path.p)
@@ -144,10 +147,10 @@ func (cv *Canvas) strokePath(path *Path2D) {
 			}
 		}
 
-		tris = append(tris, lp0, lp1, lp3, lp0, lp3, lp2)
+		tris = append(tris, cv.tf(lp0), cv.tf(lp1), cv.tf(lp3), cv.tf(lp0), cv.tf(lp3), cv.tf(lp2))
 
 		if p.flags&pathAttach != 0 && cv.state.lineWidth > 1 {
-			tris = cv.lineJoint(p, p0, p1, p.next, lp0, lp1, lp2, lp3, tris)
+			tris = cv.lineJoint(p0, p1, p.next, lp0, lp1, lp2, lp3, tris)
 		}
 
 		p0 = p1
@@ -216,7 +219,7 @@ func (cv *Canvas) applyLineDash(path []pathPoint) []pathPoint {
 	return path2
 }
 
-func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec, tris [][2]float64) [][2]float64 {
+func (cv *Canvas) lineJoint(p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec, tris [][2]float64) [][2]float64 {
 	v2 := p1.sub(p2).norm()
 	v3 := vec{v2[1], -v2[0]}.mulf(cv.state.lineWidth * 0.5)
 
@@ -242,7 +245,8 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec,
 			l1p1 := p1.sub(v3)
 			l1p3 := p1.add(v3)
 
-			tris = append(tris, p1, l0p1, l1p1, p1, l1p3, l0p3)
+			tris = append(tris, cv.tf(p1), cv.tf(l0p1), cv.tf(l1p1),
+				cv.tf(p1), cv.tf(l1p3), cv.tf(l0p3))
 			return tris
 		}
 
@@ -260,16 +264,21 @@ func (cv *Canvas) lineJoint(p pathPoint, p0, p1, p2, l0p0, l0p1, l0p2, l0p3 vec,
 			l1p1 := p1.sub(v3)
 			l1p3 := p1.add(v3)
 
-			tris = append(tris, p1, l0p1, l1p1, p1, l1p3, l0p3)
+			tris = append(tris, cv.tf(p1), cv.tf(l0p1), cv.tf(l1p1),
+				cv.tf(p1), cv.tf(l1p3), cv.tf(l0p3))
 			return tris
 		}
 
-		tris = append(tris, p1, l0p1, ip0, p1, ip0, l1p1, p1, l1p3, ip1, p1, ip1, l0p3)
+		tris = append(tris, cv.tf(p1), cv.tf(l0p1), cv.tf(ip0),
+			cv.tf(p1), cv.tf(ip0), cv.tf(l1p1),
+			cv.tf(p1), cv.tf(l1p3), cv.tf(ip1),
+			cv.tf(p1), cv.tf(ip1), cv.tf(l0p3))
 	case Bevel:
 		l1p1 := p1.sub(v3)
 		l1p3 := p1.add(v3)
 
-		tris = append(tris, p1, l0p1, l1p1, p1, l1p3, l0p3)
+		tris = append(tris, cv.tf(p1), cv.tf(l0p1), cv.tf(l1p1),
+			cv.tf(p1), cv.tf(l1p3), cv.tf(l0p3))
 	case Round:
 		tris = cv.addCircleTris(p1, cv.state.lineWidth*0.5, tris)
 	}
@@ -284,11 +293,12 @@ func (cv *Canvas) addCircleTris(center vec, radius float64, tris [][2]float64) [
 	} else if step < 0.05 {
 		step = 0.05
 	}
-	p0 := vec{center[0], center[1] + radius}
+	centertf := cv.tf(center)
+	p0 := cv.tf(vec{center[0], center[1] + radius})
 	for angle := step; angle <= math.Pi*2+step; angle += step {
 		s, c := math.Sincos(angle)
-		p1 := vec{center[0] + s*radius, center[1] + c*radius}
-		tris = append(tris, center, p0, p1)
+		p1 := cv.tf(vec{center[0] + s*radius, center[1] + c*radius})
+		tris = append(tris, centertf, p0, p1)
 		p0 = p1
 	}
 	return tris
@@ -415,15 +425,14 @@ func (cv *Canvas) StrokeRect(x, y, w, h float64) {
 	v1 := vec{x + w, y}
 	v2 := vec{x + w, y + h}
 	v3 := vec{x, y + h}
-	v0t, v1t, v2t, v3t := cv.tf(v0), cv.tf(v1), cv.tf(v2), cv.tf(v3)
 	var p [5]pathPoint
-	p[0] = pathPoint{pos: v0t, flags: pathMove | pathAttach, next: v1t}
-	p[1] = pathPoint{pos: v1t, next: v2, flags: pathAttach}
-	p[2] = pathPoint{pos: v2t, next: v3, flags: pathAttach}
-	p[3] = pathPoint{pos: v3t, next: v0, flags: pathAttach}
-	p[4] = pathPoint{pos: v0t, next: v1, flags: pathAttach}
+	p[0] = pathPoint{pos: v0, flags: pathMove | pathAttach, next: v1}
+	p[1] = pathPoint{pos: v1, next: v2, flags: pathAttach}
+	p[2] = pathPoint{pos: v2, next: v3, flags: pathAttach}
+	p[3] = pathPoint{pos: v3, next: v0, flags: pathAttach}
+	p[4] = pathPoint{pos: v0, next: v1, flags: pathAttach}
 	path := Path2D{p: p[:]}
-	cv.strokePath(&path)
+	cv.strokePath(&path, mat{}, false)
 }
 
 // FillRect fills a rectangle with the active fill style
