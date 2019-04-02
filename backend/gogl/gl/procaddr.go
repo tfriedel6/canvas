@@ -20,7 +20,7 @@ package gl
 #cgo windows CFLAGS: -DTAG_WINDOWS
 #cgo windows LDFLAGS: -lopengl32
 #cgo darwin CFLAGS: -DTAG_DARWIN
-#cgo darwin LDFLAGS: -framework OpenGL
+#cgo darwin,!ios LDFLAGS: -framework OpenGL
 #cgo linux freebsd CFLAGS: -DTAG_POSIX
 #cgo linux freebsd LDFLAGS: -lGL
 #cgo egl CFLAGS: -DTAG_EGL

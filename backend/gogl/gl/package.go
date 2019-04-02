@@ -16,7 +16,8 @@
 //
 package gl
 
-// #cgo darwin           LDFLAGS: -framework OpenGLES
+// #cgo darwin,!ios      LDFLAGS: -framework OpenGL
+// #cgo darwin,ios       LDFLAGS: -framework OpenGLES
 // #cgo linux,!android   LDFLAGS: -lGL
 // #cgo freebsd,!android LDFLAGS: -lGL
 // #cgo windows          LDFLAGS: -lopengl32

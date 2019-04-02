@@ -131,6 +131,10 @@ These features *should* work just like their HTML5 counterparts, but there are l
 
 # Version history
 
+v0.7.2
+
+- Fixed build tags for macOS and iOS
+
 v0.7.1
 
 - Line strokes are now scaled and transformed correctly
