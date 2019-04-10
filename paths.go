@@ -338,7 +338,11 @@ func (cv *Canvas) FillPath(path *Path2D) {
 	}
 
 	var triBuf [500][2]float64
-	tris := buildFillTriangles(path, triBuf[:0])
+	tris := triBuf[:0]
+	runSubPaths(path, func(sp []pathPoint) bool {
+		tris = appendSubPathTriangles(tris, sp)
+		return false
+	})
 	if len(tris) == 0 {
 		return
 	}
@@ -347,23 +351,6 @@ func (cv *Canvas) FillPath(path *Path2D) {
 
 	stl := cv.backendFillStyle(&cv.state.fill, 1)
 	cv.b.Fill(&stl, tris)
-}
-
-func buildFillTriangles(path *Path2D, tris [][2]float64) [][2]float64 {
-	start := 0
-	for i, p := range path.p {
-		if p.flags&pathMove == 0 {
-			continue
-		}
-		if i >= start+3 {
-			tris = appendSubPathTriangles(tris, path.p[start:i])
-		}
-		start = i
-	}
-	if len(path.p) >= start+3 {
-		tris = appendSubPathTriangles(tris, path.p[start:])
-	}
-	return tris
 }
 
 func appendSubPathTriangles(tris [][2]float64, path []pathPoint) [][2]float64 {
@@ -397,7 +384,11 @@ func (cv *Canvas) clip(path *Path2D) {
 	}
 
 	var triBuf [500][2]float64
-	tris := buildFillTriangles(path, triBuf[:0])
+	tris := triBuf[:0]
+	runSubPaths(path, func(sp []pathPoint) bool {
+		tris = appendSubPathTriangles(tris, sp)
+		return false
+	})
 	if len(tris) == 0 {
 		return
 	}

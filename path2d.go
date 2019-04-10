@@ -286,3 +286,61 @@ func (p *Path2D) Rect(x, y, w, h float64) {
 
 // func (p *Path2D) Ellipse(...) {
 // }
+
+func runSubPaths(path *Path2D, fn func(subPath []pathPoint) bool) {
+	start := 0
+	for i, p := range path.p {
+		if p.flags&pathMove == 0 {
+			continue
+		}
+		if i >= start+3 {
+			if fn(path.p[start:i]) {
+				return
+			}
+		}
+		start = i
+	}
+	if len(path.p) >= start+3 {
+		fn(path.p[start:])
+	}
+}
+
+type pathRule uint8
+
+// Path rule constants. See https://en.wikipedia.org/wiki/Nonzero-rule
+// and https://en.wikipedia.org/wiki/Even%E2%80%93odd_rule
+const (
+	NonZero pathRule = iota
+	EvenOdd
+)
+
+// IsPointInPath returns true if the point is in the path according
+// to the given rule
+func (p *Path2D) IsPointInPath(x, y float64, rule pathRule) bool {
+	inside := false
+	runSubPaths(p, func(sp []pathPoint) bool {
+		num := 0
+		prev := sp[len(sp)-1].pos
+		for _, pt := range p.p {
+			r, dir := pointIsRightOfLine(prev, pt.pos, vec{x, y})
+			prev = pt.pos
+			if !r {
+				continue
+			}
+			if dir {
+				num++
+			} else {
+				num--
+			}
+		}
+
+		if rule == NonZero {
+			inside = num != 0
+		} else {
+			inside = num%2 == 0
+		}
+
+		return inside
+	})
+	return inside
+}

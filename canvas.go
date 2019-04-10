@@ -454,3 +454,9 @@ func (cv *Canvas) SetShadowOffset(x, y float64) {
 func (cv *Canvas) SetShadowBlur(r float64) {
 	cv.state.shadowBlur = r
 }
+
+// IsPointInPath returns true if the point is in the current
+// path according to the given rule
+func (cv *Canvas) IsPointInPath(x, y float64, rule pathRule) bool {
+	return cv.path.IsPointInPath(x, y, rule)
+}

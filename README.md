@@ -119,11 +119,11 @@ These features *should* work just like their HTML5 counterparts, but there are l
 - shadowColor
 - shadowOffset(X/Y)
 - shadowBlur
+- isPointInPath
 
 # Missing features
 
 - globalCompositeOperation
-- isPointInPath
 - isPointInStroke
 - textBaseline hanging and ideographic (currently work just like top and bottom)
 - full self intersecting polygon support

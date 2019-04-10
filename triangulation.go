@@ -5,20 +5,22 @@ import (
 	"sort"
 )
 
-func pointIsRightOfLine(a, b, p vec) bool {
+func pointIsRightOfLine(a, b, p vec) (bool, bool) {
 	if a[1] == b[1] {
-		return false
+		return false, false
 	}
+	dir := false
 	if a[1] > b[1] {
 		a, b = b, a
+		dir = !dir
 	}
 	if p[1] < a[1] || p[1] > b[1] {
-		return false
+		return false, false
 	}
 	v := b.sub(a)
 	r := (p[1] - a[1]) / v[1]
 	x := a[0] + r*v[0]
-	return p[0] > x
+	return p[0] > x, dir
 }
 
 func triangleContainsPoint(a, b, c, p vec) bool {
@@ -38,13 +40,13 @@ func triangleContainsPoint(a, b, c, p vec) bool {
 	// check whether the point is to the right of each triangle line.
 	// if the total is 1, it is inside the triangle
 	count := 0
-	if pointIsRightOfLine(a, b, p) {
+	if r, _ := pointIsRightOfLine(a, b, p); r {
 		count++
 	}
-	if pointIsRightOfLine(b, c, p) {
+	if r, _ := pointIsRightOfLine(b, c, p); r {
 		count++
 	}
-	if pointIsRightOfLine(c, a, p) {
+	if r, _ := pointIsRightOfLine(c, a, p); r {
 		count++
 	}
 	return count == 1
@@ -54,7 +56,7 @@ func polygonContainsPoint(polygon []vec, p vec) bool {
 	a := polygon[len(polygon)-1]
 	count := 0
 	for _, b := range polygon {
-		if pointIsRightOfLine(a, b, p) {
+		if r, _ := pointIsRightOfLine(a, b, p); r {
 			count++
 		}
 		a = b
