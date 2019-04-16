@@ -1,17 +1,11 @@
 package softwarebackend
 
-import "math"
+import (
+	"math"
+)
 
 func triangleLR(tri [][2]float64, y float64) (l, r float64) {
 	a, b, c := tri[0], tri[1], tri[2]
-
-	// check general bounds
-	if y < a[1] && y < b[1] && y < c[1] {
-		return 0, 0
-	}
-	if y > a[1] && y > b[1] && y > c[1] {
-		return 0, 0
-	}
 
 	// sort by y
 	if a[1] > b[1] {
@@ -22,6 +16,14 @@ func triangleLR(tri [][2]float64, y float64) (l, r float64) {
 		if a[1] > b[1] {
 			a, b = b, a
 		}
+	}
+
+	// check general bounds
+	if y < a[1] {
+		return a[0], a[0]
+	}
+	if y > c[1] {
+		return c[0], c[0]
 	}
 
 	// find left and right x at y
@@ -72,6 +74,67 @@ func (b *SoftwareBackend) fillTriangle(tri [][2]float64, fn func(x, y int)) {
 		}
 		for x := l; x <= r; x++ {
 			fn(x, y)
+		}
+	}
+}
+
+func (b *SoftwareBackend) fillQuad(quad [4][2]float64, fn func(x, y int, sx, sy float64)) {
+	minY := int(math.Floor(math.Min(math.Min(quad[0][1], quad[1][1]), math.Min(quad[2][1], quad[3][1]))))
+	maxY := int(math.Ceil(math.Max(math.Max(quad[0][1], quad[1][1]), math.Max(quad[2][1], quad[3][1]))))
+	if minY < 0 {
+		minY = 0
+	} else if minY >= b.h {
+		return
+	}
+	if maxY < 0 {
+		return
+	} else if maxY >= b.h {
+		maxY = b.h - 1
+	}
+
+	leftv := [2]float64{quad[1][0] - quad[0][0], quad[1][1] - quad[0][1]}
+	leftLen := math.Sqrt(leftv[0]*leftv[0] + leftv[1]*leftv[1])
+	leftv[0] /= leftLen
+	leftv[1] /= leftLen
+	topv := [2]float64{quad[3][0] - quad[0][0], quad[3][1] - quad[0][1]}
+	topLen := math.Sqrt(topv[0]*topv[0] + topv[1]*topv[1])
+	topv[0] /= topLen
+	topv[1] /= topLen
+
+	tri1 := [3][2]float64{quad[0], quad[1], quad[2]}
+	tri2 := [3][2]float64{quad[0], quad[2], quad[3]}
+	for y := minY; y <= maxY; y++ {
+		lf1, rf1 := triangleLR(tri1[:], float64(y)+0.5)
+		lf2, rf2 := triangleLR(tri2[:], float64(y)+0.5)
+		l := int(math.Floor(math.Min(lf1, lf2)))
+		r := int(math.Ceil(math.Max(rf1, rf2)))
+		if l < 0 {
+			l = 0
+		} else if l >= b.w {
+			continue
+		}
+		if r < 0 {
+			continue
+		} else if r >= b.w {
+			r = b.w - 1
+		}
+
+		v0 := [2]float64{float64(l) - quad[0][0], float64(y) - quad[0][1]}
+		sx0 := topv[0]*v0[0] + topv[1]*v0[1]
+		sy0 := leftv[0]*v0[0] + leftv[1]*v0[1]
+
+		v1 := [2]float64{float64(r) - quad[0][0], float64(y) - quad[0][1]}
+		sx1 := topv[0]*v1[0] + topv[1]*v1[1]
+		sy1 := leftv[0]*v1[0] + leftv[1]*v1[1]
+
+		sx, sy := sx0/topLen, sy0/leftLen
+		sxStep := (sx1 - sx0) / float64(r-l) / topLen
+		syStep := (sy1 - sy0) / float64(r-l) / leftLen
+
+		for x := l; x <= r; x++ {
+			fn(x, y, sx, sy)
+			sx += sxStep
+			sy += syStep
 		}
 	}
 }

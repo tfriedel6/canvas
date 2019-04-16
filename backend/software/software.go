@@ -9,30 +9,27 @@ import (
 
 type SoftwareBackend struct {
 	Image *image.RGBA
+	clip  *image.Alpha
+	clip2 *image.Alpha
 	w, h  int
 }
 
 func New(w, h int) *SoftwareBackend {
-	return &SoftwareBackend{
-		Image: image.NewRGBA(image.Rect(0, 0, w, h)),
-		w:     w,
-		h:     h,
-	}
+	b := &SoftwareBackend{}
+	b.SetSize(w, h)
+	return b
 }
 
 func (b *SoftwareBackend) SetSize(w, h int) {
 	b.w, b.h = w, h
 	b.Image = image.NewRGBA(image.Rect(0, 0, w, h))
+	b.clip = image.NewAlpha(image.Rect(0, 0, w, h))
+	b.clip2 = image.NewAlpha(image.Rect(0, 0, w, h))
+	b.ClearClip()
 }
 
 func (b *SoftwareBackend) Size() (int, int) {
 	return b.w, b.h
-}
-
-func (b *SoftwareBackend) ClearClip() {
-}
-
-func (b *SoftwareBackend) Clip(pts [][2]float64) {
 }
 
 func (b *SoftwareBackend) GetImageData(x, y, w, h int) *image.RGBA {
