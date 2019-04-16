@@ -30,17 +30,16 @@ func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 }
 
 func mix(col color.Color, alpha color.Alpha) color.RGBA {
-	ir, ig, ib, ia := col.RGBA()
+	ir, ig, ib, _ := col.RGBA()
 	a2 := float64(alpha.A) / 255.0
 	r := float64(ir) * a2 / 65535.0
 	g := float64(ig) * a2 / 65535.0
 	b := float64(ib) * a2 / 65535.0
-	a := float64(ia) * a2 / 65535.0
 	return color.RGBA{
 		R: uint8(r * 255.0),
 		G: uint8(g * 255.0),
 		B: uint8(b * 255.0),
-		A: uint8(a * 255.0),
+		A: 255,
 	}
 }
 

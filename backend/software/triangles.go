@@ -4,7 +4,7 @@ import (
 	"math"
 )
 
-func triangleLR(tri [][2]float64, y float64) (l, r float64) {
+func triangleLR(tri [][2]float64, y float64) (l, r float64, outside bool) {
 	a, b, c := tri[0], tri[1], tri[2]
 
 	// sort by y
@@ -20,14 +20,14 @@ func triangleLR(tri [][2]float64, y float64) (l, r float64) {
 
 	// check general bounds
 	if y < a[1] {
-		return a[0], a[0]
+		return a[0], a[0], true
 	}
-	if y > c[1] {
-		return c[0], c[0]
+	if y >= c[1] {
+		return c[0], c[0], true
 	}
 
 	// find left and right x at y
-	if y >= a[1] && y <= b[1] {
+	if y >= a[1] && y <= b[1] && a[1] < b[1] {
 		r0 := (y - a[1]) / (b[1] - a[1])
 		l = (b[0]-a[0])*r0 + a[0]
 		r1 := (y - a[1]) / (c[1] - a[1])
@@ -59,20 +59,26 @@ func (b *SoftwareBackend) fillTriangle(tri [][2]float64, fn func(x, y int)) {
 		maxY = b.h - 1
 	}
 	for y := minY; y <= maxY; y++ {
-		lf, rf := triangleLR(tri, float64(y)+0.5)
-		l := int(math.Floor(lf))
-		r := int(math.Ceil(rf))
+		l, r, out := triangleLR(tri, float64(y)+0.5)
+		if out {
+			continue
+		}
 		if l < 0 {
 			l = 0
-		} else if l >= b.w {
+		} else if l > float64(b.w) {
 			continue
 		}
 		if r < 0 {
 			continue
-		} else if r >= b.w {
-			r = b.w - 1
+		} else if r > float64(b.w) {
+			r = float64(b.w)
 		}
-		for x := l; x <= r; x++ {
+		fl, cr := int(math.Floor(l)), int(math.Ceil(r))
+		for x := fl; x <= cr; x++ {
+			fx := float64(x) + 0.5
+			if fx < l || fx >= r {
+				continue
+			}
 			fn(x, y)
 		}
 	}
@@ -104,19 +110,22 @@ func (b *SoftwareBackend) fillQuad(quad [4][2]float64, fn func(x, y int, sx, sy 
 	tri1 := [3][2]float64{quad[0], quad[1], quad[2]}
 	tri2 := [3][2]float64{quad[0], quad[2], quad[3]}
 	for y := minY; y <= maxY; y++ {
-		lf1, rf1 := triangleLR(tri1[:], float64(y)+0.5)
-		lf2, rf2 := triangleLR(tri2[:], float64(y)+0.5)
-		l := int(math.Floor(math.Min(lf1, lf2)))
-		r := int(math.Ceil(math.Max(rf1, rf2)))
+		lf1, rf1, out1 := triangleLR(tri1[:], float64(y)+0.5)
+		lf2, rf2, out2 := triangleLR(tri2[:], float64(y)+0.5)
+		if out1 && out2 {
+			continue
+		}
+		l := math.Min(lf1, lf2)
+		r := math.Max(rf1, rf2)
 		if l < 0 {
 			l = 0
-		} else if l >= b.w {
+		} else if l > float64(b.w) {
 			continue
 		}
 		if r < 0 {
 			continue
-		} else if r >= b.w {
-			r = b.w - 1
+		} else if r > float64(b.w) {
+			r = float64(b.w)
 		}
 
 		v0 := [2]float64{float64(l) - quad[0][0], float64(y) - quad[0][1]}
@@ -131,7 +140,12 @@ func (b *SoftwareBackend) fillQuad(quad [4][2]float64, fn func(x, y int, sx, sy 
 		sxStep := (sx1 - sx0) / float64(r-l) / topLen
 		syStep := (sy1 - sy0) / float64(r-l) / leftLen
 
-		for x := l; x <= r; x++ {
+		fl, cr := int(math.Floor(l)), int(math.Ceil(r))
+		for x := fl; x <= cr; x++ {
+			fx := float64(x) + 0.5
+			if fx < l || fx >= r {
+				continue
+			}
 			fn(x, y, sx, sy)
 			sx += sxStep
 			sy += syStep
