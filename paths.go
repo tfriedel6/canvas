@@ -395,6 +395,9 @@ func (cv *Canvas) clip(path *Path2D) {
 		return
 	}
 
+	cv.state.clip.p = make([]pathPoint, len(path.p))
+	copy(cv.state.clip.p, path.p)
+
 	cv.b.Clip(tris)
 }
 
