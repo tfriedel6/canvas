@@ -287,21 +287,21 @@ func (p *Path2D) Rect(x, y, w, h float64) {
 // func (p *Path2D) Ellipse(...) {
 // }
 
-func runSubPaths(path *Path2D, fn func(subPath []pathPoint) bool) {
+func runSubPaths(path []pathPoint, fn func(subPath []pathPoint) bool) {
 	start := 0
-	for i, p := range path.p {
+	for i, p := range path {
 		if p.flags&pathMove == 0 {
 			continue
 		}
 		if i >= start+3 {
-			if fn(path.p[start:i]) {
+			if fn(path[start:i]) {
 				return
 			}
 		}
 		start = i
 	}
-	if len(path.p) >= start+3 {
-		fn(path.p[start:])
+	if len(path) >= start+3 {
+		fn(path[start:])
 	}
 }
 
@@ -318,7 +318,7 @@ const (
 // to the given rule
 func (p *Path2D) IsPointInPath(x, y float64, rule pathRule) bool {
 	inside := false
-	runSubPaths(p, func(sp []pathPoint) bool {
+	runSubPaths(p.p, func(sp []pathPoint) bool {
 		num := 0
 		prev := sp[len(sp)-1].pos
 		for _, pt := range p.p {

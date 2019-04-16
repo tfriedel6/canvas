@@ -339,7 +339,7 @@ func (cv *Canvas) FillPath(path *Path2D) {
 
 	var triBuf [500][2]float64
 	tris := triBuf[:0]
-	runSubPaths(path, func(sp []pathPoint) bool {
+	runSubPaths(path.p, func(sp []pathPoint) bool {
 		tris = appendSubPathTriangles(tris, sp)
 		return false
 	})
@@ -364,8 +364,10 @@ func appendSubPathTriangles(tris [][2]float64, path []pathPoint) [][2]float64 {
 			p1 = p2
 		}
 	} else if last.flags&pathSelfIntersects != 0 {
-		path = cutIntersections(path)
-		tris = triangulatePath(path, tris)
+		selfIntersectingPathParts(path, func(sp []pathPoint) bool {
+			tris = triangulatePath(sp, tris)
+			return false
+		})
 	} else {
 		tris = triangulatePath(path, tris)
 	}
@@ -385,7 +387,7 @@ func (cv *Canvas) clip(path *Path2D) {
 
 	var triBuf [500][2]float64
 	tris := triBuf[:0]
-	runSubPaths(path, func(sp []pathPoint) bool {
+	runSubPaths(path.p, func(sp []pathPoint) bool {
 		tris = appendSubPathTriangles(tris, sp)
 		return false
 	})
