@@ -146,7 +146,7 @@ func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 	}
 }
 
-func (b *XMobileBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Alpha, pts [][2]float64) {
+func (b *XMobileBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Alpha, pts [4][2]float64) {
 	b.activate()
 
 	w, h := mask.Rect.Dx(), mask.Rect.Dy()

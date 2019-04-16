@@ -34,7 +34,9 @@ func (cv *Canvas) drawShadow(pts [][2]float64, mask *image.Alpha) {
 		if len(cv.shadowBuf) != 4 {
 			panic("invalid number of points to fill with mask, must be 4")
 		}
-		cv.b.FillImageMask(&style, mask, cv.shadowBuf)
+		var quad [4][2]float64
+		copy(quad[:], cv.shadowBuf)
+		cv.b.FillImageMask(&style, mask, quad)
 	} else {
 		cv.b.Fill(&style, cv.shadowBuf)
 	}

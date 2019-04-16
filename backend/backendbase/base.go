@@ -20,7 +20,7 @@ type Backend interface {
 	Clear(pts [4][2]float64)
 	Fill(style *FillStyle, pts [][2]float64)
 	DrawImage(dimg Image, sx, sy, sw, sh float64, pts [4][2]float64, alpha float64)
-	FillImageMask(style *FillStyle, mask *image.Alpha, pts [][2]float64) // pts must have four points
+	FillImageMask(style *FillStyle, mask *image.Alpha, pts [4][2]float64) // pts must have four points
 
 	ClearClip()
 	Clip(pts [][2]float64)

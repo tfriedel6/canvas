@@ -218,7 +218,7 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 	cv.drawShadow(pts[:], mask)
 
 	stl := cv.backendFillStyle(&cv.state.fill, 1)
-	cv.b.FillImageMask(&stl, mask, pts[:])
+	cv.b.FillImageMask(&stl, mask, pts)
 }
 
 // StrokeText draws the given string at the given coordinates
