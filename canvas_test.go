@@ -473,7 +473,7 @@ func TestConvexSelfIntersecting(t *testing.T) {
 
 func TestTransform(t *testing.T) {
 	run(t, func(cv *canvas.Canvas) {
-		path := canvas.NewPath2D()
+		path := cv.NewPath2D()
 		path.MoveTo(-10, -10)
 		path.LineTo(10, -10)
 		path.LineTo(0, 10)

@@ -142,6 +142,7 @@ func New(backend backendbase.Backend) *Canvas {
 	cv.state.fill.color = color.RGBA{A: 255}
 	cv.state.stroke.color = color.RGBA{A: 255}
 	cv.state.transform = matIdentity()
+	cv.path.cv = cv
 	return cv
 }
 
@@ -393,7 +394,7 @@ func (cv *Canvas) Restore() {
 	cv.b.ClearClip()
 	for _, st := range cv.stateStack {
 		if len(st.clip.p) > 0 {
-			cv.clip(&st.clip)
+			cv.clip(&st.clip, matIdentity())
 		}
 	}
 	cv.state = cv.stateStack[l-1]
@@ -464,5 +465,22 @@ func (cv *Canvas) IsPointInPath(x, y float64, rule pathRule) bool {
 // IsPointInStroke returns true if the point is in the current
 // path stroke
 func (cv *Canvas) IsPointInStroke(x, y float64) bool {
-	return cv.path.IsPointInStroke(x, y)
+	if len(cv.path.p) == 0 {
+		return false
+	}
+
+	var triBuf [500][2]float64
+	tris := cv.strokeTris(&cv.path, cv.state.transform.invert(), true, triBuf[:0])
+
+	pt := vec{x, y}
+
+	for i := 0; i < len(tris); i += 3 {
+		a := vec{tris[i][0], tris[i][1]}
+		b := vec{tris[i+1][0], tris[i+1][1]}
+		c := vec{tris[i+2][0], tris[i+2][1]}
+		if triangleContainsPoint(a, b, c, pt) {
+			return true
+		}
+	}
+	return false
 }

@@ -84,11 +84,11 @@ func polygonContainsPoint(polygon []vec, p vec) bool {
 	return count%2 == 1
 }
 
-func triangulatePath(path []pathPoint, target [][2]float64) [][2]float64 {
+func triangulatePath(path []pathPoint, mat mat, target [][2]float64) [][2]float64 {
 	var buf [500]vec
 	polygon := buf[:0]
 	for _, p := range path {
-		polygon = append(polygon, p.pos)
+		polygon = append(polygon, p.pos.mulMat(mat))
 	}
 
 	for len(polygon) > 2 {

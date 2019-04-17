@@ -336,11 +336,16 @@ func lineIntersection(a0, a1, b0, b1 vec) (vec, float64, float64) {
 
 // Fill fills the current path with the current FillStyle
 func (cv *Canvas) Fill() {
-	cv.FillPath(&cv.path)
+	cv.fillPath(&cv.path, matIdentity())
 }
 
 // FillPath fills the given path with the current FillStyle
 func (cv *Canvas) FillPath(path *Path2D) {
+	cv.fillPath(path, cv.state.transform)
+}
+
+// FillPath fills the given path with the current FillStyle
+func (cv *Canvas) fillPath(path *Path2D, tf mat) {
 	if len(path.p) < 3 {
 		return
 	}
@@ -348,7 +353,7 @@ func (cv *Canvas) FillPath(path *Path2D) {
 	var triBuf [500][2]float64
 	tris := triBuf[:0]
 	runSubPaths(path.p, func(sp []pathPoint) bool {
-		tris = appendSubPathTriangles(tris, sp)
+		tris = appendSubPathTriangles(tris, tf, sp)
 		return false
 	})
 	if len(tris) == 0 {
@@ -361,23 +366,23 @@ func (cv *Canvas) FillPath(path *Path2D) {
 	cv.b.Fill(&stl, tris)
 }
 
-func appendSubPathTriangles(tris [][2]float64, path []pathPoint) [][2]float64 {
+func appendSubPathTriangles(tris [][2]float64, mat mat, path []pathPoint) [][2]float64 {
 	last := path[len(path)-1]
 	if last.flags&pathIsConvex != 0 {
-		p0, p1 := path[0].pos, path[1].pos
+		p0, p1 := path[0].pos.mulMat(mat), path[1].pos.mulMat(mat)
 		last := len(path)
 		for i := 2; i < last; i++ {
-			p2 := path[i].pos
+			p2 := path[i].pos.mulMat(mat)
 			tris = append(tris, p0, p1, p2)
 			p1 = p2
 		}
 	} else if last.flags&pathSelfIntersects != 0 {
 		selfIntersectingPathParts(path, func(sp []pathPoint) bool {
-			tris = triangulatePath(sp, tris)
+			tris = triangulatePath(sp, mat, tris)
 			return false
 		})
 	} else {
-		tris = triangulatePath(path, tris)
+		tris = triangulatePath(path, mat, tris)
 	}
 	return tris
 }
@@ -385,10 +390,10 @@ func appendSubPathTriangles(tris [][2]float64, path []pathPoint) [][2]float64 {
 // Clip uses the current path to clip any further drawing. Use Save/Restore to
 // remove the clipping again
 func (cv *Canvas) Clip() {
-	cv.clip(&cv.path)
+	cv.clip(&cv.path, matIdentity())
 }
 
-func (cv *Canvas) clip(path *Path2D) {
+func (cv *Canvas) clip(path *Path2D, tf mat) {
 	if len(path.p) < 3 {
 		return
 	}
@@ -396,7 +401,7 @@ func (cv *Canvas) clip(path *Path2D) {
 	var triBuf [500][2]float64
 	tris := triBuf[:0]
 	runSubPaths(path.p, func(sp []pathPoint) bool {
-		tris = appendSubPathTriangles(tris, sp)
+		tris = appendSubPathTriangles(tris, tf, sp)
 		return false
 	})
 	if len(tris) == 0 {
