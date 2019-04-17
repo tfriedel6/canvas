@@ -19,10 +19,10 @@ func triangleLR(tri [][2]float64, y float64) (l, r float64, outside bool) {
 	}
 
 	// check general bounds
-	if y < a[1] {
+	if y <= a[1] {
 		return a[0], a[0], true
 	}
-	if y >= c[1] {
+	if y > c[1] {
 		return c[0], c[0], true
 	}
 
@@ -72,6 +72,9 @@ func (b *SoftwareBackend) fillTriangle(tri [][2]float64, fn func(x, y int)) {
 			continue
 		} else if r > float64(b.w) {
 			r = float64(b.w)
+		}
+		if l >= r {
+			continue
 		}
 		fl, cr := int(math.Floor(l)), int(math.Ceil(r))
 		for x := fl; x <= cr; x++ {
@@ -126,6 +129,9 @@ func (b *SoftwareBackend) fillQuad(quad [4][2]float64, fn func(x, y int, sx, sy 
 			continue
 		} else if r > float64(b.w) {
 			r = float64(b.w)
+		}
+		if l >= r {
+			continue
 		}
 
 		v0 := [2]float64{float64(l) - quad[0][0], float64(y) - quad[0][1]}
