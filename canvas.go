@@ -460,3 +460,9 @@ func (cv *Canvas) SetShadowBlur(r float64) {
 func (cv *Canvas) IsPointInPath(x, y float64, rule pathRule) bool {
 	return cv.path.IsPointInPath(x, y, rule)
 }
+
+// IsPointInStroke returns true if the point is in the current
+// path stroke
+func (cv *Canvas) IsPointInStroke(x, y float64) bool {
+	return cv.path.IsPointInStroke(x, y)
+}

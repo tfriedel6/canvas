@@ -5,6 +5,7 @@ import (
 )
 
 type Path2D struct {
+	cv    *Canvas
 	p     []pathPoint
 	move  vec
 	cwSum float64
@@ -28,8 +29,8 @@ const (
 )
 
 // NewPath2D creates a new Path2D and returns it
-func NewPath2D() *Path2D {
-	return &Path2D{p: make([]pathPoint, 0, 20)}
+func (cv *Canvas) NewPath2D() *Path2D {
+	return &Path2D{cv: cv, p: make([]pathPoint, 0, 20)}
 }
 
 // func (p *Path2D) AddPath(p2 *Path2D) {
@@ -343,4 +344,26 @@ func (p *Path2D) IsPointInPath(x, y float64, rule pathRule) bool {
 		return inside
 	})
 	return inside
+}
+
+// IsPointInStroke returns true if the point is in the stroke
+func (p *Path2D) IsPointInStroke(x, y float64) bool {
+	if len(p.p) == 0 {
+		return false
+	}
+
+	var triBuf [500][2]float64
+	tris := p.cv.strokeTris(p, mat{}, false, triBuf[:0])
+
+	pt := vec{x, y}
+
+	for i := 0; i < len(tris); i += 3 {
+		a := vec{tris[i][0], tris[i][1]}
+		b := vec{tris[i+1][0], tris[i+1][1]}
+		c := vec{tris[i+2][0], tris[i+2][1]}
+		if triangleContainsPoint(a, b, c, pt) {
+			return true
+		}
+	}
+	return false
 }

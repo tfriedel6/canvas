@@ -92,6 +92,20 @@ func (cv *Canvas) strokePath(path *Path2D, inv mat, doInv bool) {
 		return
 	}
 
+	var triBuf [500][2]float64
+	tris := cv.strokeTris(path, inv, doInv, triBuf[:0])
+
+	cv.drawShadow2(tris, nil)
+
+	stl := cv.backendFillStyle(&cv.state.stroke, 1)
+	cv.b.Fill(&stl, tris)
+}
+
+func (cv *Canvas) strokeTris(path *Path2D, inv mat, doInv bool, target [][2]float64) [][2]float64 {
+	if len(path.p) == 0 {
+		return target
+	}
+
 	if doInv {
 		for i, pt := range path.p {
 			path.p[i].pos = pt.pos.mulMat(inv)
@@ -100,9 +114,6 @@ func (cv *Canvas) strokePath(path *Path2D, inv mat, doInv bool) {
 	}
 
 	dashedPath := cv.applyLineDash(path.p)
-
-	var triBuf [500][2]float64
-	tris := triBuf[:0]
 
 	start := true
 	var p0 vec
@@ -131,7 +142,7 @@ func (cv *Canvas) strokePath(path *Path2D, inv mat, doInv bool) {
 				lp0 = lp0.sub(v0)
 				lp2 = lp2.sub(v0)
 			case Round:
-				tris = cv.addCircleTris(p0, cv.state.lineWidth*0.5, tris)
+				target = cv.addCircleTris(p0, cv.state.lineWidth*0.5, target)
 			}
 		}
 
@@ -143,24 +154,21 @@ func (cv *Canvas) strokePath(path *Path2D, inv mat, doInv bool) {
 				lp1 = lp1.add(v0)
 				lp3 = lp3.add(v0)
 			case Round:
-				tris = cv.addCircleTris(p1, cv.state.lineWidth*0.5, tris)
+				target = cv.addCircleTris(p1, cv.state.lineWidth*0.5, target)
 			}
 		}
 
-		tris = append(tris, cv.tf(lp0), cv.tf(lp1), cv.tf(lp3), cv.tf(lp0), cv.tf(lp3), cv.tf(lp2))
+		target = append(target, cv.tf(lp0), cv.tf(lp1), cv.tf(lp3), cv.tf(lp0), cv.tf(lp3), cv.tf(lp2))
 
 		if p.flags&pathAttach != 0 && cv.state.lineWidth > 1 {
-			tris = cv.lineJoint(p0, p1, p.next, lp0, lp1, lp2, lp3, tris)
+			target = cv.lineJoint(p0, p1, p.next, lp0, lp1, lp2, lp3, target)
 		}
 
 		p0 = p1
 		start = false
 	}
 
-	cv.drawShadow2(tris, nil)
-
-	stl := cv.backendFillStyle(&cv.state.stroke, 1)
-	cv.b.Fill(&stl, tris)
+	return target
 }
 
 func (cv *Canvas) applyLineDash(path []pathPoint) []pathPoint {
