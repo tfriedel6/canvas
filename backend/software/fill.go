@@ -3,6 +3,7 @@ package softwarebackend
 import (
 	"image"
 	"image/color"
+	"math"
 
 	"github.com/tfriedel6/canvas/backend/backendbase"
 )
@@ -24,12 +25,36 @@ func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 			if b.clip.AlphaAt(x, y).A == 0 {
 				return
 			}
-			b.Image.SetRGBA(x, y, style.Color)
+			b.Image.SetRGBA(x, y, mix(style.Color, b.Image.RGBAAt(x, y)))
 		})
 	})
 }
 
-func mix(col color.Color, alpha color.Alpha) color.RGBA {
+func mix(src, dest color.Color) color.RGBA {
+	ir1, ig1, ib1, ia1 := src.RGBA()
+	r1 := float64(ir1) / 65535.0
+	g1 := float64(ig1) / 65535.0
+	b1 := float64(ib1) / 65535.0
+	a1 := float64(ia1) / 65535.0
+
+	ir2, ig2, ib2, _ := dest.RGBA()
+	r2 := float64(ir2) / 65535.0
+	g2 := float64(ig2) / 65535.0
+	b2 := float64(ib2) / 65535.0
+
+	r := (r1-r2)*a1 + r2
+	g := (g1-g2)*a1 + g2
+	b := (b1-b2)*a1 + b2
+
+	return color.RGBA{
+		R: uint8(math.Round(r * 255.0)),
+		G: uint8(math.Round(g * 255.0)),
+		B: uint8(math.Round(b * 255.0)),
+		A: 255,
+	}
+}
+
+func alphaColor(col color.Color, alpha color.Alpha) color.RGBA {
 	ir, ig, ib, _ := col.RGBA()
 	a2 := float64(alpha.A) / 255.0
 	r := float64(ir) * a2 / 65535.0
@@ -53,7 +78,7 @@ func (b *SoftwareBackend) FillImageMask(style *backendbase.FillStyle, mask *imag
 		if a.A == 0 {
 			return
 		}
-		b.Image.SetRGBA(x, y, mix(style.Color, a))
+		b.Image.SetRGBA(x, y, alphaColor(style.Color, a))
 	})
 }
 
