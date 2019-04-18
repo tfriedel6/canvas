@@ -206,8 +206,6 @@ type GoGLBackend struct {
 
 	*GLContext
 
-	curClip [][2]float64
-
 	activateFn                 func()
 	disableTextureRenderTarget func()
 }
@@ -246,11 +244,7 @@ func New(x, y, w, h int, ctx *GLContext) (*GoGLBackend, error) {
 	b.activateFn = func() {
 		gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 		gl.Viewport(int32(b.x), int32(b.y), int32(b.w), int32(b.h))
-		gl.Clear(gl.STENCIL_BUFFER_BIT)
-		if c := b.curClip; c != nil {
-			b.curClip = nil
-			b.Clip(c)
-		}
+		// todo reapply clipping since another application may have used the stencil buffer
 	}
 	b.disableTextureRenderTarget = func() {
 		gl.BindFramebuffer(gl.FRAMEBUFFER, 0)

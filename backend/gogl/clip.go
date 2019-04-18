@@ -7,7 +7,6 @@ import (
 )
 
 func (b *GoGLBackend) ClearClip() {
-	b.curClip = nil
 	b.activate()
 
 	gl.StencilMask(0xFF)
@@ -15,9 +14,7 @@ func (b *GoGLBackend) ClearClip() {
 }
 
 func (b *GoGLBackend) Clip(pts [][2]float64) {
-	b.curClip = nil
 	b.activate()
-	b.curClip = pts
 
 	b.ptsBuf = b.ptsBuf[:0]
 	b.ptsBuf = append(b.ptsBuf,
