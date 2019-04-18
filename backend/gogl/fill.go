@@ -115,6 +115,7 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 		gl.UseProgram(b.sr.ID)
 		gl.Uniform4f(b.sr.Color, 0, 0, 0, 0)
 		gl.Uniform2f(b.sr.CanvasSize, float32(b.fw), float32(b.fh))
+		gl.Uniform1f(b.sr.GlobalAlpha, 1)
 
 		gl.EnableVertexAttribArray(b.sr.Vertex)
 		gl.VertexAttribPointer(b.sr.Vertex, 2, gl.FLOAT, false, 0, nil)
