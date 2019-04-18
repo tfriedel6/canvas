@@ -120,21 +120,26 @@ These features *should* work just like their HTML5 counterparts, but there are l
 - shadowOffset(X/Y)
 - shadowBlur
 - isPointInPath
+- isPointInStroke
 - self intersecting polygons
 
 # Missing features
 
 - globalCompositeOperation
-- isPointInStroke
 - textBaseline hanging and ideographic (currently work just like top and bottom)
 - image patterns with repeat and transform
 
 # Version history
 
+v0.8.1
+
+- IsPointInStroke implemented
+- Fixed some bugs related to transformation and clipping
+
 v0.8.0
 
 - Self intersecting polygon support
-- isPointInPath implemented
+- IsPointInPath implemented
 
 v0.7.2
 
