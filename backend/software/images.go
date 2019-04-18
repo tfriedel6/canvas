@@ -2,6 +2,7 @@ package softwarebackend
 
 import (
 	"image"
+	"math"
 
 	"github.com/tfriedel6/canvas/backend/backendbase"
 )
@@ -21,9 +22,19 @@ func (b *SoftwareBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh float
 		return
 	}
 	b.fillQuad(pts, func(x, y int, sx2, sy2 float64) {
-		sxi := int(sx + sw*sx2 + 0.5)
-		syi := int(sy + sh*sy2 + 0.5)
-		b.Image.Set(x, y, simg.img.At(sxi, syi))
+		imgx := sx + sw*sx2
+		imgy := sy + sh*sy2
+		imgxf := math.Floor(imgx)
+		imgyf := math.Floor(imgy)
+		rx := imgx - imgxf
+		ry := imgy - imgyf
+		ca := simg.img.At(int(imgxf), int(imgyf))
+		cb := simg.img.At(int(imgxf+1), int(imgyf))
+		cc := simg.img.At(int(imgxf), int(imgyf+1))
+		cd := simg.img.At(int(imgxf+1), int(imgyf+1))
+		ctop := lerp(ca, cb, rx)
+		cbtm := lerp(cc, cd, rx)
+		b.Image.Set(x, y, lerp(ctop, cbtm, ry))
 	})
 }
 

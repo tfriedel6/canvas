@@ -134,27 +134,25 @@ func (b *SoftwareBackend) fillQuad(quad [4][2]float64, fn func(x, y int, sx, sy 
 			continue
 		}
 
-		v0 := [2]float64{float64(l) - quad[0][0], float64(y) - quad[0][1]}
-		sx0 := topv[0]*v0[0] + topv[1]*v0[1]
-		sy0 := leftv[0]*v0[0] + leftv[1]*v0[1]
-
-		v1 := [2]float64{float64(r) - quad[0][0], float64(y) - quad[0][1]}
-		sx1 := topv[0]*v1[0] + topv[1]*v1[1]
-		sy1 := leftv[0]*v1[0] + leftv[1]*v1[1]
-
-		sx, sy := sx0/topLen, sy0/leftLen
-		sxStep := (sx1 - sx0) / float64(r-l) / topLen
-		syStep := (sy1 - sy0) / float64(r-l) / leftLen
-
+		sfy := float64(y) + 0.5 - quad[0][1]
 		fl, cr := int(math.Floor(l)), int(math.Ceil(r))
 		for x := fl; x <= cr; x++ {
 			fx := float64(x) + 0.5
 			if fx < l || fx >= r {
 				continue
 			}
-			fn(x, y, sx, sy)
-			sx += sxStep
-			sy += syStep
+			sfx := fx - quad[0][0]
+
+			var sx, sy float64
+			if math.Abs(leftv[0]) > math.Abs(leftv[1]) {
+				sx = (sfy - sfx*(leftv[1]/leftv[0])) / (topv[1] - topv[0]*(leftv[1]/leftv[0]))
+				sy = (sfx - topv[0]*sx) / leftv[0]
+			} else {
+				sx = (sfx - sfy*(leftv[0]/leftv[1])) / (topv[0] - topv[1]*(leftv[0]/leftv[1]))
+				sy = (sfy - topv[1]*sx) / leftv[1]
+			}
+
+			fn(x, y, sx/topLen, sy/leftLen)
 		}
 	}
 }
