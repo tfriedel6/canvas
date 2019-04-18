@@ -17,89 +17,34 @@ import (
 	"github.com/tfriedel6/canvas/sdlcanvas"
 )
 
+var usesw = true
+
 func run(t *testing.T, fn func(cv *canvas.Canvas)) {
-	wnd, cv, err := sdlcanvas.CreateWindow(100, 100, "test")
-	if err != nil {
-		t.Fatalf("Failed to create window: %v", err)
-		return
-	}
-	defer wnd.Destroy()
-
-	gl.Disable(gl.MULTISAMPLE)
-
-	wnd.StartFrame()
-
-	cv.ClearRect(0, 0, 100, 100)
-	fn(cv)
-	img := cv.GetImageData(0, 0, 100, 100)
-
-	caller, _, _, ok := runtime.Caller(1)
-	if !ok {
-		t.Fatal("Failed to get caller")
-	}
-
-	callerFunc := runtime.FuncForPC(caller)
-	if callerFunc == nil {
-		t.Fatal("Failed to get caller function")
-	}
-
-	const prefix = "canvas_test.Test"
-	callerFuncName := callerFunc.Name()
-	callerFuncName = callerFuncName[strings.Index(callerFuncName, prefix)+len(prefix):]
-
-	fileName := fmt.Sprintf("testdata/%s.png", callerFuncName)
-
-	_, err = os.Stat(fileName)
-	if err != nil && !os.IsNotExist(err) {
-		t.Fatalf("Failed to stat file \"%s\": %v", fileName, err)
-	}
-
-	if os.IsNotExist(err) {
-		err = writeImage(img, fileName)
+	var img *image.RGBA
+	if !usesw {
+		wnd, cv, err := sdlcanvas.CreateWindow(100, 100, "test")
 		if err != nil {
-			t.Fatal(err)
+			t.Fatalf("Failed to create window: %v", err)
+			return
 		}
-		return
-	}
+		defer wnd.Destroy()
 
-	f, err := os.Open(fileName)
-	if err != nil {
-		t.Fatalf("Failed to open file \"%s\": %v", fileName, err)
-	}
-	defer f.Close()
+		gl.Disable(gl.MULTISAMPLE)
 
-	refImg, err := png.Decode(f)
-	if err != nil {
-		t.Fatalf("Failed to decode file \"%s\": %v", fileName, err)
-	}
+		wnd.StartFrame()
 
-	if b := img.Bounds(); b.Min.X != 0 || b.Min.Y != 0 || b.Max.X != 100 || b.Max.Y != 100 {
-		t.Fatalf("Image bounds must be 0,0,100,100")
-	}
-	if b := refImg.Bounds(); b.Min.X != 0 || b.Min.Y != 0 || b.Max.X != 100 || b.Max.Y != 100 {
-		t.Fatalf("Image bounds must be 0,0,100,100")
-	}
+		cv.ClearRect(0, 0, 100, 100)
+		fn(cv)
+		img = cv.GetImageData(0, 0, 100, 100)
+	} else {
+		backend := softwarebackend.New(100, 100)
+		cv := canvas.New(backend)
 
-	for y := 0; y < 100; y++ {
-		for x := 0; x < 100; x++ {
-			r1, g1, b1, a1 := img.At(x, y).RGBA()
-			r2, g2, b2, a2 := refImg.At(x, y).RGBA()
-			if r1 != r2 || g1 != g2 || b1 != b2 || a1 != a2 {
-				writeImage(img, fmt.Sprintf("testdata/%s_fail.png", callerFuncName))
-				t.FailNow()
-			}
-		}
+		cv.SetFillStyle("#000")
+		cv.FillRect(0, 0, 100, 100)
+		fn(cv)
+		img = cv.GetImageData(0, 0, 100, 100)
 	}
-}
-
-func runsw(t *testing.T, fn func(cv *canvas.Canvas)) {
-	backend := softwarebackend.New(100, 100)
-	cv := canvas.New(backend)
-
-	cv.SetFillStyle("#000")
-	cv.FillRect(0, 0, 100, 100)
-	fn(cv)
-	img := cv.GetImageData(0, 0, 100, 100)
 
 	caller, _, _, ok := runtime.Caller(1)
 	if !ok {
