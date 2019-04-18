@@ -107,10 +107,20 @@ func (cv *Canvas) strokeTris(path *Path2D, inv mat, doInv bool, target [][2]floa
 	}
 
 	if doInv {
-		for i, pt := range path.p {
-			path.p[i].pos = pt.pos.mulMat(inv)
-			path.p[i].next = pt.next.mulMat(inv)
+		pcopy := *path
+		var pbuf [50]pathPoint
+		if len(path.p) <= len(pbuf) {
+			pcopy.p = pbuf[:len(path.p)]
+		} else {
+			pcopy.p = make([]pathPoint, len(path.p))
 		}
+
+		for i, pt := range path.p {
+			pt.pos = pt.pos.mulMat(inv)
+			pt.next = pt.next.mulMat(inv)
+			pcopy.p[i] = pt
+		}
+		path = &pcopy
 	}
 
 	dashedPath := cv.applyLineDash(path.p)
