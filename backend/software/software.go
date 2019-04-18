@@ -10,7 +10,7 @@ import (
 type SoftwareBackend struct {
 	Image *image.RGBA
 	clip  *image.Alpha
-	clip2 *image.Alpha
+	mask  *image.Alpha
 	w, h  int
 }
 
@@ -24,7 +24,7 @@ func (b *SoftwareBackend) SetSize(w, h int) {
 	b.w, b.h = w, h
 	b.Image = image.NewRGBA(image.Rect(0, 0, w, h))
 	b.clip = image.NewAlpha(image.Rect(0, 0, w, h))
-	b.clip2 = image.NewAlpha(image.Rect(0, 0, w, h))
+	b.mask = image.NewAlpha(image.Rect(0, 0, w, h))
 	b.ClearClip()
 }
 

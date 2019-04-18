@@ -20,11 +20,20 @@ func (b *SoftwareBackend) Clear(pts [4][2]float64) {
 }
 
 func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
+	p2 := b.mask.Pix
+	for i := range p2 {
+		p2[i] = 0
+	}
+
 	iterateTriangles(pts[:], func(tri [][2]float64) {
 		b.fillTriangle(tri, func(x, y int) {
 			if b.clip.AlphaAt(x, y).A == 0 {
 				return
 			}
+			if b.mask.AlphaAt(x, y).A > 0 {
+				return
+			}
+			b.mask.SetAlpha(x, y, color.Alpha{A: 255})
 			b.Image.SetRGBA(x, y, mix(style.Color, b.Image.RGBAAt(x, y)))
 		})
 	})
@@ -90,14 +99,14 @@ func (b *SoftwareBackend) ClearClip() {
 }
 
 func (b *SoftwareBackend) Clip(pts [][2]float64) {
-	p2 := b.clip2.Pix
+	p2 := b.mask.Pix
 	for i := range p2 {
 		p2[i] = 0
 	}
 
 	iterateTriangles(pts[:], func(tri [][2]float64) {
 		b.fillTriangle(tri, func(x, y int) {
-			b.clip2.SetAlpha(x, y, color.Alpha{A: 255})
+			b.mask.SetAlpha(x, y, color.Alpha{A: 255})
 		})
 	})
 
