@@ -10,6 +10,8 @@ github.com/samuel/go-pcx v0.0.0-20180426214139-d9c017170db4 h1:Y/KOCu+ZLB730Pude
 github.com/samuel/go-pcx v0.0.0-20180426214139-d9c017170db4/go.mod h1:qxuIawynlRhuaHowuXvd1xjyFWx87Ro4gkZlKRXtHnQ=
 github.com/veandco/go-sdl2 v0.0.0-20180925095440-75ff82abc4e3 h1:S1dvzp6ZDdmz1M4oRQ6ceLwU6ZDCNvIa20zhJRHyKgE=
 github.com/veandco/go-sdl2 v0.0.0-20180925095440-75ff82abc4e3/go.mod h1:FB+kTpX9YTE+urhYiClnRzpOXbiWgaU3+5F2AB78DPg=
+github.com/veandco/go-sdl2 v0.3.0 h1:IWYkHMp8V3v37NsKjszln8FFnX2+ab0538J371t+rss=
+github.com/veandco/go-sdl2 v0.3.0/go.mod h1:FB+kTpX9YTE+urhYiClnRzpOXbiWgaU3+5F2AB78DPg=
 golang.org/x/exp v0.0.0-20181106170214-d68db9428509 h1:k21GX33vzpH/syMF7TgrLxe8ILtvwbyuHtEO3ebR82E=
 golang.org/x/exp v0.0.0-20181106170214-d68db9428509/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/image v0.0.0-20181109002202-aa35264064ba h1:tKfAeDKyjJZwxAJ8TPBZaf6LpvauubUHT8wwpdz+OMM=
