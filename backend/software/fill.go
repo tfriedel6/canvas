@@ -57,7 +57,6 @@ func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 			o := math.Max(o1, o2)
 			col := rg.data.ColorAt(o)
 			b.Image.SetRGBA(x, y, mix(col, b.Image.RGBAAt(x, y)))
-			b.Image.SetRGBA(x, y, color.RGBA{R: 255, A: 255})
 		})
 	} else {
 		b.fillTriangles(pts, func(x, y int) {
