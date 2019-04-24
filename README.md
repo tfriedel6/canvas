@@ -131,6 +131,11 @@ These features *should* work just like their HTML5 counterparts, but there are l
 
 # Version history
 
+v0.8.2
+
+- Shadows now properly use GlobalAlpha
+- Misc bugfixes
+
 v0.8.1
 
 - IsPointInStroke implemented
