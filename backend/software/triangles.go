@@ -1,6 +1,7 @@
 package softwarebackend
 
 import (
+	"image/color"
 	"math"
 )
 
@@ -172,4 +173,19 @@ func iterateTriangles(pts [][2]float64, fn func(tri [][2]float64)) {
 	for i := 3; i <= len(pts); i += 3 {
 		fn(pts[i-3 : i])
 	}
+}
+
+func (b *SoftwareBackend) fillTriangles(pts [][2]float64, fn func(x, y int)) {
+	iterateTriangles(pts[:], func(tri [][2]float64) {
+		b.fillTriangle(tri, func(x, y int) {
+			if b.clip.AlphaAt(x, y).A == 0 {
+				return
+			}
+			if b.mask.AlphaAt(x, y).A > 0 {
+				return
+			}
+			b.mask.SetAlpha(x, y, color.Alpha{A: 255})
+			fn(x, y)
+		})
+	})
 }
