@@ -2,11 +2,12 @@ package canvas
 
 import (
 	"image"
+	"math"
 
 	"github.com/tfriedel6/canvas/backend/backendbase"
 )
 
-func (cv *Canvas) drawShadow2(pts [][2]float64, mask *image.Alpha) {
+func (cv *Canvas) drawShadow(pts [][2]float64, mask *image.Alpha) {
 	if cv.state.shadowColor.A == 0 {
 		return
 	}
@@ -26,7 +27,9 @@ func (cv *Canvas) drawShadow2(pts [][2]float64, mask *image.Alpha) {
 		})
 	}
 
-	style := backendbase.FillStyle{Color: cv.state.shadowColor, Blur: cv.state.shadowBlur}
+	color := cv.state.shadowColor
+	color.A = uint8(math.Round(((float64(color.A) / 255.0) * cv.state.globalAlpha) * 255.0))
+	style := backendbase.FillStyle{Color: color, Blur: cv.state.shadowBlur}
 	if mask != nil {
 		if len(cv.shadowBuf) != 4 {
 			panic("invalid number of points to fill with mask, must be 4")

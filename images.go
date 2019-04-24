@@ -169,7 +169,7 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 	data[2] = cv.tf(vec{dx + dw, dy + dh})
 	data[3] = cv.tf(vec{dx + dw, dy})
 
-	cv.drawShadow2(data[:], nil)
+	cv.drawShadow(data[:], nil)
 
 	cv.b.DrawImage(img.img, sx, sy, sw, sh, data, cv.state.globalAlpha)
 }
