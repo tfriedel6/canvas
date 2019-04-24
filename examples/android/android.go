@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/tfriedel6/canvas"
-	"github.com/tfriedel6/canvas/backend/gogl"
+	"github.com/tfriedel6/canvas/backend/goglbackend"
 )
 
 var cv *canvas.Canvas

@@ -7,7 +7,7 @@ import (
 	"unsafe"
 
 	"github.com/tfriedel6/canvas/backend/backendbase"
-	"golang.org/x/mobile/gl"
+	"github.com/tfriedel6/canvas/backend/goglbackend/gl"
 )
 
 // Image represents a loaded image that can be used in various drawing functions

@@ -6,7 +6,7 @@ import (
 	"unsafe"
 
 	"github.com/tfriedel6/canvas/backend/backendbase"
-	"golang.org/x/mobile/gl"
+	"github.com/tfriedel6/canvas/backend/goglbackend/gl"
 )
 
 func (b *XMobileBackend) Clear(pts [4][2]float64) {

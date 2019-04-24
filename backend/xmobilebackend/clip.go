@@ -3,7 +3,7 @@ package xmobilebackend
 import (
 	"unsafe"
 
-	"golang.org/x/mobile/gl"
+	"github.com/tfriedel6/canvas/backend/goglbackend/gl"
 )
 
 func (b *XMobileBackend) ClearClip() {

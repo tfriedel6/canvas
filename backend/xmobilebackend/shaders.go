@@ -246,7 +246,7 @@ void main() {
 		return;
 	}
 	float o = max(o1, o2);
-	float r = radFrom + o * (radTo - radFrom);
+	//float r = radFrom + o * (radTo - radFrom);
     vec4 col = texture2D(gradient, vec2(o, 0.0));
     col.a *= texture2D(alphaTex, v_atc).a * globalAlpha;
 	gl_FragColor = col;

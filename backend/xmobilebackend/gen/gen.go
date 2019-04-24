@@ -18,8 +18,8 @@ func main() {
 		}
 		d1 := filepath.Base(dir)
 		d2 := filepath.Base(filepath.Dir(dir))
-		if d2 != "backend" || d1 != "xmobile" {
-			log.Fatalln("This must be run in the backend/xmobile directory")
+		if d2 != "backend" || d1 != "xmobilebackend" {
+			log.Fatalln("This must be run in the backend/xmobilebackend directory")
 		}
 	}
 
@@ -41,16 +41,16 @@ func main() {
 	}
 
 	{ // copy gogl files
-		fis, err := ioutil.ReadDir("../gogl")
+		fis, err := ioutil.ReadDir("../goglbackend")
 		if err != nil {
-			log.Fatalf("Failed to read dir ../gogl: %v", err)
+			log.Fatalf("Failed to read dir ../goglbackend: %v", err)
 		}
 
 		for _, fi := range fis {
 			if !strings.HasSuffix(fi.Name(), ".go") || fi.Name() == "shader.go" {
 				continue
 			}
-			path := filepath.Join("../gogl", fi.Name())
+			path := filepath.Join("../goglbackend", fi.Name())
 			data, err := ioutil.ReadFile(path)
 			if err != nil {
 				log.Fatalf("Failed to read file %s: %v", path, err)

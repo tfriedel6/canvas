@@ -4,7 +4,7 @@ import (
 	"runtime"
 
 	"github.com/tfriedel6/canvas/backend/backendbase"
-	"github.com/tfriedel6/canvas/backend/gogl/gl"
+	"github.com/tfriedel6/canvas/backend/goglbackend/gl"
 )
 
 // LinearGradient is a gradient with any number of

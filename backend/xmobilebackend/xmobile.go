@@ -8,7 +8,7 @@ import (
 	"unsafe"
 
 	"github.com/tfriedel6/canvas/backend/backendbase"
-	"golang.org/x/mobile/gl"
+	"github.com/tfriedel6/canvas/backend/goglbackend/gl"
 )
 
 const alphaTexSize = 2048

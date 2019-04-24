@@ -6,7 +6,7 @@ import (
 	"unsafe"
 
 	"github.com/tfriedel6/canvas/backend/backendbase"
-	"github.com/tfriedel6/canvas/backend/gogl/gl"
+	"github.com/tfriedel6/canvas/backend/goglbackend/gl"
 )
 
 func (b *GoGLBackend) Clear(pts [4][2]float64) {
