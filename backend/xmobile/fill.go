@@ -115,6 +115,7 @@ func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 		b.glctx.UseProgram(b.sr.ID)
 		b.glctx.Uniform4f(b.sr.Color, 0, 0, 0, 0)
 		b.glctx.Uniform2f(b.sr.CanvasSize, float32(b.fw), float32(b.fh))
+		b.glctx.Uniform1f(b.sr.GlobalAlpha, 1)
 
 		b.glctx.EnableVertexAttribArray(b.sr.Vertex)
 		b.glctx.VertexAttribPointer(b.sr.Vertex, 2, gl.FLOAT, false, 0, 0)

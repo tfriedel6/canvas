@@ -7,7 +7,6 @@ import (
 )
 
 func (b *XMobileBackend) ClearClip() {
-	b.curClip = nil
 	b.activate()
 
 	b.glctx.StencilMask(0xFF)
@@ -15,9 +14,7 @@ func (b *XMobileBackend) ClearClip() {
 }
 
 func (b *XMobileBackend) Clip(pts [][2]float64) {
-	b.curClip = nil
 	b.activate()
-	b.curClip = pts
 
 	b.ptsBuf = b.ptsBuf[:0]
 	b.ptsBuf = append(b.ptsBuf,
@@ -41,6 +38,7 @@ func (b *XMobileBackend) Clip(pts [][2]float64) {
 	b.glctx.UseProgram(b.sr.ID)
 	b.glctx.Uniform4f(b.sr.Color, 1, 1, 1, 1)
 	b.glctx.Uniform2f(b.sr.CanvasSize, float32(b.fw), float32(b.fh))
+	b.glctx.Uniform1f(b.sr.GlobalAlpha, 1)
 	b.glctx.EnableVertexAttribArray(b.sr.Vertex)
 
 	b.glctx.ColorMask(false, false, false, false)
