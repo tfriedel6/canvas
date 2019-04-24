@@ -267,23 +267,21 @@ func NewOffscreen(w, h int, alpha bool, ctx *GLContext) (*XMobileBackendOffscree
 	if err != nil {
 		return nil, err
 	}
-	bo := &XMobileBackendOffscreen{}
+	bo := &XMobileBackendOffscreen{XMobileBackend: *b}
 	bo.offscrBuf.alpha = alpha
 	bo.offscrImg.flip = true
 
-	b.activateFn = func() {
-		b.enableTextureRenderTarget(&bo.offscrBuf)
-		b.glctx.Viewport(0, 0, bo.XMobileBackend.w, bo.XMobileBackend.h)
+	bo.activateFn = func() {
+		bo.enableTextureRenderTarget(&bo.offscrBuf)
+		b.glctx.Viewport(0, 0, bo.w, bo.h)
 		bo.offscrImg.w = bo.offscrBuf.w
 		bo.offscrImg.h = bo.offscrBuf.h
 		bo.offscrImg.tex = bo.offscrBuf.tex
 		bo.TextureID = bo.offscrBuf.tex
 	}
-	b.disableTextureRenderTarget = func() {
-		b.enableTextureRenderTarget(&bo.offscrBuf)
+	bo.disableTextureRenderTarget = func() {
+		bo.enableTextureRenderTarget(&bo.offscrBuf)
 	}
-
-	bo.XMobileBackend = *b
 
 	return bo, nil
 }
@@ -304,7 +302,6 @@ func (b *XMobileBackend) SetBounds(x, y, w, h int) {
 // SetSize updates the size of the offscreen texture
 func (b *XMobileBackendOffscreen) SetSize(w, h int) {
 	b.XMobileBackend.SetBounds(0, 0, w, h)
-	b.enableTextureRenderTarget(&b.offscrBuf)
 	b.offscrImg.w = b.offscrBuf.w
 	b.offscrImg.h = b.offscrBuf.h
 }
@@ -326,7 +323,6 @@ func glError(b *XMobileBackend) error {
 // Activate only needs to be called if there is other
 // code also using the GL state
 func (b *XMobileBackend) Activate() {
-	activeContext = nil
 	b.activate()
 }
 

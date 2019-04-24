@@ -274,23 +274,21 @@ func NewOffscreen(w, h int, alpha bool, ctx *GLContext) (*GoGLBackendOffscreen, 
 	if err != nil {
 		return nil, err
 	}
-	bo := &GoGLBackendOffscreen{}
+	bo := &GoGLBackendOffscreen{GoGLBackend: *b}
 	bo.offscrBuf.alpha = alpha
 	bo.offscrImg.flip = true
 
-	b.activateFn = func() {
-		b.enableTextureRenderTarget(&bo.offscrBuf)
-		gl.Viewport(0, 0, int32(bo.GoGLBackend.w), int32(bo.GoGLBackend.h))
+	bo.activateFn = func() {
+		bo.enableTextureRenderTarget(&bo.offscrBuf)
+		gl.Viewport(0, 0, int32(bo.w), int32(bo.h))
 		bo.offscrImg.w = bo.offscrBuf.w
 		bo.offscrImg.h = bo.offscrBuf.h
 		bo.offscrImg.tex = bo.offscrBuf.tex
 		bo.TextureID = bo.offscrBuf.tex
 	}
-	b.disableTextureRenderTarget = func() {
-		b.enableTextureRenderTarget(&bo.offscrBuf)
+	bo.disableTextureRenderTarget = func() {
+		bo.enableTextureRenderTarget(&bo.offscrBuf)
 	}
-
-	bo.GoGLBackend = *b
 
 	return bo, nil
 }
@@ -311,7 +309,6 @@ func (b *GoGLBackend) SetBounds(x, y, w, h int) {
 // SetSize updates the size of the offscreen texture
 func (b *GoGLBackendOffscreen) SetSize(w, h int) {
 	b.GoGLBackend.SetBounds(0, 0, w, h)
-	b.enableTextureRenderTarget(&b.offscrBuf)
 	b.offscrImg.w = b.offscrBuf.w
 	b.offscrImg.h = b.offscrBuf.h
 }
@@ -333,7 +330,6 @@ func glError() error {
 // Activate only needs to be called if there is other
 // code also using the GL state
 func (b *GoGLBackend) Activate() {
-	activeContext = nil
 	b.activate()
 }
 
