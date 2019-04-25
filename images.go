@@ -189,13 +189,27 @@ func (cv *Canvas) PutImageData(img *image.RGBA, x, y int) {
 type ImagePattern struct {
 	cv  *Canvas
 	img *Image
+	tf  [9]float64
 	ip  backendbase.ImagePattern
 }
 
 func (ip *ImagePattern) data() backendbase.ImagePatternData {
 	return backendbase.ImagePatternData{
-		Image: ip.img.img,
+		Image:     ip.img.img,
+		Transform: ip.tf,
 	}
+}
+
+// SetTransform changes the transformation of the image pattern
+// to the given matrix. The matrix is a 3x3 matrix, but three
+// of the values are always identity values
+func (ip *ImagePattern) SetTransform(tf [6]float64) {
+	ip.tf = [9]float64{
+		tf[0], tf[1], 0,
+		tf[2], tf[3], 0,
+		tf[4], tf[5], 1,
+	}
+	ip.ip.Replace(ip.data())
 }
 
 // CreatePattern creates a new image pattern with the specified

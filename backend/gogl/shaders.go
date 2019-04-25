@@ -132,9 +132,11 @@ precision mediump float;
 varying vec2 v_cp;
 uniform vec2 imageSize;
 uniform sampler2D image;
+uniform mat3 imageTransform;
 uniform float globalAlpha;
 void main() {
-	vec4 col = texture2D(image, mod(v_cp / imageSize, 1.0));
+	vec3 tfp = vec3(v_cp, 1.0) * imageTransform;
+	vec4 col = texture2D(image, mod(tfp.xy / imageSize, 1.0));
 	col.a *= globalAlpha;
     gl_FragColor = col;
 }`
@@ -259,10 +261,12 @@ varying vec2 v_cp;
 varying vec2 v_atc;
 uniform vec2 imageSize;
 uniform sampler2D image;
+uniform mat3 imageTransform;
 uniform sampler2D alphaTex;
 uniform float globalAlpha;
 void main() {
-    vec4 col = texture2D(image, mod(v_cp / imageSize, 1.0));
+	vec3 tfp = vec3(v_cp, 1.0) * imageTransform;
+	vec4 col = texture2D(image, mod(tfp.xy / imageSize, 1.0));
     col.a *= texture2D(alphaTex, v_atc).a * globalAlpha;
 	gl_FragColor = col;
 }`
@@ -400,11 +404,12 @@ type radialGradientShader struct {
 
 type imagePatternShader struct {
 	shaderProgram
-	Vertex      uint32
-	CanvasSize  int32
-	ImageSize   int32
-	Image       int32
-	GlobalAlpha int32
+	Vertex         uint32
+	CanvasSize     int32
+	ImageSize      int32
+	Image          int32
+	ImageTransform int32
+	GlobalAlpha    int32
 }
 
 type solidAlphaShader struct {
@@ -446,13 +451,14 @@ type radialGradientAlphaShader struct {
 
 type imagePatternAlphaShader struct {
 	shaderProgram
-	Vertex        uint32
-	AlphaTexCoord uint32
-	CanvasSize    int32
-	ImageSize     int32
-	Image         int32
-	AlphaTex      int32
-	GlobalAlpha   int32
+	Vertex         uint32
+	AlphaTexCoord  uint32
+	CanvasSize     int32
+	ImageSize      int32
+	Image          int32
+	ImageTransform int32
+	AlphaTex       int32
+	GlobalAlpha    int32
 }
 
 type gaussianShader struct {

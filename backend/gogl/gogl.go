@@ -432,13 +432,19 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle) (vertexLoc uint32)
 		return b.rgr.Vertex
 	}
 	if ip := style.ImagePattern; ip != nil {
-		img := ip.(*ImagePattern).data.Image.(*Image)
+		ipd := ip.(*ImagePattern).data
+		img := ipd.Image.(*Image)
 		gl.UseProgram(b.ipr.ID)
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, img.tex)
 		gl.Uniform2f(b.ipr.CanvasSize, float32(b.fw), float32(b.fh))
 		gl.Uniform2f(b.ipr.ImageSize, float32(img.w), float32(img.h))
 		gl.Uniform1i(b.ipr.Image, 0)
+		var f32mat [9]float32
+		for i, v := range ipd.Transform {
+			f32mat[i] = float32(v)
+		}
+		gl.UniformMatrix3fv(b.ipr.ImageTransform, 1, false, &f32mat[0])
 		gl.Uniform1f(b.ipr.GlobalAlpha, float32(style.Color.A)/255)
 		return b.ipr.Vertex
 	}
@@ -489,13 +495,19 @@ func (b *GoGLBackend) useAlphaShader(style *backendbase.FillStyle, alphaTexSlot 
 		return b.rgar.Vertex, b.rgar.AlphaTexCoord
 	}
 	if ip := style.ImagePattern; ip != nil {
-		img := ip.(*ImagePattern).data.Image.(*Image)
+		ipd := ip.(*ImagePattern).data
+		img := ipd.Image.(*Image)
 		gl.UseProgram(b.ipar.ID)
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, img.tex)
 		gl.Uniform2f(b.ipar.CanvasSize, float32(b.fw), float32(b.fh))
 		gl.Uniform2f(b.ipar.ImageSize, float32(img.w), float32(img.h))
 		gl.Uniform1i(b.ipar.Image, 0)
+		var f32mat [9]float32
+		for i, v := range ipd.Transform {
+			f32mat[i] = float32(v)
+		}
+		gl.UniformMatrix3fv(b.ipr.ImageTransform, 1, false, &f32mat[0])
 		gl.Uniform1i(b.ipar.AlphaTex, alphaTexSlot)
 		gl.Uniform1f(b.ipar.GlobalAlpha, float32(style.Color.A)/255)
 		return b.ipar.Vertex, b.ipar.AlphaTexCoord

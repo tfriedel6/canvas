@@ -107,7 +107,8 @@ type Image interface {
 }
 
 type ImagePatternData struct {
-	Image Image
+	Image     Image
+	Transform [9]float64
 }
 
 type ImagePattern interface {
