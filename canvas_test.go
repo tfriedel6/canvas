@@ -569,3 +569,18 @@ func TestImagePattern(t *testing.T) {
 		cv.FillRect(-40, -40, 80, 80)
 	})
 }
+
+func TestShadow(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		cv.SetFillStyle("#800")
+		cv.SetShadowColor("#00F")
+		cv.SetShadowOffset(6, 6)
+		cv.FillRect(10, 10, 60, 25)
+		cv.SetShadowBlur(6)
+		cv.FillRect(10, 55, 60, 25)
+		cv.SetFillStyle("#0F0")
+		cv.SetShadowColor("#F0F")
+		cv.SetGlobalAlpha(0.5)
+		cv.FillRect(50, 15, 30, 60)
+	})
+}
