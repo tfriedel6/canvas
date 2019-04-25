@@ -133,10 +133,18 @@ varying vec2 v_cp;
 uniform vec2 imageSize;
 uniform sampler2D image;
 uniform mat3 imageTransform;
+uniform vec2 repeat;
 uniform float globalAlpha;
 void main() {
-	vec3 tfp = vec3(v_cp, 1.0) * imageTransform;
-	vec4 col = texture2D(image, mod(tfp.xy / imageSize, 1.0));
+	vec3 tfpt = vec3(v_cp, 1.0) * imageTransform;
+	vec2 imgpt = tfpt.xy / imageSize;
+	vec4 col = texture2D(image, mod(imgpt, 1.0));
+	if (imgpt.x < 0.0 || imgpt.x > 1.0) {
+		col *= repeat.x;
+	}
+	if (imgpt.y < 0.0 || imgpt.y > 1.0) {
+		col *= repeat.y;
+	}
 	col.a *= globalAlpha;
     gl_FragColor = col;
 }`
@@ -262,11 +270,19 @@ varying vec2 v_atc;
 uniform vec2 imageSize;
 uniform sampler2D image;
 uniform mat3 imageTransform;
+uniform vec2 repeat;
 uniform sampler2D alphaTex;
 uniform float globalAlpha;
 void main() {
-	vec3 tfp = vec3(v_cp, 1.0) * imageTransform;
-	vec4 col = texture2D(image, mod(tfp.xy / imageSize, 1.0));
+	vec3 tfpt = vec3(v_cp, 1.0) * imageTransform;
+	vec2 imgpt = tfpt.xy / imageSize;
+	vec4 col = texture2D(image, mod(imgpt, 1.0));
+	if (imgpt.x < 0.0 || imgpt.x > 1.0) {
+		col *= repeat.x;
+	}
+	if (imgpt.y < 0.0 || imgpt.y > 1.0) {
+		col *= repeat.y;
+	}
     col.a *= texture2D(alphaTex, v_atc).a * globalAlpha;
 	gl_FragColor = col;
 }`
@@ -409,6 +425,7 @@ type imagePatternShader struct {
 	ImageSize      int32
 	Image          int32
 	ImageTransform int32
+	Repeat         int32
 	GlobalAlpha    int32
 }
 
@@ -457,6 +474,7 @@ type imagePatternAlphaShader struct {
 	ImageSize      int32
 	Image          int32
 	ImageTransform int32
+	Repeat         int32
 	AlphaTex       int32
 	GlobalAlpha    int32
 }

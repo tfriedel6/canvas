@@ -109,7 +109,18 @@ type Image interface {
 type ImagePatternData struct {
 	Image     Image
 	Transform [9]float64
+	Repeat    ImagePatternRepeat
 }
+
+type ImagePatternRepeat uint8
+
+// Image pattern repeat constants
+const (
+	Repeat ImagePatternRepeat = iota
+	RepeatX
+	RepeatY
+	NoRepeat
+)
 
 type ImagePattern interface {
 	Delete()

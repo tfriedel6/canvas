@@ -223,7 +223,7 @@ func (cv *Canvas) parseStyle(value ...interface{}) drawStyle {
 		switch v := value[0].(type) {
 		case *Image, string:
 			if _, ok := imagePatterns[v]; !ok {
-				imagePatterns[v] = cv.CreatePattern(v, "")
+				imagePatterns[v] = cv.CreatePattern(v, Repeat)
 			}
 			style.imagePattern = imagePatterns[v]
 		case *ImagePattern:

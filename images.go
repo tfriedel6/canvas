@@ -190,13 +190,25 @@ type ImagePattern struct {
 	cv  *Canvas
 	img *Image
 	tf  [9]float64
+	rep imagePatternRepeat
 	ip  backendbase.ImagePattern
 }
+
+type imagePatternRepeat uint8
+
+// Image pattern repeat constants
+const (
+	Repeat   imagePatternRepeat = imagePatternRepeat(backendbase.Repeat)
+	RepeatX                     = imagePatternRepeat(backendbase.RepeatX)
+	RepeatY                     = imagePatternRepeat(backendbase.RepeatY)
+	NoRepeat                    = imagePatternRepeat(backendbase.NoRepeat)
+)
 
 func (ip *ImagePattern) data() backendbase.ImagePatternData {
 	return backendbase.ImagePatternData{
 		Image:     ip.img.img,
 		Transform: ip.tf,
+		Repeat:    backendbase.ImagePatternRepeat(ip.rep),
 	}
 }
 
@@ -214,10 +226,12 @@ func (ip *ImagePattern) SetTransform(tf [6]float64) {
 
 // CreatePattern creates a new image pattern with the specified
 // image and repetition
-func (cv *Canvas) CreatePattern(src interface{}, repetition string) *ImagePattern {
+func (cv *Canvas) CreatePattern(src interface{}, repeat imagePatternRepeat) *ImagePattern {
 	ip := &ImagePattern{
 		cv:  cv,
 		img: cv.getImage(src),
+		rep: repeat,
+		tf:  [9]float64{1, 0, 0, 0, 1, 0, 0, 0, 1},
 	}
 	if ip.img != nil {
 		ip.ip = cv.b.LoadImagePattern(ip.data())

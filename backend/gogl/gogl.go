@@ -445,6 +445,16 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle) (vertexLoc uint32)
 			f32mat[i] = float32(v)
 		}
 		gl.UniformMatrix3fv(b.ipr.ImageTransform, 1, false, &f32mat[0])
+		switch ipd.Repeat {
+		case backendbase.Repeat:
+			gl.Uniform2f(b.ipr.Repeat, 1, 1)
+		case backendbase.RepeatX:
+			gl.Uniform2f(b.ipr.Repeat, 1, 0)
+		case backendbase.RepeatY:
+			gl.Uniform2f(b.ipr.Repeat, 0, 1)
+		case backendbase.NoRepeat:
+			gl.Uniform2f(b.ipr.Repeat, 0, 0)
+		}
 		gl.Uniform1f(b.ipr.GlobalAlpha, float32(style.Color.A)/255)
 		return b.ipr.Vertex
 	}
@@ -508,6 +518,16 @@ func (b *GoGLBackend) useAlphaShader(style *backendbase.FillStyle, alphaTexSlot 
 			f32mat[i] = float32(v)
 		}
 		gl.UniformMatrix3fv(b.ipr.ImageTransform, 1, false, &f32mat[0])
+		switch ipd.Repeat {
+		case backendbase.Repeat:
+			gl.Uniform2f(b.ipr.Repeat, 1, 1)
+		case backendbase.RepeatX:
+			gl.Uniform2f(b.ipr.Repeat, 1, 0)
+		case backendbase.RepeatY:
+			gl.Uniform2f(b.ipr.Repeat, 0, 1)
+		case backendbase.NoRepeat:
+			gl.Uniform2f(b.ipr.Repeat, 0, 0)
+		}
 		gl.Uniform1i(b.ipar.AlphaTex, alphaTexSlot)
 		gl.Uniform1f(b.ipar.GlobalAlpha, float32(style.Color.A)/255)
 		return b.ipar.Vertex, b.ipar.AlphaTexCoord
