@@ -103,7 +103,7 @@ These features *should* work just like their HTML5 counterparts, but there are l
 - strokeStyle
 - linear gradients
 - radial gradients
-- image patterns
+- image patterns with repeat and transform
 - lineWidth
 - lineEnd (square, butt, round)
 - lineJoin (bevel, miter, round)
@@ -127,9 +127,13 @@ These features *should* work just like their HTML5 counterparts, but there are l
 
 - globalCompositeOperation
 - textBaseline hanging and ideographic (currently work just like top and bottom)
-- image patterns with repeat and transform
 
 # Version history
+
+v0.8.3
+
+- Image patterns now support transformations and repeat types
+- Canvas was sometimes not activated properly when using multiple canvases or combining with other GL code
 
 v0.8.2
 
