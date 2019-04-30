@@ -141,6 +141,9 @@ func rewrite(filename, src string) (string, string) {
 		params[2] = params[2][1 : len(params[2])-3]
 		return "b.glctx.Uniform1fv(" + params[0] + ", " + params[2] + ")"
 	})
+	src = rewriteCalls(src, "b.glctx.UniformMatrix3fv", func(params []string) string {
+		return "b.glctx.UniformMatrix3fv(" + params[0] + ", " + params[3][1:len(params[3])-3] + "[:])"
+	})
 	src = rewriteCalls(src, "b.glctx.TexImage2D", func(params []string) string {
 		params = append(params[:5], params[6:]...)
 		for i, param := range params {

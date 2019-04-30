@@ -134,9 +134,19 @@ precision mediump float;
 varying vec2 v_cp;
 uniform vec2 imageSize;
 uniform sampler2D image;
+uniform mat3 imageTransform;
+uniform vec2 repeat;
 uniform float globalAlpha;
 void main() {
-	vec4 col = texture2D(image, mod(v_cp / imageSize, 1.0));
+	vec3 tfpt = vec3(v_cp, 1.0) * imageTransform;
+	vec2 imgpt = tfpt.xy / imageSize;
+	vec4 col = texture2D(image, mod(imgpt, 1.0));
+	if (imgpt.x < 0.0 || imgpt.x > 1.0) {
+		col *= repeat.x;
+	}
+	if (imgpt.y < 0.0 || imgpt.y > 1.0) {
+		col *= repeat.y;
+	}
 	col.a *= globalAlpha;
     gl_FragColor = col;
 }`
@@ -261,10 +271,20 @@ varying vec2 v_cp;
 varying vec2 v_atc;
 uniform vec2 imageSize;
 uniform sampler2D image;
+uniform mat3 imageTransform;
+uniform vec2 repeat;
 uniform sampler2D alphaTex;
 uniform float globalAlpha;
 void main() {
-    vec4 col = texture2D(image, mod(v_cp / imageSize, 1.0));
+	vec3 tfpt = vec3(v_cp, 1.0) * imageTransform;
+	vec2 imgpt = tfpt.xy / imageSize;
+	vec4 col = texture2D(image, mod(imgpt, 1.0));
+	if (imgpt.x < 0.0 || imgpt.x > 1.0) {
+		col *= repeat.x;
+	}
+	if (imgpt.y < 0.0 || imgpt.y > 1.0) {
+		col *= repeat.y;
+	}
     col.a *= texture2D(alphaTex, v_atc).a * globalAlpha;
 	gl_FragColor = col;
 }`
@@ -402,11 +422,13 @@ type radialGradientShader struct {
 
 type imagePatternShader struct {
 	shaderProgram
-	Vertex      gl.Attrib
-	CanvasSize  gl.Uniform
-	ImageSize   gl.Uniform
-	Image       gl.Uniform
-	GlobalAlpha gl.Uniform
+	Vertex         gl.Attrib
+	CanvasSize     gl.Uniform
+	ImageSize      gl.Uniform
+	Image          gl.Uniform
+	ImageTransform gl.Uniform
+	Repeat         gl.Uniform
+	GlobalAlpha    gl.Uniform
 }
 
 type solidAlphaShader struct {
@@ -448,13 +470,15 @@ type radialGradientAlphaShader struct {
 
 type imagePatternAlphaShader struct {
 	shaderProgram
-	Vertex        gl.Attrib
-	AlphaTexCoord gl.Attrib
-	CanvasSize    gl.Uniform
-	ImageSize     gl.Uniform
-	Image         gl.Uniform
-	AlphaTex      gl.Uniform
-	GlobalAlpha   gl.Uniform
+	Vertex         gl.Attrib
+	AlphaTexCoord  gl.Attrib
+	CanvasSize     gl.Uniform
+	ImageSize      gl.Uniform
+	Image          gl.Uniform
+	ImageTransform gl.Uniform
+	Repeat         gl.Uniform
+	AlphaTex       gl.Uniform
+	GlobalAlpha    gl.Uniform
 }
 
 type gaussianShader struct {

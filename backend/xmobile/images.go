@@ -53,11 +53,6 @@ func loadImage(b *XMobileBackend, src image.Image, tex gl.Texture) (*Image, erro
 		if err != nil {
 			return nil, err
 		}
-	case *image.Gray:
-		img, err = loadImageGray(b, v, tex)
-		if err != nil {
-			return nil, err
-		}
 	case image.Image:
 		img, err = loadImageConverted(b, v, tex)
 		if err != nil {
@@ -89,36 +84,6 @@ func loadImageRGBA(b *XMobileBackend, src *image.RGBA, tex gl.Texture) (*Image, 
 			data = append(data, src.Pix[start:end]...)
 		}
 		b.glctx.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, img.w, img.h, gl.RGBA, gl.UNSIGNED_BYTE, data[0:])
-	}
-	if err := glError(b); err != nil {
-		return nil, err
-	}
-	b.glctx.GenerateMipmap(gl.TEXTURE_2D)
-	if err := glError(b); err != nil {
-		return nil, err
-	}
-	return img, nil
-}
-
-func loadImageGray(b *XMobileBackend, src *image.Gray, tex gl.Texture) (*Image, error) {
-	img := &Image{tex: tex, w: src.Bounds().Dx(), h: src.Bounds().Dy()}
-	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
-	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-	if err := glError(b); err != nil {
-		return nil, err
-	}
-	if src.Stride == img.w {
-		b.glctx.TexImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, img.w, img.h, gl.ALPHA, gl.UNSIGNED_BYTE, src.Pix[0:])
-	} else {
-		data := make([]uint8, 0, img.w*img.h)
-		for y := 0; y < img.h; y++ {
-			start := y * src.Stride
-			end := start + img.w
-			data = append(data, src.Pix[start:end]...)
-		}
-		b.glctx.TexImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, img.w, img.h, gl.ALPHA, gl.UNSIGNED_BYTE, data[0:])
 	}
 	if err := glError(b); err != nil {
 		return nil, err

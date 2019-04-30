@@ -425,13 +425,29 @@ func (b *XMobileBackend) useShader(style *backendbase.FillStyle) (vertexLoc gl.A
 		return b.rgr.Vertex
 	}
 	if ip := style.ImagePattern; ip != nil {
-		img := ip.(*ImagePattern).data.Image.(*Image)
+		ipd := ip.(*ImagePattern).data
+		img := ipd.Image.(*Image)
 		b.glctx.UseProgram(b.ipr.ID)
 		b.glctx.ActiveTexture(gl.TEXTURE0)
 		b.glctx.BindTexture(gl.TEXTURE_2D, img.tex)
 		b.glctx.Uniform2f(b.ipr.CanvasSize, float32(b.fw), float32(b.fh))
 		b.glctx.Uniform2f(b.ipr.ImageSize, float32(img.w), float32(img.h))
 		b.glctx.Uniform1i(b.ipr.Image, 0)
+		var f32mat [9]float32
+		for i, v := range ipd.Transform {
+			f32mat[i] = float32(v)
+		}
+		b.glctx.UniformMatrix3fv(b.ipr.ImageTransform, f32mat[:])
+		switch ipd.Repeat {
+		case backendbase.Repeat:
+			b.glctx.Uniform2f(b.ipr.Repeat, 1, 1)
+		case backendbase.RepeatX:
+			b.glctx.Uniform2f(b.ipr.Repeat, 1, 0)
+		case backendbase.RepeatY:
+			b.glctx.Uniform2f(b.ipr.Repeat, 0, 1)
+		case backendbase.NoRepeat:
+			b.glctx.Uniform2f(b.ipr.Repeat, 0, 0)
+		}
 		b.glctx.Uniform1f(b.ipr.GlobalAlpha, float32(style.Color.A)/255)
 		return b.ipr.Vertex
 	}
@@ -482,13 +498,29 @@ func (b *XMobileBackend) useAlphaShader(style *backendbase.FillStyle, alphaTexSl
 		return b.rgar.Vertex, b.rgar.AlphaTexCoord
 	}
 	if ip := style.ImagePattern; ip != nil {
-		img := ip.(*ImagePattern).data.Image.(*Image)
+		ipd := ip.(*ImagePattern).data
+		img := ipd.Image.(*Image)
 		b.glctx.UseProgram(b.ipar.ID)
 		b.glctx.ActiveTexture(gl.TEXTURE0)
 		b.glctx.BindTexture(gl.TEXTURE_2D, img.tex)
 		b.glctx.Uniform2f(b.ipar.CanvasSize, float32(b.fw), float32(b.fh))
 		b.glctx.Uniform2f(b.ipar.ImageSize, float32(img.w), float32(img.h))
 		b.glctx.Uniform1i(b.ipar.Image, 0)
+		var f32mat [9]float32
+		for i, v := range ipd.Transform {
+			f32mat[i] = float32(v)
+		}
+		b.glctx.UniformMatrix3fv(b.ipr.ImageTransform, f32mat[:])
+		switch ipd.Repeat {
+		case backendbase.Repeat:
+			b.glctx.Uniform2f(b.ipr.Repeat, 1, 1)
+		case backendbase.RepeatX:
+			b.glctx.Uniform2f(b.ipr.Repeat, 1, 0)
+		case backendbase.RepeatY:
+			b.glctx.Uniform2f(b.ipr.Repeat, 0, 1)
+		case backendbase.NoRepeat:
+			b.glctx.Uniform2f(b.ipr.Repeat, 0, 0)
+		}
 		b.glctx.Uniform1i(b.ipar.AlphaTex, alphaTexSlot)
 		b.glctx.Uniform1f(b.ipar.GlobalAlpha, float32(style.Color.A)/255)
 		return b.ipar.Vertex, b.ipar.AlphaTexCoord
