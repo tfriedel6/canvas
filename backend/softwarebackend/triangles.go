@@ -88,6 +88,12 @@ func (b *SoftwareBackend) fillTriangle(tri [][2]float64, fn func(x, y int)) {
 	}
 }
 
+func quadArea(quad [4][2]float64) float64 {
+	leftv := [2]float64{quad[1][0] - quad[0][0], quad[1][1] - quad[0][1]}
+	topv := [2]float64{quad[3][0] - quad[0][0], quad[3][1] - quad[0][1]}
+	return math.Abs(leftv[0]*topv[1] - leftv[1]*topv[0])
+}
+
 func (b *SoftwareBackend) fillQuad(quad [4][2]float64, fn func(x, y int, sx, sy float64)) {
 	minY := int(math.Floor(math.Min(math.Min(quad[0][1], quad[1][1]), math.Min(quad[2][1], quad[3][1]))))
 	maxY := int(math.Ceil(math.Max(math.Max(quad[0][1], quad[1][1]), math.Max(quad[2][1], quad[3][1]))))
