@@ -189,7 +189,7 @@ func (cv *Canvas) PutImageData(img *image.RGBA, x, y int) {
 type ImagePattern struct {
 	cv  *Canvas
 	img *Image
-	tf  [9]float64
+	tf  mat
 	rep imagePatternRepeat
 	ip  backendbase.ImagePattern
 }
@@ -204,11 +204,16 @@ const (
 	NoRepeat                    = imagePatternRepeat(backendbase.NoRepeat)
 )
 
-func (ip *ImagePattern) data() backendbase.ImagePatternData {
+func (ip *ImagePattern) data(tf mat) backendbase.ImagePatternData {
+	m := tf.invert().mul(ip.tf.invert())
 	return backendbase.ImagePatternData{
-		Image:     ip.img.img,
-		Transform: ip.tf,
-		Repeat:    backendbase.ImagePatternRepeat(ip.rep),
+		Image: ip.img.img,
+		Transform: [9]float64{
+			m[0], m[2], m[4],
+			m[1], m[3], m[5],
+			0, 0, 1,
+		},
+		Repeat: backendbase.ImagePatternRepeat(ip.rep),
 	}
 }
 
@@ -216,13 +221,7 @@ func (ip *ImagePattern) data() backendbase.ImagePatternData {
 // to the given matrix. The matrix is a 3x3 matrix, but three
 // of the values are always identity values
 func (ip *ImagePattern) SetTransform(tf [6]float64) {
-	m := mat(tf).invert()
-	ip.tf = [9]float64{
-		m[0], m[2], m[4],
-		m[1], m[3], m[5],
-		0, 0, 1,
-	}
-	ip.ip.Replace(ip.data())
+	ip.tf = mat(tf)
 }
 
 // CreatePattern creates a new image pattern with the specified
@@ -232,10 +231,10 @@ func (cv *Canvas) CreatePattern(src interface{}, repeat imagePatternRepeat) *Ima
 		cv:  cv,
 		img: cv.getImage(src),
 		rep: repeat,
-		tf:  [9]float64{1, 0, 0, 0, 1, 0, 0, 0, 1},
+		tf:  mat{1, 0, 0, 1, 0, 0},
 	}
 	if ip.img != nil {
-		ip.ip = cv.b.LoadImagePattern(ip.data())
+		ip.ip = cv.b.LoadImagePattern(ip.data(cv.state.transform))
 	}
 	return ip
 }

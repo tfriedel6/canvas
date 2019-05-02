@@ -260,6 +260,7 @@ func (cv *Canvas) backendFillStyle(s *drawStyle, alpha float64) backendbase.Fill
 		if ip.ip == nil {
 			stl.Color = color.RGBA{}
 		} else {
+			ip.ip.Replace(ip.data(cv.state.transform))
 			stl.ImagePattern = ip.ip
 		}
 	} else {
