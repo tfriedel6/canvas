@@ -216,10 +216,11 @@ func (ip *ImagePattern) data() backendbase.ImagePatternData {
 // to the given matrix. The matrix is a 3x3 matrix, but three
 // of the values are always identity values
 func (ip *ImagePattern) SetTransform(tf [6]float64) {
+	m := mat(tf).invert()
 	ip.tf = [9]float64{
-		tf[0], tf[1], 0,
-		tf[2], tf[3], 0,
-		tf[4], tf[5], 1,
+		m[0], m[2], m[4],
+		m[1], m[3], m[5],
+		0, 0, 1,
 	}
 	ip.ip.Replace(ip.data())
 }
