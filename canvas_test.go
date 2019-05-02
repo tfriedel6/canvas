@@ -585,6 +585,20 @@ func TestImagePattern(t *testing.T) {
 	})
 }
 
+func TestImagePattern2(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		ptrn := cv.CreatePattern("testdata/cat.jpg", canvas.NoRepeat)
+		ptrn.SetTransform([6]float64{0, 0.1, 0.1, 0, 0, 0})
+
+		cv.Translate(50, 50)
+		cv.Scale(0.95, 1.05)
+		cv.Rotate(-math.Pi * 0.1)
+
+		cv.SetFillStyle(ptrn)
+		cv.FillRect(-40, -40, 80, 80)
+	})
+}
+
 func TestShadow(t *testing.T) {
 	run(t, func(cv *canvas.Canvas) {
 		cv.SetFillStyle("#800")

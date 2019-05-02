@@ -58,6 +58,38 @@ func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 			col := rg.data.ColorAt(o)
 			b.Image.SetRGBA(x, y, mix(col, b.Image.RGBAAt(x, y)))
 		})
+	} else if ip := style.ImagePattern; ip != nil {
+		ip := ip.(*ImagePattern)
+		img := ip.data.Image.(*Image)
+		mip := img.mips[0] // todo select the right mip size
+		w, h := img.Size()
+		fw, fh := float64(w), float64(h)
+		rx := ip.data.Repeat == backendbase.Repeat || ip.data.Repeat == backendbase.RepeatX
+		ry := ip.data.Repeat == backendbase.Repeat || ip.data.Repeat == backendbase.RepeatY
+		b.fillTriangles(pts, func(x, y int) {
+			pos := [2]float64{float64(x), float64(y)}
+			tfptx := pos[0]*ip.data.Transform[0] + pos[1]*ip.data.Transform[1] + ip.data.Transform[2]
+			tfpty := pos[0]*ip.data.Transform[3] + pos[1]*ip.data.Transform[4] + ip.data.Transform[5]
+
+			if !rx && (tfptx < 0 || tfptx >= fw) {
+				return
+			}
+			if !ry && (tfpty < 0 || tfpty >= fh) {
+				return
+			}
+
+			mx := int(math.Floor(tfptx)) % w
+			if mx < 0 {
+				mx += w
+			}
+			my := int(math.Floor(tfpty)) % h
+			if my < 0 {
+				my += h
+			}
+
+			col := mip.At(mx, my)
+			b.Image.SetRGBA(x, y, mix(col, b.Image.RGBAAt(x, y)))
+		})
 	} else {
 		b.fillTriangles(pts, func(x, y int) {
 			b.Image.SetRGBA(x, y, mix(style.Color, b.Image.RGBAAt(x, y)))
