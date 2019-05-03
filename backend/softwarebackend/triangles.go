@@ -172,7 +172,7 @@ func (b *SoftwareBackend) fillTriangleMSAA(tri [][2]float64, msaaLevel int, msaa
 				sx := float64(x) + msaaStep*0.5
 				for stepx := 0; stepx <= msaaLevel; stepx++ {
 					if sx >= l[stepy] && sx < r[stepy] {
-						msaaPixels = append(msaaPixels, msaaPixel{ix: x, iy: y, fx: sx, fy: sy})
+						msaaPixels = addMSAAPixel(msaaPixels, msaaPixel{ix: x, iy: y, fx: sx, fy: sy})
 					}
 					sx += msaaStep
 				}
@@ -182,6 +182,15 @@ func (b *SoftwareBackend) fillTriangleMSAA(tri [][2]float64, msaaLevel int, msaa
 	}
 
 	return msaaPixels
+}
+
+func addMSAAPixel(msaaPixels []msaaPixel, px msaaPixel) []msaaPixel {
+	for _, px2 := range msaaPixels {
+		if px == px2 {
+			return msaaPixels
+		}
+	}
+	return append(msaaPixels, px)
 }
 
 func quadArea(quad [4][2]float64) float64 {
@@ -329,10 +338,7 @@ func (b *SoftwareBackend) fillTrianglesMSAA(pts [][2]float64, msaaLevel int, fn 
 				continue
 			}
 
-			col := fn(px.fx, px.fy)
-			if col.A == 0 {
-				return
-			}
+			col := fn(px2.fx, px2.fy)
 			mr += int(col.R)
 			mg += int(col.G)
 			mb += int(col.B)
@@ -348,14 +354,13 @@ func (b *SoftwareBackend) fillTrianglesMSAA(pts [][2]float64, msaaLevel int, fn 
 			A: uint8(ma / samples),
 		}
 		b.Image.SetRGBA(px.ix, px.iy, mix(combined, b.Image.RGBAAt(px.ix, px.iy)))
-
 	}
 }
 
 func (b *SoftwareBackend) fillTriangles(pts [][2]float64, fn func(x, y float64) color.RGBA) {
-	// if b.MSAA > 0 {
-	// 	b.fillTrianglesMSAA(pts, b.MSAA, fn)
-	// } else {
-	b.fillTrianglesNoAA(pts, fn)
-	// }
+	if b.MSAA > 0 {
+		b.fillTrianglesMSAA(pts, b.MSAA, fn)
+	} else {
+		b.fillTrianglesNoAA(pts, fn)
+	}
 }

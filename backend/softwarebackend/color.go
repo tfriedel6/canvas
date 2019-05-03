@@ -22,20 +22,22 @@ func mix(src, dest color.Color) color.RGBA {
 	b1 := float64(ib1) / 65535.0
 	a1 := float64(ia1) / 65535.0
 
-	ir2, ig2, ib2, _ := dest.RGBA()
+	ir2, ig2, ib2, ia2 := dest.RGBA()
 	r2 := float64(ir2) / 65535.0
 	g2 := float64(ig2) / 65535.0
 	b2 := float64(ib2) / 65535.0
+	a2 := float64(ia2) / 65535.0
 
 	r := (r1-r2)*a1 + r2
 	g := (g1-g2)*a1 + g2
 	b := (b1-b2)*a1 + b2
+	a := math.Max((a1-a2)*a1+a2, a2)
 
 	return color.RGBA{
 		R: uint8(math.Round(r * 255.0)),
 		G: uint8(math.Round(g * 255.0)),
 		B: uint8(math.Round(b * 255.0)),
-		A: 255,
+		A: uint8(math.Round(a * 255.0)),
 	}
 }
 

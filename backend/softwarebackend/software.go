@@ -10,7 +10,7 @@ import (
 type SoftwareBackend struct {
 	Image *image.RGBA
 
-	// MSAA int
+	MSAA int
 
 	clip *image.Alpha
 	mask *image.Alpha
