@@ -9,9 +9,12 @@ import (
 
 type SoftwareBackend struct {
 	Image *image.RGBA
-	clip  *image.Alpha
-	mask  *image.Alpha
-	w, h  int
+
+	// MSAA int
+
+	clip *image.Alpha
+	mask *image.Alpha
+	w, h int
 }
 
 func New(w, h int) *SoftwareBackend {

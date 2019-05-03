@@ -5,6 +5,16 @@ import (
 	"math"
 )
 
+func toRGBA(src color.Color) color.RGBA {
+	ir, ig, ib, ia := src.RGBA()
+	return color.RGBA{
+		R: uint8(ir >> 8),
+		G: uint8(ig >> 8),
+		B: uint8(ib >> 8),
+		A: uint8(ia >> 8),
+	}
+}
+
 func mix(src, dest color.Color) color.RGBA {
 	ir1, ig1, ib1, ia1 := src.RGBA()
 	r1 := float64(ir1) / 65535.0
