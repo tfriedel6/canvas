@@ -2,6 +2,7 @@ test*.html
 plan.txt
 glowgen
 testapp
+testblur
 videocap
 .DS_Store
 .vscode

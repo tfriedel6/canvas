@@ -12,6 +12,8 @@ type SoftwareBackend struct {
 
 	MSAA int
 
+	blurSwap *image.RGBA
+
 	clip *image.Alpha
 	mask *image.Alpha
 	w, h int

@@ -20,6 +20,11 @@ func (b *SoftwareBackend) Clear(pts [4][2]float64) {
 }
 
 func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
+	if style.Blur > 0 {
+		b.activateBlurTarget()
+		defer b.drawBlurred(style.Blur)
+	}
+
 	if lg := style.LinearGradient; lg != nil {
 		lg := lg.(*LinearGradient)
 		from := [2]float64{style.Gradient.X0, style.Gradient.Y0}
