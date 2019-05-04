@@ -20,8 +20,6 @@ func (b *SoftwareBackend) Clear(pts [4][2]float64) {
 }
 
 func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
-	b.clearMask()
-
 	if lg := style.LinearGradient; lg != nil {
 		lg := lg.(*LinearGradient)
 		from := [2]float64{style.Gradient.X0, style.Gradient.Y0}
@@ -97,14 +95,14 @@ func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 func (b *SoftwareBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Alpha, pts [4][2]float64) {
 	mw := float64(mask.Bounds().Dx())
 	mh := float64(mask.Bounds().Dy())
-	b.fillQuad(pts, func(x, y int, sx2, sy2 float64) {
+	b.fillQuad(pts, func(x, y, sx2, sy2 float64) color.RGBA {
 		sxi := int(mw * sx2)
 		syi := int(mh * sy2)
 		a := mask.AlphaAt(sxi, syi)
 		if a.A == 0 {
-			return
+			return color.RGBA{}
 		}
-		b.Image.SetRGBA(x, y, alphaColor(style.Color, a))
+		return alphaColor(style.Color, a)
 	})
 }
 

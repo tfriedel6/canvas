@@ -76,13 +76,12 @@ func (b *SoftwareBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh float
 	sw *= mipScaleX
 	sh *= mipScaleY
 
-	b.fillQuad(pts, func(x, y int, sx2, sy2 float64) {
-		imgx := sx + sw*sx2
-		imgy := sy + sh*sy2
+	b.fillQuad(pts, func(x, y, tx, ty float64) color.RGBA {
+		imgx := sx + sw*tx
+		imgy := sy + sh*ty
 		imgxf := math.Floor(imgx)
 		imgyf := math.Floor(imgy)
-		c := mip.At(int(imgxf), int(imgyf))
-		b.Image.Set(x, y, c)
+		return toRGBA(mip.At(int(imgxf), int(imgyf)))
 
 		// rx := imgx - imgxf
 		// ry := imgy - imgyf
