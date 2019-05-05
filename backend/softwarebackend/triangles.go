@@ -401,7 +401,7 @@ func (b *SoftwareBackend) fillQuadMSAA(quad [4][2]float64, msaaLevel int, msaaPi
 }
 
 func (b *SoftwareBackend) fillQuad(pts [4][2]float64, fn func(x, y, tx, ty float64) color.RGBA) {
-	b.clearMask()
+	b.clearStencil()
 
 	if b.MSAA > 0 {
 		var msaaPixelBuf [500]msaaPixel
@@ -411,10 +411,10 @@ func (b *SoftwareBackend) fillQuad(pts [4][2]float64, fn func(x, y, tx, ty float
 			if b.clip.AlphaAt(x, y).A == 0 {
 				return
 			}
-			if b.mask.AlphaAt(x, y).A > 0 {
+			if b.stencil.AlphaAt(x, y).A > 0 {
 				return
 			}
-			b.mask.SetAlpha(x, y, color.Alpha{A: 255})
+			b.stencil.SetAlpha(x, y, color.Alpha{A: 255})
 			col := fn(float64(x)+0.5, float64(y)+0.5, tx, ty)
 			if col.A > 0 {
 				b.Image.SetRGBA(x, y, mix(col, b.Image.RGBAAt(x, y)))
@@ -424,10 +424,10 @@ func (b *SoftwareBackend) fillQuad(pts [4][2]float64, fn func(x, y, tx, ty float
 		samples := (b.MSAA + 1) * (b.MSAA + 1)
 
 		for i, px := range msaaPixels {
-			if px.ix < 0 || b.clip.AlphaAt(px.ix, px.iy).A == 0 || b.mask.AlphaAt(px.ix, px.iy).A > 0 {
+			if px.ix < 0 || b.clip.AlphaAt(px.ix, px.iy).A == 0 || b.stencil.AlphaAt(px.ix, px.iy).A > 0 {
 				continue
 			}
-			b.mask.SetAlpha(px.ix, px.iy, color.Alpha{A: 255})
+			b.stencil.SetAlpha(px.ix, px.iy, color.Alpha{A: 255})
 
 			var mr, mg, mb, ma int
 			for j, px2 := range msaaPixels[i:] {
@@ -458,10 +458,10 @@ func (b *SoftwareBackend) fillQuad(pts [4][2]float64, fn func(x, y, tx, ty float
 			if b.clip.AlphaAt(x, y).A == 0 {
 				return
 			}
-			if b.mask.AlphaAt(x, y).A > 0 {
+			if b.stencil.AlphaAt(x, y).A > 0 {
 				return
 			}
-			b.mask.SetAlpha(x, y, color.Alpha{A: 255})
+			b.stencil.SetAlpha(x, y, color.Alpha{A: 255})
 			col := fn(float64(x)+0.5, float64(y)+0.5, tx, ty)
 			if col.A > 0 {
 				b.Image.SetRGBA(x, y, mix(col, b.Image.RGBAAt(x, y)))
@@ -493,10 +493,10 @@ func (b *SoftwareBackend) fillTrianglesNoAA(pts [][2]float64, fn func(x, y float
 			if b.clip.AlphaAt(x, y).A == 0 {
 				return
 			}
-			if b.mask.AlphaAt(x, y).A > 0 {
+			if b.stencil.AlphaAt(x, y).A > 0 {
 				return
 			}
-			b.mask.SetAlpha(x, y, color.Alpha{A: 255})
+			b.stencil.SetAlpha(x, y, color.Alpha{A: 255})
 			col := fn(float64(x), float64(y))
 			if col.A > 0 {
 				b.Image.SetRGBA(x, y, mix(col, b.Image.RGBAAt(x, y)))
@@ -514,10 +514,10 @@ func (b *SoftwareBackend) fillTrianglesMSAA(pts [][2]float64, msaaLevel int, fn 
 			if b.clip.AlphaAt(x, y).A == 0 {
 				return
 			}
-			if b.mask.AlphaAt(x, y).A > 0 {
+			if b.stencil.AlphaAt(x, y).A > 0 {
 				return
 			}
-			b.mask.SetAlpha(x, y, color.Alpha{A: 255})
+			b.stencil.SetAlpha(x, y, color.Alpha{A: 255})
 			col := fn(float64(x), float64(y))
 			if col.A > 0 {
 				b.Image.SetRGBA(x, y, mix(col, b.Image.RGBAAt(x, y)))
@@ -528,10 +528,10 @@ func (b *SoftwareBackend) fillTrianglesMSAA(pts [][2]float64, msaaLevel int, fn 
 	samples := (msaaLevel + 1) * (msaaLevel + 1)
 
 	for i, px := range msaaPixels {
-		if px.ix < 0 || b.clip.AlphaAt(px.ix, px.iy).A == 0 || b.mask.AlphaAt(px.ix, px.iy).A > 0 {
+		if px.ix < 0 || b.clip.AlphaAt(px.ix, px.iy).A == 0 || b.stencil.AlphaAt(px.ix, px.iy).A > 0 {
 			continue
 		}
-		b.mask.SetAlpha(px.ix, px.iy, color.Alpha{A: 255})
+		b.stencil.SetAlpha(px.ix, px.iy, color.Alpha{A: 255})
 
 		var mr, mg, mb, ma int
 		for j, px2 := range msaaPixels[i:] {
@@ -559,7 +559,7 @@ func (b *SoftwareBackend) fillTrianglesMSAA(pts [][2]float64, msaaLevel int, fn 
 }
 
 func (b *SoftwareBackend) fillTriangles(pts [][2]float64, fn func(x, y float64) color.RGBA) {
-	b.clearMask()
+	b.clearStencil()
 
 	if b.MSAA > 0 {
 		b.fillTrianglesMSAA(pts, b.MSAA, fn)

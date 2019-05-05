@@ -111,8 +111,8 @@ func (b *SoftwareBackend) FillImageMask(style *backendbase.FillStyle, mask *imag
 	})
 }
 
-func (b *SoftwareBackend) clearMask() {
-	p := b.mask.Pix
+func (b *SoftwareBackend) clearStencil() {
+	p := b.stencil.Pix
 	for i := range p {
 		p[i] = 0
 	}
@@ -126,18 +126,16 @@ func (b *SoftwareBackend) ClearClip() {
 }
 
 func (b *SoftwareBackend) Clip(pts [][2]float64) {
-	p2 := b.mask.Pix
-	for i := range p2 {
-		p2[i] = 0
-	}
+	b.clearStencil()
 
 	iterateTriangles(pts[:], func(tri [][2]float64) {
 		b.fillTriangleNoAA(tri, func(x, y int) {
-			b.mask.SetAlpha(x, y, color.Alpha{A: 255})
+			b.stencil.SetAlpha(x, y, color.Alpha{A: 255})
 		})
 	})
 
 	p := b.clip.Pix
+	p2 := b.stencil.Pix
 	for i := range p {
 		if p2[i] == 0 {
 			p[i] = 0

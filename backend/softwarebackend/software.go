@@ -14,9 +14,9 @@ type SoftwareBackend struct {
 
 	blurSwap *image.RGBA
 
-	clip *image.Alpha
-	mask *image.Alpha
-	w, h int
+	clip    *image.Alpha
+	stencil *image.Alpha
+	w, h    int
 }
 
 func New(w, h int) *SoftwareBackend {
@@ -29,7 +29,7 @@ func (b *SoftwareBackend) SetSize(w, h int) {
 	b.w, b.h = w, h
 	b.Image = image.NewRGBA(image.Rect(0, 0, w, h))
 	b.clip = image.NewAlpha(image.Rect(0, 0, w, h))
-	b.mask = image.NewAlpha(image.Rect(0, 0, w, h))
+	b.stencil = image.NewAlpha(image.Rect(0, 0, w, h))
 	b.ClearClip()
 }
 
