@@ -20,11 +20,35 @@ func (b *SoftwareBackend) Clear(pts [4][2]float64) {
 }
 
 func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
+	ffn := fillFunc(style)
+
 	if style.Blur > 0 {
 		b.activateBlurTarget()
-		defer b.drawBlurred(style.Blur)
+		b.fillTriangles(pts, ffn)
+		b.drawBlurred(style.Blur)
+	} else {
+		b.fillTriangles(pts, ffn)
 	}
+}
 
+func (b *SoftwareBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Alpha, pts [4][2]float64) {
+	ffn := fillFunc(style)
+
+	mw := float64(mask.Bounds().Dx())
+	mh := float64(mask.Bounds().Dy())
+	b.fillQuad(pts, func(x, y, sx2, sy2 float64) color.RGBA {
+		sxi := int(mw * sx2)
+		syi := int(mh * sy2)
+		a := mask.AlphaAt(sxi, syi)
+		if a.A == 0 {
+			return color.RGBA{}
+		}
+		col := ffn(x, y)
+		return alphaColor(col, a)
+	})
+}
+
+func fillFunc(style *backendbase.FillStyle) func(x, y float64) color.RGBA {
 	if lg := style.LinearGradient; lg != nil {
 		lg := lg.(*LinearGradient)
 		from := [2]float64{style.Gradient.X0, style.Gradient.Y0}
@@ -32,18 +56,18 @@ func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 		dirlen := math.Sqrt(dir[0]*dir[0] + dir[1]*dir[1])
 		dir[0] /= dirlen
 		dir[1] /= dirlen
-		b.fillTriangles(pts, func(x, y float64) color.RGBA {
+		return func(x, y float64) color.RGBA {
 			pos := [2]float64{x - from[0], y - from[1]}
 			r := (pos[0]*dir[0] + pos[1]*dir[1]) / dirlen
 			return lg.data.ColorAt(r)
-		})
+		}
 	} else if rg := style.RadialGradient; rg != nil {
 		rg := rg.(*RadialGradient)
 		from := [2]float64{style.Gradient.X0, style.Gradient.Y0}
 		to := [2]float64{style.Gradient.X1, style.Gradient.Y1}
 		radFrom := style.Gradient.RadFrom
 		radTo := style.Gradient.RadTo
-		b.fillTriangles(pts, func(x, y float64) color.RGBA {
+		return func(x, y float64) color.RGBA {
 			pos := [2]float64{x, y}
 			oa := 0.5 * math.Sqrt(
 				math.Pow(-2.0*from[0]*from[0]+2.0*from[0]*to[0]+2.0*from[0]*pos[0]-2.0*to[0]*pos[0]-2.0*from[1]*from[1]+2.0*from[1]*to[1]+2.0*from[1]*pos[1]-2.0*to[1]*pos[1]+2.0*radFrom*radFrom-2.0*radFrom*radTo, 2.0)-
@@ -58,7 +82,7 @@ func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 			}
 			o := math.Max(o1, o2)
 			return rg.data.ColorAt(o)
-		})
+		}
 	} else if ip := style.ImagePattern; ip != nil {
 		ip := ip.(*ImagePattern)
 		img := ip.data.Image.(*Image)
@@ -67,7 +91,7 @@ func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 		fw, fh := float64(w), float64(h)
 		rx := ip.data.Repeat == backendbase.Repeat || ip.data.Repeat == backendbase.RepeatX
 		ry := ip.data.Repeat == backendbase.Repeat || ip.data.Repeat == backendbase.RepeatY
-		b.fillTriangles(pts, func(x, y float64) color.RGBA {
+		return func(x, y float64) color.RGBA {
 			pos := [2]float64{x, y}
 			tfptx := pos[0]*ip.data.Transform[0] + pos[1]*ip.data.Transform[1] + ip.data.Transform[2]
 			tfpty := pos[0]*ip.data.Transform[3] + pos[1]*ip.data.Transform[4] + ip.data.Transform[5]
@@ -89,26 +113,11 @@ func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 			}
 
 			return toRGBA(mip.At(mx, my))
-		})
-	} else {
-		b.fillTriangles(pts, func(x, y float64) color.RGBA {
-			return style.Color
-		})
-	}
-}
-
-func (b *SoftwareBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Alpha, pts [4][2]float64) {
-	mw := float64(mask.Bounds().Dx())
-	mh := float64(mask.Bounds().Dy())
-	b.fillQuad(pts, func(x, y, sx2, sy2 float64) color.RGBA {
-		sxi := int(mw * sx2)
-		syi := int(mh * sy2)
-		a := mask.AlphaAt(sxi, syi)
-		if a.A == 0 {
-			return color.RGBA{}
 		}
-		return alphaColor(style.Color, a)
-	})
+	}
+	return func(x, y float64) color.RGBA {
+		return style.Color
+	}
 }
 
 func (b *SoftwareBackend) clearStencil() {
