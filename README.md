@@ -126,4 +126,5 @@ These features *should* work just like their HTML5 counterparts, but there are l
 # Missing features
 
 - globalCompositeOperation
+- imageSmoothingEnabled
 - textBaseline hanging and ideographic (currently work just like top and bottom)

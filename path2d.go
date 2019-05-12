@@ -82,18 +82,20 @@ func (p *Path2D) lineTo(x, y float64, checkSelfIntersection bool) {
 		newp.flags |= pathIsConvex
 	} else if prev.flags&pathIsConvex > 0 {
 		cuts := false
+		var cutPoint vec
 		if checkSelfIntersection && !Performance.IgnoreSelfIntersections {
 			b0, b1 := prev.pos, vec{x, y}
 			for i := 1; i < count; i++ {
 				a0, a1 := p.p[i-1].pos, p.p[i].pos
-				_, r1, r2 := lineIntersection(a0, a1, b0, b1)
+				var r1, r2 float64
+				cutPoint, r1, r2 = lineIntersection(a0, a1, b0, b1)
 				if r1 > 0 && r1 < 1 && r2 > 0 && r2 < 1 {
 					cuts = true
 					break
 				}
 			}
 		}
-		if cuts {
+		if cuts && !isSamePoint(cutPoint, vec{x, y}, samePointTolerance) {
 			newp.flags |= pathSelfIntersects
 		} else {
 			prev2 := &p.p[len(p.p)-3]
@@ -288,22 +290,37 @@ func (p *Path2D) Rect(x, y, w, h float64) {
 // func (p *Path2D) Ellipse(...) {
 // }
 
-func runSubPaths(path []pathPoint, fn func(subPath []pathPoint) bool) {
+func runSubPaths(path []pathPoint, close bool, fn func(subPath []pathPoint) bool) {
 	start := 0
 	for i, p := range path {
 		if p.flags&pathMove == 0 {
 			continue
 		}
 		if i >= start+3 {
-			if fn(path[start:i]) {
+			end := i
+			if runSubPath(path[start:end], close, fn) {
 				return
 			}
 		}
 		start = i
 	}
 	if len(path) >= start+3 {
-		fn(path[start:])
+		runSubPath(path[start:], close, fn)
 	}
+}
+
+func runSubPath(path []pathPoint, close bool, fn func(subPath []pathPoint) bool) bool {
+	if !close || path[0].pos == path[len(path)-1].pos {
+		return fn(path)
+	}
+
+	var buf [64]pathPoint
+	path2 := Path2D{
+		p:    append(buf[:0], path...),
+		move: path[0].pos,
+	}
+	path2.lineTo(path[0].pos[0], path[0].pos[1], true)
+	return fn(path2.p)
 }
 
 type pathRule uint8
@@ -319,7 +336,7 @@ const (
 // to the given rule
 func (p *Path2D) IsPointInPath(x, y float64, rule pathRule) bool {
 	inside := false
-	runSubPaths(p.p, func(sp []pathPoint) bool {
+	runSubPaths(p.p, false, func(sp []pathPoint) bool {
 		num := 0
 		prev := sp[len(sp)-1].pos
 		for _, pt := range p.p {

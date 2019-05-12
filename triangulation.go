@@ -85,6 +85,10 @@ func polygonContainsPoint(polygon []vec, p vec) bool {
 }
 
 func triangulatePath(path []pathPoint, mat mat, target [][2]float64) [][2]float64 {
+	if path[0].pos == path[len(path)-1].pos {
+		path = path[:len(path)-1]
+	}
+
 	var buf [500]vec
 	polygon := buf[:0]
 	for _, p := range path {
@@ -345,9 +349,10 @@ func setPathLeftRightInside(net *tessNet) {
 }
 
 func selfIntersectingPathParts(p []pathPoint, partFn func(sp []pathPoint) bool) {
-	runSubPaths(p, func(sp1 []pathPoint) bool {
+	runSubPaths(p, false, func(sp1 []pathPoint) bool {
 		net := cutIntersections(sp1)
 		if net.verts == nil {
+			partFn(sp1)
 			return false
 		}
 

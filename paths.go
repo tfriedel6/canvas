@@ -362,7 +362,8 @@ func (cv *Canvas) fillPath(path *Path2D, tf mat) {
 
 	var triBuf [500][2]float64
 	tris := triBuf[:0]
-	runSubPaths(path.p, func(sp []pathPoint) bool {
+
+	runSubPaths(path.p, true, func(sp []pathPoint) bool {
 		tris = appendSubPathTriangles(tris, tf, sp)
 		return false
 	})
@@ -381,6 +382,9 @@ func appendSubPathTriangles(tris [][2]float64, mat mat, path []pathPoint) [][2]f
 	if last.flags&pathIsConvex != 0 {
 		p0, p1 := path[0].pos.mulMat(mat), path[1].pos.mulMat(mat)
 		last := len(path)
+		if path[0].pos == path[last-1].pos {
+			last--
+		}
 		for i := 2; i < last; i++ {
 			p2 := path[i].pos.mulMat(mat)
 			tris = append(tris, p0, p1, p2)
@@ -410,7 +414,7 @@ func (cv *Canvas) clip(path *Path2D, tf mat) {
 
 	var triBuf [500][2]float64
 	tris := triBuf[:0]
-	runSubPaths(path.p, func(sp []pathPoint) bool {
+	runSubPaths(path.p, true, func(sp []pathPoint) bool {
 		tris = appendSubPathTriangles(tris, tf, sp)
 		return false
 	})
