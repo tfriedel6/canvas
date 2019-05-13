@@ -17,7 +17,7 @@ import (
 	"github.com/tfriedel6/canvas/sdlcanvas"
 )
 
-var usesw = true
+var usesw = false
 
 func run(t *testing.T, fn func(cv *canvas.Canvas)) {
 	var img *image.RGBA
