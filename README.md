@@ -12,7 +12,9 @@ The OpenGL backend is intended to provide decent performance. Obviously it will 
 
 ## Software backend
 
-The software backend can also be used if no OpenGL context is available. It will render into a standard Go RGBA image.
+The software backend can also be used if no OpenGL context is available. It will render into a standard Go RGBA image. 
+
+There is experimental MSAA anti-aliasing, but it doesn't fully work properly yet. The best option for anti-aliasing currently is to render to a larger image and then scale it down.
 
 ## SDL/GLFW convenience packages
 
