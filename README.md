@@ -1,18 +1,26 @@
 # Go canvas [![GoDoc](https://godoc.org/github.com/tfriedel6/canvas?status.svg)](https://godoc.org/github.com/tfriedel6/canvas)
 
-Canvas is a pure Go library based on OpenGL that provides drawing functionality as similar as possible to the HTML5 canvas API. It has nothing to do with HTML or Javascript, the functions are just made to be approximately the same.
+Canvas is a pure Go library that provides drawing functionality as similar as possible to the HTML5 canvas API. It has nothing to do with HTML or Javascript, the functions are just made to be approximately the same.
 
-Many of the basic functions are supported, but it is still a work in progress. The library aims to accept a lot of different parameters on each function in a similar way as the Javascript API does.
+Most of the functions are supported, but it is still a work in progress. The library aims to accept a lot of different parameters on each function in a similar way as the Javascript API does.
 
 Whereas the Javascript API uses a context that all draw calls go to, here all draw calls are directly on the canvas type. The other difference is that here setters are used instead of properties for things like fonts and line width. 
 
-The library is intended to provide decent performance. Obviously it will not be able to rival hand coded OpenGL for a given purpose, but for many purposes it will be enough. It can also be combined with hand coded OpenGL.
+## OpenGL backend
 
-# SDL/GLFW convenience packages
+The OpenGL backend is intended to provide decent performance. Obviously it will not be able to rival hand coded OpenGL for a given purpose, but for many purposes it will be enough. It can also be combined with hand coded OpenGL.
+
+## Software backend
+
+The software backend can also be used if no OpenGL context is available. It will render into a standard Go RGBA image.
+
+## SDL/GLFW convenience packages
 
 The sdlcanvas and glfwcanvas subpackages provide a very simple way to get started with just a few lines of code. As the names imply they are based on the SDL library and the GLFW library respectively. They create a window for you and give you a canvas to draw with.
 
 # OS support
+
+Both the OpenGL and software backends work on the following operating systems:
 
 - Linux
 - Windows
