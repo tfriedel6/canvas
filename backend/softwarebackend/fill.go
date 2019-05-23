@@ -19,7 +19,7 @@ func (b *SoftwareBackend) Clear(pts [4][2]float64) {
 	})
 }
 
-func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
+func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts [][2]float64, canOverlap bool) {
 	ffn := fillFunc(style)
 
 	if style.Blur > 0 {

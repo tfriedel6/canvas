@@ -69,7 +69,19 @@ func (b *GoGLBackend) clearRect(x, y, w, h int) {
 	gl.Disable(gl.SCISSOR_TEST)
 }
 
-func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
+func extent(pts [][2]float64) (min, max vec) {
+	min[0] = math.MaxFloat64
+	min[1] = math.MaxFloat64
+	for _, v := range pts {
+		min[0] = math.Min(min[0], v[0])
+		min[1] = math.Min(min[1], v[1])
+		max[0] = math.Max(max[0], v[0])
+		max[1] = math.Max(max[1], v[1])
+	}
+	return
+}
+
+func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64, canOverlap bool) {
 	b.activate()
 
 	if style.Blur > 0 {
@@ -80,11 +92,12 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 	}
 
 	b.ptsBuf = b.ptsBuf[:0]
+	min, max := extent(pts)
 	b.ptsBuf = append(b.ptsBuf,
-		0, 0,
-		0, float32(b.fh),
-		float32(b.fw), float32(b.fh),
-		float32(b.fw), 0)
+		float32(min[0]), float32(min[1]),
+		float32(min[0]), float32(max[1]),
+		float32(max[0]), float32(max[1]),
+		float32(max[0]), float32(min[1]))
 	for _, pt := range pts {
 		b.ptsBuf = append(b.ptsBuf, float32(pt[0]), float32(pt[1]))
 	}
@@ -97,7 +110,7 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 	gl.BindBuffer(gl.ARRAY_BUFFER, b.buf)
 	gl.BufferData(gl.ARRAY_BUFFER, len(b.ptsBuf)*4, unsafe.Pointer(&b.ptsBuf[0]), gl.STREAM_DRAW)
 
-	if style.Color.A >= 255 {
+	if !canOverlap || style.Color.A >= 255 {
 		vertex := b.useShader(style)
 
 		gl.StencilFunc(gl.EQUAL, 0, 0xFF)
@@ -130,7 +143,6 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64) {
 		gl.EnableVertexAttribArray(vertex)
 		gl.VertexAttribPointer(vertex, 2, gl.FLOAT, false, 0, nil)
 
-		b.ptsBuf = append(b.ptsBuf[:0], 0, 0, float32(b.fw), 0, float32(b.fw), float32(b.fh), 0, float32(b.fh))
 		gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 		gl.DisableVertexAttribArray(vertex)
 

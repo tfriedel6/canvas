@@ -7,7 +7,7 @@ import (
 	"github.com/tfriedel6/canvas/backend/backendbase"
 )
 
-func (cv *Canvas) drawShadow(pts [][2]float64, mask *image.Alpha) {
+func (cv *Canvas) drawShadow(pts [][2]float64, mask *image.Alpha, canOverlap bool) {
 	if cv.state.shadowColor.A == 0 {
 		return
 	}
@@ -38,6 +38,6 @@ func (cv *Canvas) drawShadow(pts [][2]float64, mask *image.Alpha) {
 		copy(quad[:], cv.shadowBuf)
 		cv.b.FillImageMask(&style, mask, quad)
 	} else {
-		cv.b.Fill(&style, cv.shadowBuf)
+		cv.b.Fill(&style, cv.shadowBuf, canOverlap)
 	}
 }

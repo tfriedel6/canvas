@@ -43,18 +43,21 @@ func (b *GoGLBackend) Clip(pts [][2]float64) {
 
 	gl.ColorMask(false, false, false, false)
 
+	// set bit 2 in the stencil buffer in the given shape
 	gl.StencilMask(0x04)
-	gl.StencilFunc(gl.ALWAYS, 4, 0x04)
+	gl.StencilFunc(gl.ALWAYS, 4, 0)
 	gl.StencilOp(gl.REPLACE, gl.REPLACE, gl.REPLACE)
 	gl.DrawArrays(mode, 4, int32(len(pts)))
 
+	// on entire screen, where neither bit 1 or 2 are set, invert bit 1
 	gl.StencilMask(0x02)
 	gl.StencilFunc(gl.EQUAL, 0, 0x06)
 	gl.StencilOp(gl.KEEP, gl.INVERT, gl.INVERT)
 	gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 
+	// on entire screen, clear bit 2
 	gl.StencilMask(0x04)
-	gl.StencilFunc(gl.ALWAYS, 0, 0x04)
+	gl.StencilFunc(gl.ALWAYS, 0, 0)
 	gl.StencilOp(gl.ZERO, gl.ZERO, gl.ZERO)
 	gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 

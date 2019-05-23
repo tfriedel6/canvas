@@ -95,10 +95,10 @@ func (cv *Canvas) strokePath(path *Path2D, inv mat, doInv bool) {
 	var triBuf [500][2]float64
 	tris := cv.strokeTris(path, inv, doInv, triBuf[:0])
 
-	cv.drawShadow(tris, nil)
+	cv.drawShadow(tris, nil, true)
 
 	stl := cv.backendFillStyle(&cv.state.stroke, 1)
-	cv.b.Fill(&stl, tris)
+	cv.b.Fill(&stl, tris, true)
 }
 
 func (cv *Canvas) strokeTris(path *Path2D, inv mat, doInv bool, target [][2]float64) [][2]float64 {
@@ -371,10 +371,10 @@ func (cv *Canvas) fillPath(path *Path2D, tf mat) {
 		return
 	}
 
-	cv.drawShadow(tris, nil)
+	cv.drawShadow(tris, nil, false)
 
 	stl := cv.backendFillStyle(&cv.state.fill, 1)
-	cv.b.Fill(&stl, tris)
+	cv.b.Fill(&stl, tris, false)
 }
 
 func appendSubPathTriangles(tris [][2]float64, mat mat, path []pathPoint) [][2]float64 {
@@ -412,8 +412,21 @@ func (cv *Canvas) clip(path *Path2D, tf mat) {
 		return
 	}
 
-	var triBuf [500][2]float64
-	tris := triBuf[:0]
+	var buf [500][2]float64
+
+	if path.p[len(path.p)-1].flags&pathIsRect != 0 {
+		cv.state.clip.p = make([]pathPoint, len(path.p))
+		copy(cv.state.clip.p, path.p)
+
+		quad := buf[:4]
+		for i := range quad {
+			quad[i] = path.p[i].pos
+		}
+		cv.b.Clip(quad)
+		return
+	}
+
+	tris := buf[:0]
 	runSubPaths(path.p, true, func(sp []pathPoint) bool {
 		tris = appendSubPathTriangles(tris, tf, sp)
 		return false
@@ -467,10 +480,10 @@ func (cv *Canvas) FillRect(x, y, w, h float64) {
 
 	data := [4][2]float64{{p0[0], p0[1]}, {p1[0], p1[1]}, {p2[0], p2[1]}, {p3[0], p3[1]}}
 
-	cv.drawShadow(data[:], nil)
+	cv.drawShadow(data[:], nil, false)
 
 	stl := cv.backendFillStyle(&cv.state.fill, 1)
-	cv.b.Fill(&stl, data[:])
+	cv.b.Fill(&stl, data[:], false)
 }
 
 // ClearRect sets the color of the rectangle to transparent black

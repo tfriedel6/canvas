@@ -215,7 +215,7 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 
 	mask := textImage.SubImage(image.Rect(0, 0, strWidth, strHeight)).(*image.Alpha)
 
-	cv.drawShadow(pts[:], mask)
+	cv.drawShadow(pts[:], mask, false)
 
 	stl := cv.backendFillStyle(&cv.state.fill, 1)
 	cv.b.FillImageMask(&stl, mask, pts)

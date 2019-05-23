@@ -43,18 +43,21 @@ func (b *XMobileBackend) Clip(pts [][2]float64) {
 
 	b.glctx.ColorMask(false, false, false, false)
 
+	// set bit 2 in the stencil buffer in the given shape
 	b.glctx.StencilMask(0x04)
-	b.glctx.StencilFunc(gl.ALWAYS, 4, 0x04)
+	b.glctx.StencilFunc(gl.ALWAYS, 4, 0)
 	b.glctx.StencilOp(gl.REPLACE, gl.REPLACE, gl.REPLACE)
 	b.glctx.DrawArrays(mode, 4, len(pts))
 
+	// on entire screen, where neither bit 1 or 2 are set, invert bit 1
 	b.glctx.StencilMask(0x02)
 	b.glctx.StencilFunc(gl.EQUAL, 0, 0x06)
 	b.glctx.StencilOp(gl.KEEP, gl.INVERT, gl.INVERT)
 	b.glctx.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 
+	// on entire screen, clear bit 2
 	b.glctx.StencilMask(0x04)
-	b.glctx.StencilFunc(gl.ALWAYS, 0, 0x04)
+	b.glctx.StencilFunc(gl.ALWAYS, 0, 0)
 	b.glctx.StencilOp(gl.ZERO, gl.ZERO, gl.ZERO)
 	b.glctx.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 
