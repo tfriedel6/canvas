@@ -23,6 +23,10 @@ func (b *GoGLBackend) LoadImage(src image.Image) (backendbase.Image, error) {
 
 	var tex uint32
 	gl.GenTextures(1, &tex)
+	if tex == 0 {
+		return nil, errors.New("glGenTextures failed")
+	}
+
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindTexture(gl.TEXTURE_2D, tex)
 	if src == nil {
