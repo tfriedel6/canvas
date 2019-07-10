@@ -190,6 +190,7 @@ func NewGLContext(glctx gl.Context) (*GLContext, error) {
 	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 	b.glctx.TexImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, alphaTexSize, alphaTexSize, gl.ALPHA, gl.UNSIGNED_BYTE, nil)
+	// todo should use gl.RED on OpenGL, gl.ALPHA on OpenGL ES
 
 	b.glctx.Enable(gl.BLEND)
 	b.glctx.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
