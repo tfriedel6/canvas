@@ -57,6 +57,19 @@ func (cv *Canvas) QuadraticCurveTo(x1, y1, x2, y2 float64) {
 	cv.path.QuadraticCurveTo(tf1[0], tf1[1], tf2[0], tf2[1])
 }
 
+// Ellipse adds an ellipse segment to the end of the path. x/y is the center,
+// radiusX is the major axis radius, radiusY is the minor axis radius,
+// rotation is the rotation of the ellipse in radians, startAngle and endAngle
+// are angles in radians, and anticlockwise means that the line is added
+// anticlockwise
+func (cv *Canvas) Ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle float64, anticlockwise bool) {
+	tf := cv.tf(vec{x, y})
+	ax, ay := math.Sincos(startAngle)
+	startAngle2 := vec{ay, ax}.mulMat2(cv.state.transform.mat2()).atan2()
+	endAngle2 := startAngle2 + (endAngle - startAngle)
+	cv.path.Ellipse(tf[0], tf[1], radiusX, radiusY, rotation, startAngle2, endAngle2, anticlockwise)
+}
+
 // BezierCurveTo adds a bezier curve to the path. It uses the current end point
 // of the path, x1/y1 and x2/y2 define the curve, and x3/y3 is the end point
 func (cv *Canvas) BezierCurveTo(x1, y1, x2, y2, x3, y3 float64) {

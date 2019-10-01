@@ -253,6 +253,71 @@ func (p *Path2D) BezierCurveTo(x1, y1, x2, y2, x3, y3 float64) {
 	p.LineTo(x3, y3)
 }
 
+// Ellipse (see equivalent function on canvas type)
+func (p *Path2D) Ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle float64, anticlockwise bool) {
+	checkSelfIntersection := len(p.p) > 0
+
+	rs, rc := math.Sincos(rotation)
+
+	lastWasMove := len(p.p) == 0 || p.p[len(p.p)-1].flags&pathMove != 0
+
+	if endAngle == startAngle {
+		s, c := math.Sincos(endAngle)
+		rx, ry := radiusX*c, radiusY*s
+		rx, ry = rx*rc-ry*rs, rx*rs+ry*rc
+		p.lineTo(x+rx, y+ry, checkSelfIntersection)
+
+		if lastWasMove {
+			p.p[len(p.p)-1].flags |= pathIsConvex
+		}
+
+		return
+	}
+
+	if (!anticlockwise && endAngle < startAngle) || (anticlockwise && endAngle > startAngle) {
+		startAngle, endAngle = endAngle, startAngle
+	}
+
+	if !anticlockwise {
+		diff := endAngle - startAngle
+		if diff >= math.Pi*4 {
+			diff = math.Mod(diff, math.Pi*2) + math.Pi*2
+			endAngle = startAngle + diff
+		}
+	} else {
+		diff := startAngle - endAngle
+		if diff >= math.Pi*4 {
+			diff = math.Mod(diff, math.Pi*2)
+			endAngle = startAngle - diff
+		}
+	}
+
+	const step = math.Pi * 2 / 90
+	if !anticlockwise {
+		for a := startAngle; a < endAngle; a += step {
+			s, c := math.Sincos(a)
+			rx, ry := radiusX*c, radiusY*s
+			rx, ry = rx*rc-ry*rs, rx*rs+ry*rc
+			p.lineTo(x+rx, y+ry, checkSelfIntersection)
+		}
+	} else {
+		for a := startAngle; a > endAngle; a -= step {
+			s, c := math.Sincos(a)
+			rx, ry := radiusX*c, radiusY*s
+			rx, ry = rx*rc-ry*rs, rx*rs+ry*rc
+			p.lineTo(x+rx, y+ry, checkSelfIntersection)
+		}
+	}
+	s, c := math.Sincos(endAngle)
+	rx, ry := radiusX*c, radiusY*s
+	rx, ry = rx*rc-ry*rs, rx*rs+ry*rc
+	p.lineTo(x+rx, y+ry, checkSelfIntersection)
+
+	if lastWasMove {
+		p.p[len(p.p)-1].flags |= pathIsConvex
+	}
+}
+
 // ClosePath (see equivalent function on canvas type)
 func (p *Path2D) ClosePath() {
 	if len(p.p) < 2 {
@@ -286,9 +351,6 @@ func (p *Path2D) Rect(x, y, w, h float64) {
 		p.p[len(p.p)-1].flags |= pathIsConvex
 	}
 }
-
-// func (p *Path2D) Ellipse(...) {
-// }
 
 func runSubPaths(path []pathPoint, close bool, fn func(subPath []pathPoint) bool) {
 	start := 0
