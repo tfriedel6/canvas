@@ -59,7 +59,7 @@ func init() {
 	keyNameMap[sdl.SCANCODE_COMMA] = "Comma"
 	keyNameMap[sdl.SCANCODE_PERIOD] = "Period"
 	keyNameMap[sdl.SCANCODE_SLASH] = "Slash"
-	keyNameMap[sdl.SCANCODE_RSHIFT] = "RightShift"
+	keyNameMap[sdl.SCANCODE_RSHIFT] = "ShiftRight"
 	keyNameMap[sdl.SCANCODE_KP_MULTIPLY] = "NumpadMultiply"
 	keyNameMap[sdl.SCANCODE_LALT] = "AltLeft"
 	keyNameMap[sdl.SCANCODE_SPACE] = "Space"

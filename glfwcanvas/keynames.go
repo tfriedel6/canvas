@@ -59,7 +59,7 @@ func init() {
 	keyNameMap[glfw.KeyComma] = "Comma"
 	keyNameMap[glfw.KeyPeriod] = "Period"
 	keyNameMap[glfw.KeySlash] = "Slash"
-	keyNameMap[glfw.KeyRightShift] = "RightShift"
+	keyNameMap[glfw.KeyRightShift] = "ShiftRight"
 	keyNameMap[glfw.KeyKPMultiply] = "NumpadMultiply"
 	keyNameMap[glfw.KeyLeftAlt] = "AltLeft"
 	keyNameMap[glfw.KeySpace] = "Space"
