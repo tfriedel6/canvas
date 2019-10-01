@@ -129,8 +129,10 @@ func (p *Path2D) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise b
 		return
 	}
 
-	if (!anticlockwise && endAngle < startAngle) || (anticlockwise && endAngle > startAngle) {
-		endAngle, startAngle = startAngle, endAngle
+	if !anticlockwise && endAngle < startAngle {
+		endAngle = startAngle + (2*math.Pi - math.Mod(startAngle-endAngle, math.Pi*2))
+	} else if anticlockwise && endAngle > startAngle {
+		endAngle = startAngle - (2*math.Pi - math.Mod(endAngle-startAngle, math.Pi*2))
 	}
 
 	if !anticlockwise {
@@ -142,7 +144,7 @@ func (p *Path2D) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise b
 	} else {
 		diff := startAngle - endAngle
 		if diff >= math.Pi*4 {
-			diff = math.Mod(diff, math.Pi*2)
+			diff = math.Mod(diff, math.Pi*2) + math.Pi*2
 			endAngle = startAngle - diff
 		}
 	}
@@ -274,8 +276,10 @@ func (p *Path2D) Ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle 
 		return
 	}
 
-	if (!anticlockwise && endAngle < startAngle) || (anticlockwise && endAngle > startAngle) {
-		startAngle, endAngle = endAngle, startAngle
+	if !anticlockwise && endAngle < startAngle {
+		endAngle = startAngle + (2*math.Pi - math.Mod(startAngle-endAngle, math.Pi*2))
+	} else if anticlockwise && endAngle > startAngle {
+		endAngle = startAngle - (2*math.Pi - math.Mod(endAngle-startAngle, math.Pi*2))
 	}
 
 	if !anticlockwise {
@@ -287,7 +291,7 @@ func (p *Path2D) Ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle 
 	} else {
 		diff := startAngle - endAngle
 		if diff >= math.Pi*4 {
-			diff = math.Mod(diff, math.Pi*2)
+			diff = math.Mod(diff, math.Pi*2) + math.Pi*2
 			endAngle = startAngle - diff
 		}
 	}
