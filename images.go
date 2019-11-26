@@ -23,6 +23,12 @@ type Image struct {
 // string. If you want the canvas package to load the image, make sure you
 // import the required format packages
 func (cv *Canvas) LoadImage(src interface{}) (*Image, error) {
+	if img, ok := src.(*Image); ok {
+		return img, nil
+	} else if img, ok := cv.images[src]; ok {
+		return img, nil
+	}
+
 	var srcImg image.Image
 	switch v := src.(type) {
 	case image.Image:
@@ -52,11 +58,15 @@ func (cv *Canvas) LoadImage(src interface{}) (*Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Image{cv: cv, img: backendImg}, nil
+	cvimg := &Image{cv: cv, img: backendImg}
+	cv.images[src] = cvimg
+	return cvimg, nil
 }
 
 func (cv *Canvas) getImage(src interface{}) *Image {
-	if img, ok := cv.images[src]; ok {
+	if img, ok := src.(*Image); ok {
+		return img
+	} else if img, ok := cv.images[src]; ok {
 		return img
 	}
 	switch v := src.(type) {
