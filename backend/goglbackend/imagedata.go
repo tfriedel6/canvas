@@ -26,14 +26,19 @@ func (b *GoGLBackend) GetImageData(x, y, w, h int) *image.RGBA {
 	if h > b.h {
 		h = b.h
 	}
-	if len(b.imageBuf) < w*h*3 {
-		b.imageBuf = make([]byte, w*h*3)
-	}
 
-	gl.ReadPixels(int32(x), int32(y), int32(w), int32(h), gl.RGB, gl.UNSIGNED_BYTE, gl.Ptr(&b.imageBuf[0]))
+	var vp [4]int32
+	gl.GetIntegerv(gl.VIEWPORT, &vp[0])
+
+	size := int(vp[2] * vp[3] * 3)
+	if len(b.imageBuf) < size {
+		b.imageBuf = make([]byte, size)
+	}
+	gl.ReadPixels(vp[0], vp[1], vp[2], vp[3], gl.RGB, gl.UNSIGNED_BYTE, gl.Ptr(&b.imageBuf[0]))
+
 	rgba := image.NewRGBA(image.Rect(x, y, x+w, y+h))
-	bp := 0
 	for cy := y; cy < y+h; cy++ {
+		bp := (int(vp[3])-h+cy)*int(vp[2])*3 + x*3
 		for cx := x; cx < x+w; cx++ {
 			rgba.SetRGBA(cx, y+h-1-cy, color.RGBA{R: b.imageBuf[bp], G: b.imageBuf[bp+1], B: b.imageBuf[bp+2], A: 255})
 			bp += 3

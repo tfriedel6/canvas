@@ -23,7 +23,7 @@ func (b *XMobileBackend) LoadImage(src image.Image) (backendbase.Image, error) {
 
 	var tex gl.Texture
 	tex = b.glctx.CreateTexture()
-	if tex == 0 {
+	if tex.Value == 0 {
 		return nil, errors.New("glGenTextures failed")
 	}
 

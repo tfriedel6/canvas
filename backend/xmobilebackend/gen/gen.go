@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -212,6 +213,8 @@ func rewrite(filename, src string) (string, string) {
 				params[i] = param[6 : len(param)-1]
 			} else if strings.HasPrefix(param, "gl.Ptr(") {
 				params[i] = param[8:len(param)-2] + ":]"
+			} else if len(param) >= 5 && param[:3] == "vp[" {
+				params[i] = fmt.Sprintf("int(%s)", param)
 			}
 		}
 		return "b.glctx.ReadPixels(" + params[6] + ", " + strings.Join(params[:len(params)-1], ", ") + ")"
@@ -239,6 +242,7 @@ func rewrite(filename, src string) (string, string) {
 	src = rewriteCalls(src, "loadShader", func(params []string) string {
 		return "loadShader(b, " + strings.Join(params, ", ") + ")"
 	})
+	src = strings.ReplaceAll(src, "if tex == 0 {", "if tex.Value == 0 {")
 
 	if filename == "gogl.go" {
 		filename = "xmobile.go"

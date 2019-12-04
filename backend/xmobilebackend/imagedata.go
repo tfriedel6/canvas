@@ -26,14 +26,19 @@ func (b *XMobileBackend) GetImageData(x, y, w, h int) *image.RGBA {
 	if h > b.h {
 		h = b.h
 	}
-	if len(b.imageBuf) < w*h*3 {
-		b.imageBuf = make([]byte, w*h*3)
-	}
 
-	b.glctx.ReadPixels(b.imageBuf[0:], x, y, w, h, gl.RGB, gl.UNSIGNED_BYTE)
+	var vp [4]int32
+	b.glctx.GetIntegerv(vp[:], gl.VIEWPORT)
+
+	size := int(vp[2] * vp[3] * 3)
+	if len(b.imageBuf) < size {
+		b.imageBuf = make([]byte, size)
+	}
+	b.glctx.ReadPixels(b.imageBuf[0:], int(vp[0]), int(vp[1]), int(vp[2]), int(vp[3]), gl.RGB, gl.UNSIGNED_BYTE)
+
 	rgba := image.NewRGBA(image.Rect(x, y, x+w, y+h))
-	bp := 0
 	for cy := y; cy < y+h; cy++ {
+		bp := (int(vp[3])-h+cy)*int(vp[2])*3 + x*3
 		for cx := x; cx < x+w; cx++ {
 			rgba.SetRGBA(cx, y+h-1-cy, color.RGBA{R: b.imageBuf[bp], G: b.imageBuf[bp+1], B: b.imageBuf[bp+2], A: 255})
 			bp += 3
