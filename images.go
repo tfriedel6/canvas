@@ -25,10 +25,11 @@ type Image struct {
 func (cv *Canvas) LoadImage(src interface{}) (*Image, error) {
 	if img, ok := src.(*Image); ok {
 		return img, nil
-	} else if img, ok := cv.images[src]; ok {
-		return img, nil
+	} else if _, ok := src.([]byte); !ok {
+		if img, ok := cv.images[src]; ok {
+			return img, nil
+		}
 	}
-
 	var srcImg image.Image
 	switch v := src.(type) {
 	case image.Image:
@@ -59,7 +60,9 @@ func (cv *Canvas) LoadImage(src interface{}) (*Image, error) {
 		return nil, err
 	}
 	cvimg := &Image{cv: cv, img: backendImg}
-	cv.images[src] = cvimg
+	if _, ok := src.([]byte); !ok {
+		cv.images[src] = cvimg
+	}
 	return cvimg, nil
 }
 
