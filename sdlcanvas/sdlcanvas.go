@@ -201,7 +201,7 @@ func (wnd *Window) StartFrame() error {
 						wnd.SizeChange(int(e.Data1), int(e.Data2))
 						handled = true
 					} else {
-						wnd.Backend.SetBounds(0, 0, int(e.Data1), int(e.Data2))
+						wnd.Backend.SetBounds(0, 0, int(fbw), int(fbh))
 					}
 				}
 			}
