@@ -1,6 +1,6 @@
 package glfwcanvas
 
-import "github.com/go-gl/glfw/v3.2/glfw"
+import "github.com/go-gl/glfw/v3.3/glfw"
 
 var keyNameMap [347]string
 var keyRuneMap [347]rune

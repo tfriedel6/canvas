@@ -33,6 +33,8 @@ type Window struct {
 	KeyUp      func(scancode int, rn rune, name string)
 	KeyChar    func(rn rune)
 	SizeChange func(w, h int)
+	scalex     float64
+	scaley     float64
 }
 
 // CreateWindow creates a window using SDL and initializes the OpenGL context
@@ -77,11 +79,11 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 	wnd := &Window{
 		Window: window,
 		canvas: cv,
+		scalex: float64(fbw) / float64(w),
+		scaley: float64(fbh) / float64(h),
 	}
 
 	var mx, my int
-	sx := float64(fbw) / float64(w)
-	sy := float64(fbh) / float64(h)
 
 	window.SetMouseButtonCallback(func(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mod glfw.ModifierKey) {
 		if action == glfw.Press && wnd.MouseDown != nil {
@@ -91,7 +93,7 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 		}
 	})
 	window.SetCursorPosCallback(func(w *glfw.Window, xpos, ypos float64) {
-		mx, my = int(math.Round(xpos*sx)), int(math.Round(ypos*sy))
+		mx, my = int(math.Round(xpos*wnd.scalex)), int(math.Round(ypos*wnd.scaley))
 		if wnd.MouseMove != nil {
 			wnd.MouseMove(mx, my)
 		}
@@ -115,8 +117,8 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 	})
 	window.SetSizeCallback(func(w *glfw.Window, width, height int) {
 		fbw, fbh := window.GetFramebufferSize()
-		sx = float64(fbw) / float64(width)
-		sy = float64(fbh) / float64(height)
+		wnd.scalex = float64(fbw) / float64(width)
+		wnd.scaley = float64(fbh) / float64(height)
 		if wnd.SizeChange != nil {
 			wnd.SizeChange(width, height)
 		} else {
@@ -166,7 +168,14 @@ func (wnd *Window) FinishFrame() {
 func (wnd *Window) MainLoop(run func()) {
 	for !wnd.close {
 		wnd.StartFrame()
+		if wnd.scalex != 1 || wnd.scaley != 1 {
+			wnd.canvas.Save()
+			wnd.canvas.Scale(wnd.scalex, wnd.scaley)
+		}
 		run()
+		if wnd.scalex != 1 || wnd.scaley != 1 {
+			wnd.canvas.Restore()
+		}
 		wnd.FinishFrame()
 	}
 }

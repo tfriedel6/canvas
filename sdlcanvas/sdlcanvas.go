@@ -267,7 +267,14 @@ func (wnd *Window) MainLoop(run func()) {
 			}
 		}
 
+		if wnd.scalex != 1 || wnd.scaley != 1 {
+			wnd.canvas.Save()
+			wnd.canvas.Scale(wnd.scalex, wnd.scaley)
+		}
 		run()
+		if wnd.scalex != 1 || wnd.scaley != 1 {
+			wnd.canvas.Restore()
+		}
 
 		wnd.FinishFrame()
 	}
