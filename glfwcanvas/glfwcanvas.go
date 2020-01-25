@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/go-gl/gl/v3.2-core/gl"
-	"github.com/go-gl/glfw/v3.2/glfw"
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/tfriedel6/canvas"
 	"github.com/tfriedel6/canvas/backend/goglbackend"
 )
@@ -67,7 +67,8 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 	gl.Enable(gl.MULTISAMPLE)
 
 	// load canvas GL backend
-	backend, err := goglbackend.New(0, 0, w, h, nil)
+	fbw, fbh := window.GetFramebufferSize()
+	backend, err := goglbackend.New(0, 0, fbw, fbh, nil)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error loading GoGL backend: %v", err)
 	}
@@ -79,6 +80,8 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 	}
 
 	var mx, my int
+	sx := float64(fbw) / float64(w)
+	sy := float64(fbh) / float64(h)
 
 	window.SetMouseButtonCallback(func(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mod glfw.ModifierKey) {
 		if action == glfw.Press && wnd.MouseDown != nil {
@@ -88,7 +91,7 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 		}
 	})
 	window.SetCursorPosCallback(func(w *glfw.Window, xpos, ypos float64) {
-		mx, my = int(math.Round(xpos)), int(math.Round(ypos))
+		mx, my = int(math.Round(xpos*sx)), int(math.Round(ypos*sy))
 		if wnd.MouseMove != nil {
 			wnd.MouseMove(mx, my)
 		}
@@ -111,10 +114,13 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 		}
 	})
 	window.SetSizeCallback(func(w *glfw.Window, width, height int) {
+		fbw, fbh := window.GetFramebufferSize()
+		sx = float64(fbw) / float64(width)
+		sy = float64(fbh) / float64(height)
 		if wnd.SizeChange != nil {
 			wnd.SizeChange(width, height)
 		} else {
-			backend.SetBounds(0, 0, width, height)
+			backend.SetBounds(0, 0, fbw, fbh)
 		}
 	})
 	window.SetCloseCallback(func(w *glfw.Window) {
@@ -168,4 +174,10 @@ func (wnd *Window) MainLoop(run func()) {
 // Size returns the current width and height of the window
 func (wnd *Window) Size() (int, int) {
 	return wnd.Window.GetSize()
+}
+
+// FramebufferSize returns the current width and height of
+// the framebuffer
+func (wnd *Window) FramebufferSize() (int, int) {
+	return wnd.Window.GetFramebufferSize()
 }
