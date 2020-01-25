@@ -5,6 +5,7 @@ import (
 	_ "image/gif" // Imported here so that applications based on this package support these formats by default
 	_ "image/jpeg"
 	_ "image/png"
+	"math"
 	"runtime"
 	"time"
 	"unicode/utf8"
@@ -38,6 +39,8 @@ type Window struct {
 	KeyUp      func(scancode int, rn rune, name string)
 	KeyChar    func(rn rune)
 	SizeChange func(w, h int)
+	scalex     float64
+	scaley     float64
 }
 
 // CreateWindow creates a window using SDL and initializes the OpenGL context
@@ -61,11 +64,11 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 	sdl.GLSetAttribute(sdl.GL_MULTISAMPLESAMPLES, 4)
 
 	// create window
-	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, int32(w), int32(h), sdl.WINDOW_RESIZABLE|sdl.WINDOW_OPENGL)
+	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, int32(w), int32(h), sdl.WINDOW_RESIZABLE|sdl.WINDOW_OPENGL|sdl.WINDOW_ALLOW_HIGHDPI)
 	if err != nil {
 		sdl.GLSetAttribute(sdl.GL_MULTISAMPLEBUFFERS, 0)
 		sdl.GLSetAttribute(sdl.GL_MULTISAMPLESAMPLES, 0)
-		window, err = sdl.CreateWindow(title, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, int32(w), int32(h), sdl.WINDOW_RESIZABLE|sdl.WINDOW_OPENGL)
+		window, err = sdl.CreateWindow(title, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, int32(w), int32(h), sdl.WINDOW_RESIZABLE|sdl.WINDOW_OPENGL|sdl.WINDOW_ALLOW_HIGHDPI)
 		if err != nil {
 			return nil, nil, fmt.Errorf("Error creating window: %v", err)
 		}
@@ -88,7 +91,8 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 	}
 
 	// load canvas GL backend
-	backend, err := goglbackend.New(0, 0, w, h, nil)
+	fbw, fbh := window.GLGetDrawableSize()
+	backend, err := goglbackend.New(0, 0, int(fbw), int(fbh), nil)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error loading GoGL backend: %v", err)
 	}
@@ -104,6 +108,8 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 		Backend:   backend,
 		canvas:    cv,
 		events:    make([]sdl.Event, 0, 100),
+		scalex:    float64(fbw) / float64(w),
+		scaley:    float64(fbh) / float64(h),
 	}
 
 	return wnd, cv, nil
@@ -144,23 +150,27 @@ func (wnd *Window) StartFrame() error {
 		case *sdl.MouseButtonEvent:
 			if e.Type == sdl.MOUSEBUTTONDOWN {
 				if wnd.MouseDown != nil {
-					wnd.MouseDown(int(e.Button), int(e.X), int(e.Y))
+					mx, my := wnd.mpos(e.X, e.Y)
+					wnd.MouseDown(int(e.Button), mx, my)
 					handled = true
 				}
 			} else if e.Type == sdl.MOUSEBUTTONUP {
 				if wnd.MouseUp != nil {
-					wnd.MouseUp(int(e.Button), int(e.X), int(e.Y))
+					mx, my := wnd.mpos(e.X, e.Y)
+					wnd.MouseUp(int(e.Button), mx, my)
 					handled = true
 				}
 			}
 		case *sdl.MouseMotionEvent:
 			if wnd.MouseMove != nil {
-				wnd.MouseMove(int(e.X), int(e.Y))
+				mx, my := wnd.mpos(e.X, e.Y)
+				wnd.MouseMove(mx, my)
 				handled = true
 			}
 		case *sdl.MouseWheelEvent:
 			if wnd.MouseWheel != nil {
-				wnd.MouseWheel(int(e.X), int(e.Y))
+				mx, my := wnd.mpos(e.X, e.Y)
+				wnd.MouseWheel(mx, my)
 				handled = true
 			}
 		case *sdl.KeyboardEvent:
@@ -184,6 +194,9 @@ func (wnd *Window) StartFrame() error {
 		case *sdl.WindowEvent:
 			if e.WindowID == wnd.WindowID {
 				if e.Event == sdl.WINDOWEVENT_SIZE_CHANGED {
+					fbw, fbh := wnd.Window.GLGetDrawableSize()
+					wnd.scalex = float64(fbw) / float64(e.Data1)
+					wnd.scaley = float64(fbh) / float64(e.Data2)
 					if wnd.SizeChange != nil {
 						wnd.SizeChange(int(e.Data1), int(e.Data2))
 						handled = true
@@ -205,6 +218,12 @@ func (wnd *Window) StartFrame() error {
 	}
 
 	return nil
+}
+
+func (wnd *Window) mpos(x, y int32) (int, int) {
+	mx := int(math.Round(float64(x) * wnd.scalex))
+	my := int(math.Round(float64(y) * wnd.scaley))
+	return mx, my
 }
 
 // FinishFrame updates the FPS count and displays the frame
@@ -257,5 +276,12 @@ func (wnd *Window) MainLoop(run func()) {
 // Size returns the current width and height of the window
 func (wnd *Window) Size() (int, int) {
 	w, h := wnd.Window.GetSize()
+	return int(w), int(h)
+}
+
+// FramebufferSize returns the current width and height of
+// the framebuffer
+func (wnd *Window) FramebufferSize() (int, int) {
+	w, h := wnd.Window.GLGetDrawableSize()
 	return int(w), int(h)
 }

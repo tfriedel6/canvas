@@ -34,12 +34,12 @@ func main() {
 
 	// create window
 	const title = "SDL Test"
-	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, 1280, 720, sdl.WINDOW_RESIZABLE|sdl.WINDOW_OPENGL)
+	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, 1280, 720, sdl.WINDOW_RESIZABLE|sdl.WINDOW_OPENGL|sdl.WINDOW_ALLOW_HIGHDPI)
 	if err != nil {
 		// fallback in case multisample is not available
 		sdl.GLSetAttribute(sdl.GL_MULTISAMPLEBUFFERS, 0)
 		sdl.GLSetAttribute(sdl.GL_MULTISAMPLESAMPLES, 0)
-		window, err = sdl.CreateWindow(title, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, 1280, 720, sdl.WINDOW_RESIZABLE|sdl.WINDOW_OPENGL)
+		window, err = sdl.CreateWindow(title, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, 1280, 720, sdl.WINDOW_RESIZABLE|sdl.WINDOW_OPENGL|sdl.WINDOW_ALLOW_HIGHDPI)
 		if err != nil {
 			log.Fatalf("Error creating window: %v", err)
 		}
@@ -78,6 +78,12 @@ func main() {
 			continue
 		}
 
+		// find window size and scaling
+		ww, wh := window.GetSize()
+		fbw, fbh := window.GLGetDrawableSize()
+		sx := float64(fbw) / float64(ww)
+		sy := float64(fbh) / float64(wh)
+
 		// handle events
 		for {
 			event := sdl.PollEvent()
@@ -91,7 +97,7 @@ func main() {
 					running = false
 				}
 			case *sdl.MouseMotionEvent:
-				mx, my = float64(e.X), float64(e.Y)
+				mx, my = float64(e.X)*sx, float64(e.Y)*sy
 			case *sdl.QuitEvent:
 				running = false
 			case *sdl.WindowEvent:
@@ -102,11 +108,10 @@ func main() {
 		}
 
 		// set canvas size
-		ww, wh := window.GetSize()
-		backend.SetBounds(0, 0, int(ww), int(wh))
+		backend.SetBounds(0, 0, int(fbw), int(fbh))
 
 		// call the run function to do all the drawing
-		run(cv, float64(ww), float64(wh))
+		run(cv, float64(fbw), float64(fbh))
 
 		// swap back and front buffer
 		window.GLSwap()
