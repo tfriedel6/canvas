@@ -72,6 +72,13 @@ func triangleContainsPoint(a, b, c, p vec) bool {
 	return count == 1
 }
 
+const parallelTolerance = 1e-10
+
+func parallel(a1, b1, a2, b2 vec) bool {
+	ang := b1.sub(a1).angleTo(b2.sub(a2))
+	return math.Abs(ang) < parallelTolerance || math.Abs(ang-math.Pi) < parallelTolerance
+}
+
 func polygonContainsLine(polygon []vec, ia, ib int, a, b vec) bool {
 	for i := range polygon {
 		if i == ia || i == ib {
@@ -89,12 +96,17 @@ func polygonContainsLine(polygon []vec, ia, ib int, a, b vec) bool {
 	return true
 }
 
+const onLineToleranceSqr = 1e-20
+
 func polygonContainsPoint(polygon []vec, p vec) bool {
 	a := polygon[len(polygon)-1]
 	count := 0
 	for _, b := range polygon {
 		if r, _ := pointIsRightOfLine(a, b, p); r {
 			count++
+		}
+		if linePointDistSqr(a, b, p) < onLineToleranceSqr {
+			return true
 		}
 		a = b
 	}
@@ -127,6 +139,9 @@ func triangulatePath(path []pathPoint, mat mat, target [][2]float64) [][2]float6
 				continue
 			}
 			if !polygonContainsLine(polygon, i, ic, a, c) {
+				continue
+			}
+			if parallel(a, b, b, c) {
 				continue
 			}
 			target = append(target, a, b, c)

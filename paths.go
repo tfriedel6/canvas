@@ -357,6 +357,15 @@ func lineIntersection(a0, a1, b0, b1 vec) (vec, float64, float64) {
 	return a0.add(va.mulf(p)), p, q
 }
 
+func linePointDistSqr(a, b, p vec) float64 {
+	v := b.sub(a)
+	vl := v.len()
+	vn := v.divf(vl)
+	d := p.sub(a).dot(vn)
+	c := a.add(vn.mulf(d))
+	return p.sub(c).lenSqr()
+}
+
 // Fill fills the current path with the current FillStyle
 func (cv *Canvas) Fill() {
 	cv.fillPath(&cv.path, matIdentity())
