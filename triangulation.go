@@ -16,7 +16,7 @@ func pointIsRightOfLine(a, b, p vec) (bool, bool) {
 		a, b = b, a
 		dir = !dir
 	}
-	if p[1] < a[1] || p[1] > b[1] {
+	if p[1] < a[1] || p[1] >= b[1] {
 		return false, false
 	}
 	v := b.sub(a)
@@ -72,6 +72,23 @@ func triangleContainsPoint(a, b, c, p vec) bool {
 	return count == 1
 }
 
+func polygonContainsLine(polygon []vec, ia, ib int, a, b vec) bool {
+	for i := range polygon {
+		if i == ia || i == ib {
+			continue
+		}
+		i2 := (i + 1) % len(polygon)
+		if i2 == ia || i2 == ib {
+			continue
+		}
+		_, p, q := lineIntersection(polygon[i], polygon[i2], a, b)
+		if p >= 0 && p <= 1 && q >= 0 && q <= 1 {
+			return false
+		}
+	}
+	return true
+}
+
 func polygonContainsPoint(polygon []vec, p vec) bool {
 	a := polygon[len(polygon)-1]
 	count := 0
@@ -95,9 +112,8 @@ func triangulatePath(path []pathPoint, mat mat, target [][2]float64) [][2]float6
 		polygon = append(polygon, p.pos.mulMat(mat))
 	}
 
-	for len(polygon) > 2 {
+	for len(polygon) > 3 {
 		var i int
-	triangles:
 		for i = range polygon {
 			ib := (i + 1) % len(polygon)
 			ic := (i + 2) % len(polygon)
@@ -107,17 +123,11 @@ func triangulatePath(path []pathPoint, mat mat, target [][2]float64) [][2]float6
 			if isSamePoint(a, c, math.SmallestNonzeroFloat64) {
 				break
 			}
-			for i2, p := range polygon {
-				if i2 == i || i2 == ib || i2 == ic {
-					continue
-				}
-				if triangleContainsPoint(a, b, c, p) {
-					continue triangles
-				}
-				center := a.add(b).add(c).divf(3)
-				if !polygonContainsPoint(polygon, center) {
-					continue triangles
-				}
+			if len(polygon) > 3 && !polygonContainsPoint(polygon, a.add(c).divf(2)) {
+				continue
+			}
+			if !polygonContainsLine(polygon, i, ic, a, c) {
+				continue
 			}
 			target = append(target, a, b, c)
 			break
@@ -125,6 +135,7 @@ func triangulatePath(path []pathPoint, mat mat, target [][2]float64) [][2]float6
 		remove := (i + 1) % len(polygon)
 		polygon = append(polygon[:remove], polygon[remove+1:]...)
 	}
+	target = append(target, polygon[0], polygon[1], polygon[2])
 	return target
 }
 

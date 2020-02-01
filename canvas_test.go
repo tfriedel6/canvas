@@ -162,6 +162,25 @@ func TestFillConcavePath(t *testing.T) {
 	})
 }
 
+func TestFillHammer(t *testing.T) {
+	run(t, func(cv *canvas.Canvas) {
+		cv.SetFillStyle("#0F0")
+		cv.BeginPath()
+		cv.Translate(50, 50)
+		cv.Scale(0.7, 0.7)
+		cv.MoveTo(-6, 60)
+		cv.LineTo(-6, -50)
+		cv.LineTo(-25, -50)
+		cv.LineTo(-12, -60)
+		cv.LineTo(25, -60)
+		cv.LineTo(25, -50)
+		cv.LineTo(6, -50)
+		cv.LineTo(6, 60)
+		cv.ClosePath()
+		cv.Fill()
+	})
+}
+
 func TestDrawPath(t *testing.T) {
 	run(t, func(cv *canvas.Canvas) {
 		cv.SetStrokeStyle("#00F")
