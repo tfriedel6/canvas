@@ -1,11 +1,5 @@
 package goglbackend
 
-import (
-	"bytes"
-	"fmt"
-	"strings"
-)
-
 var unifiedVS = `
 attribute vec2 vertex, texCoord;
 
@@ -100,96 +94,52 @@ void main() {
 }
 `
 
-var gaussian15VS = `
+var boxVS = `
 attribute vec2 vertex, texCoord;
+
 uniform vec2 canvasSize;
-varying vec2 v_texCoord;
+
+varying vec2 v_cp, v_tc;
+
 void main() {
-	v_texCoord = texCoord;
+    v_tc = texCoord;
+	v_cp = vertex;
 	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
     gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
-}`
-var gaussian15FS = `
-#ifdef GL_ES
-precision mediump float;
-#endif
-varying vec2 v_texCoord;
-uniform vec2 kernelScale;
-uniform sampler2D image;
-uniform float kernel[15];
-void main() {
-	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
-_SUM_
-    gl_FragColor = color;
-}`
-
-var gaussian63VS = `
-attribute vec2 vertex, texCoord;
-uniform vec2 canvasSize;
-varying vec2 v_texCoord;
-void main() {
-	v_texCoord = texCoord;
-	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
-    gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
-}`
-var gaussian63FS = `
-#ifdef GL_ES
-precision mediump float;
-#endif
-varying vec2 v_texCoord;
-uniform vec2 kernelScale;
-uniform sampler2D image;
-uniform float kernel[63];
-void main() {
-	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
-_SUM_
-    gl_FragColor = color;
-}`
-
-var gaussian127VS = `
-attribute vec2 vertex, texCoord;
-uniform vec2 canvasSize;
-varying vec2 v_texCoord;
-void main() {
-	v_texCoord = texCoord;
-	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
-    gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
-}`
-var gaussian127FS = `
-#ifdef GL_ES
-precision mediump float;
-#endif
-varying vec2 v_texCoord;
-uniform vec2 kernelScale;
-uniform sampler2D image;
-uniform float kernel[127];
-void main() {
-	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
-_SUM_
-    gl_FragColor = color;
-}`
-
-func init() {
-	fstr := "\tcolor += texture2D(image, v_texCoord + vec2(%.1f * kernelScale.x, %.1f * kernelScale.y)) * kernel[%d];\n"
-	bb := bytes.Buffer{}
-	for i := 0; i < 127; i++ {
-		off := float64(i) - 63
-		fmt.Fprintf(&bb, fstr, off, off, i)
-	}
-	gaussian127FS = strings.Replace(gaussian127FS, "_SUM_", bb.String(), -1)
-	bb.Reset()
-	for i := 0; i < 63; i++ {
-		off := float64(i) - 31
-		fmt.Fprintf(&bb, fstr, off, off, i)
-	}
-	gaussian63FS = strings.Replace(gaussian63FS, "_SUM_", bb.String(), -1)
-	bb.Reset()
-	for i := 0; i < 15; i++ {
-		off := float64(i) - 7
-		fmt.Fprintf(&bb, fstr, off, off, i)
-	}
-	gaussian15FS = strings.Replace(gaussian15FS, "_SUM_", bb.String(), -1)
 }
+`
+var boxFS = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+varying vec2 v_cp, v_tc;
+
+uniform int boxSize;
+uniform bool boxVertical;
+uniform float boxScale;
+uniform sampler2D image;
+
+void main() {
+	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
+
+	vec4 sum = vec4(0.0);
+	if (boxVertical) {
+		vec2 start = v_tc - vec2(0.0, (float)(boxSize) * boxScale);
+		for (int i=0; i<boxSize*2; i++) {
+			sum += texture2D(image, start + vec2(0.0, (float)(i) * boxScale));
+		}
+	} else {
+		vec2 start = v_tc - vec2((float)(boxSize) * boxScale, 0.0);
+		for (int i=0; i<boxSize*2; i++) {
+			sum += texture2D(image, start + vec2((float)(i) * boxScale, 0.0));
+		}
+	}
+	color = sum / float(boxSize * 2);
+
+	gl_FragColor = color;
+}
+`
 
 type unifiedShader struct {
 	shaderProgram
@@ -220,12 +170,13 @@ type unifiedShader struct {
 	UseImage int32
 }
 
-type gaussianShader struct {
+type boxBlurShader struct {
 	shaderProgram
 	Vertex      uint32
 	TexCoord    uint32
 	CanvasSize  int32
-	KernelScale int32
+	BoxSize     int32
+	BoxVertical int32
+	BoxScale    int32
 	Image       int32
-	Kernel      int32
 }

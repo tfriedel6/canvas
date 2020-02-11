@@ -228,82 +228,78 @@ func (b *GoGLBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Al
 	}
 }
 
-func (b *GoGLBackend) drawBlurred(blur float64) {
-	var kernel []float32
-	var kernelBuf [255]float32
-	var gs *gaussianShader
-	if blur < 3 {
-		gs = &b.gauss15r
-		kernel = kernelBuf[:15]
-	} else if blur < 12 {
-		gs = &b.gauss63r
-		kernel = kernelBuf[:63]
-	} else {
-		gs = &b.gauss127r
-		kernel = kernelBuf[:127]
-	}
-
-	gaussianKernel(blur, kernel)
-
+func (b *GoGLBackend) drawBlurred(size float64) {
+	b.offscr1.alpha = true
 	b.offscr2.alpha = true
-	b.enableTextureRenderTarget(&b.offscr2)
-	gl.Disable(gl.STENCIL_TEST)
-	gl.Disable(gl.BLEND)
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, b.shadowBuf)
-	data := [16]float32{0, 0, 0, float32(b.h), float32(b.w), float32(b.h), float32(b.w), 0, 0, 0, 0, 1, 1, 1, 1, 0}
+	data := [16]float32{
+		0, 0, 0, float32(b.h), float32(b.w), float32(b.h), float32(b.w), 0,
+		0, 1, 0, 0, 1, 0, 1, 1}
 	gl.BufferData(gl.ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl.STREAM_DRAW)
 
-	gl.VertexAttribPointer(gs.Vertex, 2, gl.FLOAT, false, 0, nil)
-	gl.VertexAttribPointer(gs.TexCoord, 2, gl.FLOAT, false, 0, gl.PtrOffset(8*4))
-	gl.EnableVertexAttribArray(gs.Vertex)
-	gl.EnableVertexAttribArray(gs.TexCoord)
+	gl.UseProgram(b.bbshd.ID)
+	gl.Uniform1i(b.bbshd.Image, 0)
+	gl.Uniform2f(b.bbshd.CanvasSize, float32(b.fw), float32(b.fh))
+
+	gl.VertexAttribPointer(b.bbshd.Vertex, 2, gl.FLOAT, false, 0, nil)
+	gl.VertexAttribPointer(b.bbshd.TexCoord, 2, gl.FLOAT, false, 0, gl.PtrOffset(8*4))
+	gl.EnableVertexAttribArray(b.bbshd.Vertex)
+	gl.EnableVertexAttribArray(b.bbshd.TexCoord)
+
+	gl.Disable(gl.BLEND)
 
 	gl.ActiveTexture(gl.TEXTURE0)
+
+	// calculate box blur size
+	fsize := math.Max(1, math.Floor(size))
+	sizea := int(fsize)
+	sizeb := sizea
+	sizec := sizea
+	if size-fsize > 0.333333333 {
+		sizeb++
+	}
+	if size-fsize > 0.666666666 {
+		sizec++
+	}
+
 	gl.BindTexture(gl.TEXTURE_2D, b.offscr1.tex)
-
-	gl.UseProgram(gs.ID)
-	gl.Uniform1i(gs.Image, 0)
-	gl.Uniform2f(gs.CanvasSize, float32(b.fw), float32(b.fh))
-	gl.Uniform2f(gs.KernelScale, 1.0/float32(b.fw), 0.0)
-	gl.Uniform1fv(gs.Kernel, int32(len(kernel)), &kernel[0])
-	gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
-
-	b.disableTextureRenderTarget()
-
+	b.enableTextureRenderTarget(&b.offscr2)
+	b.box3(sizea, false)
+	gl.BindTexture(gl.TEXTURE_2D, b.offscr2.tex)
+	b.enableTextureRenderTarget(&b.offscr1)
+	b.box3(sizeb, false)
+	gl.BindTexture(gl.TEXTURE_2D, b.offscr1.tex)
+	b.enableTextureRenderTarget(&b.offscr2)
+	b.box3(sizec, false)
+	gl.BindTexture(gl.TEXTURE_2D, b.offscr2.tex)
+	b.enableTextureRenderTarget(&b.offscr1)
+	b.box3(sizea, true)
+	gl.BindTexture(gl.TEXTURE_2D, b.offscr1.tex)
+	b.enableTextureRenderTarget(&b.offscr2)
+	b.box3(sizeb, true)
 	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
-
 	gl.BindTexture(gl.TEXTURE_2D, b.offscr2.tex)
+	b.disableTextureRenderTarget()
+	b.box3(sizec, true)
 
-	gl.Uniform2f(gs.KernelScale, 0.0, 1.0/float32(b.fh))
-	gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
+	gl.DisableVertexAttribArray(b.bbshd.Vertex)
+	gl.DisableVertexAttribArray(b.bbshd.TexCoord)
 
-	gl.DisableVertexAttribArray(gs.Vertex)
-	gl.DisableVertexAttribArray(gs.TexCoord)
-
-	gl.Enable(gl.STENCIL_TEST)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 }
 
-func gaussianKernel(stddev float64, target []float32) {
-	stddevSqr := stddev * stddev
-	center := float64(len(target) / 2)
-	factor := 1.0 / math.Sqrt(2*math.Pi*stddevSqr)
-	for i := range target {
-		x := float64(i) - center
-		target[i] = float32(factor * math.Pow(math.E, -x*x/(2*stddevSqr)))
+func (b *GoGLBackend) box3(size int, vertical bool) {
+	gl.Uniform1i(b.bbshd.BoxSize, int32(size))
+	if vertical {
+		gl.Uniform1i(b.bbshd.BoxVertical, 1)
+		gl.Uniform1f(b.bbshd.BoxScale, 1/float32(b.fh))
+	} else {
+		gl.Uniform1i(b.bbshd.BoxVertical, 0)
+		gl.Uniform1f(b.bbshd.BoxScale, 1/float32(b.fw))
 	}
-	// normalizeKernel(target)
-}
+	gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 
-func normalizeKernel(kernel []float32) {
-	var sum float32
-	for _, v := range kernel {
-		sum += v
-	}
-	factor := 1.0 / sum
-	for i := range kernel {
-		kernel[i] *= factor
-	}
+	gl.StencilFunc(gl.ALWAYS, 0, 0xFF)
 }

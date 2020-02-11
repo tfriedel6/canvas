@@ -20,10 +20,8 @@ type GLContext struct {
 	shadowBuf uint32
 	alphaTex  uint32
 
-	shd       unifiedShader
-	gauss15r  gaussianShader
-	gauss63r  gaussianShader
-	gauss127r gaussianShader
+	shd   unifiedShader
+	bbshd boxBlurShader
 
 	offscr1 offscreenBuffer
 	offscr2 offscreenBuffer
@@ -60,29 +58,11 @@ func NewGLContext() (*GLContext, error) {
 		return nil, err
 	}
 
-	err = loadShader(gaussian15VS, gaussian15FS, &ctx.gauss15r.shaderProgram)
+	err = loadShader(boxVS, boxFS, &ctx.bbshd.shaderProgram)
 	if err != nil {
 		return nil, err
 	}
-	ctx.gauss15r.shaderProgram.mustLoadLocations(&ctx.gauss15r)
-	if err = glError(); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(gaussian63VS, gaussian63FS, &ctx.gauss63r.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.gauss63r.shaderProgram.mustLoadLocations(&ctx.gauss63r)
-	if err = glError(); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(gaussian127VS, gaussian127FS, &ctx.gauss127r.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.gauss127r.shaderProgram.mustLoadLocations(&ctx.gauss127r)
+	ctx.bbshd.shaderProgram.mustLoadLocations(&ctx.bbshd)
 	if err = glError(); err != nil {
 		return nil, err
 	}
