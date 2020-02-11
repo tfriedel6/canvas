@@ -7,14 +7,14 @@ import (
 )
 
 var unifiedVS = `
-attribute vec2 vertex, alphaTexCoord;
+attribute vec2 vertex, texCoord;
 
 uniform vec2 canvasSize;
 
-varying vec2 v_cp, v_atc;
+varying vec2 v_cp, v_tc;
 
 void main() {
-    v_atc = alphaTexCoord;
+    v_tc = texCoord;
 	v_cp = vertex;
 	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
     gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
@@ -25,7 +25,7 @@ var unifiedFS = `
 precision mediump float;
 #endif
 
-varying vec2 v_cp, v_atc;
+varying vec2 v_cp, v_tc;
 
 uniform vec4 color;
 uniform float globalAlpha;
@@ -44,6 +44,8 @@ uniform vec2 repeat;
 
 uniform bool useAlphaTex;
 uniform sampler2D alphaTex;
+
+uniform bool useImage;
 
 bool isNaN(float v) {
   return v < 0.0 || 0.0 < v || v == 0.0 ? false : true;
@@ -84,10 +86,12 @@ void main() {
 		if (imgpt.y < 0.0 || imgpt.y > 1.0) {
 			col *= repeat.y;
 		}
+	} else if (useImage) {
+		col = texture2D(image, v_tc);
 	}
 
 	if (useAlphaTex) {
-		col.a *= texture2D(alphaTex, v_atc).a * globalAlpha;
+		col.a *= texture2D(alphaTex, v_tc).a * globalAlpha;
 	} else {
 		col.a *= globalAlpha;
 	}
@@ -95,28 +99,6 @@ void main() {
     gl_FragColor = col;
 }
 `
-
-var imageVS = `
-attribute vec2 vertex, texCoord;
-uniform vec2 canvasSize;
-varying vec2 v_texCoord;
-void main() {
-	v_texCoord = texCoord;
-	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
-    gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
-}`
-var imageFS = `
-#ifdef GL_ES
-precision mediump float;
-#endif
-varying vec2 v_texCoord;
-uniform sampler2D image;
-uniform float globalAlpha;
-void main() {
-	vec4 col = texture2D(image, v_texCoord);
-	col.a *= globalAlpha;
-    gl_FragColor = col;
-}`
 
 var gaussian15VS = `
 attribute vec2 vertex, texCoord;
@@ -212,8 +194,8 @@ func init() {
 type unifiedShader struct {
 	shaderProgram
 
-	Vertex        uint32
-	AlphaTexCoord uint32
+	Vertex   uint32
+	TexCoord uint32
 
 	CanvasSize  int32
 	Color       int32
@@ -234,15 +216,8 @@ type unifiedShader struct {
 	Image           int32
 	ImageTransform  int32
 	Repeat          int32
-}
 
-type imageShader struct {
-	shaderProgram
-	Vertex      uint32
-	TexCoord    uint32
-	CanvasSize  int32
-	Image       int32
-	GlobalAlpha int32
+	UseImage int32
 }
 
 type gaussianShader struct {

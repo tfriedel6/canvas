@@ -21,7 +21,6 @@ type GLContext struct {
 	alphaTex  uint32
 
 	shd       unifiedShader
-	ir        imageShader
 	gauss15r  gaussianShader
 	gauss63r  gaussianShader
 	gauss127r gaussianShader
@@ -57,15 +56,6 @@ func NewGLContext() (*GLContext, error) {
 		return nil, err
 	}
 	ctx.shd.shaderProgram.mustLoadLocations(&ctx.shd)
-	if err = glError(); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(imageVS, imageFS, &ctx.ir.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.ir.shaderProgram.mustLoadLocations(&ctx.ir)
 	if err = glError(); err != nil {
 		return nil, err
 	}
@@ -353,7 +343,8 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alp
 		gl.Uniform1i(b.shd.UseLinearGradient, 1)
 		gl.Uniform1i(b.shd.UseRadialGradient, 0)
 		gl.Uniform1i(b.shd.UseImagePattern, 0)
-		return b.shd.Vertex, b.shd.AlphaTexCoord
+		gl.Uniform1i(b.shd.UseImage, 0)
+		return b.shd.Vertex, b.shd.TexCoord
 	}
 	if rg := style.RadialGradient; rg != nil {
 		rg := rg.(*RadialGradient)
@@ -374,7 +365,8 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alp
 		gl.Uniform1i(b.shd.UseLinearGradient, 0)
 		gl.Uniform1i(b.shd.UseRadialGradient, 1)
 		gl.Uniform1i(b.shd.UseImagePattern, 0)
-		return b.shd.Vertex, b.shd.AlphaTexCoord
+		gl.Uniform1i(b.shd.UseImage, 0)
+		return b.shd.Vertex, b.shd.TexCoord
 	}
 	if ip := style.ImagePattern; ip != nil {
 		ipd := ip.(*ImagePattern).data
@@ -406,7 +398,8 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alp
 		gl.Uniform1i(b.shd.UseLinearGradient, 0)
 		gl.Uniform1i(b.shd.UseRadialGradient, 0)
 		gl.Uniform1i(b.shd.UseImagePattern, 1)
-		return b.shd.Vertex, b.shd.AlphaTexCoord
+		gl.Uniform1i(b.shd.UseImage, 0)
+		return b.shd.Vertex, b.shd.TexCoord
 	}
 
 	gl.UseProgram(b.shd.ID)
@@ -419,7 +412,8 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alp
 	gl.Uniform1i(b.shd.UseLinearGradient, 0)
 	gl.Uniform1i(b.shd.UseRadialGradient, 0)
 	gl.Uniform1i(b.shd.UseImagePattern, 0)
-	return b.shd.Vertex, b.shd.AlphaTexCoord
+	gl.Uniform1i(b.shd.UseImage, 0)
+	return b.shd.Vertex, b.shd.TexCoord
 }
 
 func (b *GoGLBackend) enableTextureRenderTarget(offscr *offscreenBuffer) {
