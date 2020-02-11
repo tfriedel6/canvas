@@ -20,14 +20,7 @@ type GLContext struct {
 	shadowBuf uint32
 	alphaTex  uint32
 
-	sr        solidShader
-	lgr       linearGradientShader
-	rgr       radialGradientShader
-	ipr       imagePatternShader
-	sar       solidAlphaShader
-	rgar      radialGradientAlphaShader
-	lgar      linearGradientAlphaShader
-	ipar      imagePatternAlphaShader
+	shd       unifiedShader
 	ir        imageShader
 	gauss15r  gaussianShader
 	gauss63r  gaussianShader
@@ -59,74 +52,11 @@ func NewGLContext() (*GLContext, error) {
 
 	gl.GetError() // clear error state
 
-	err = loadShader(solidVS, solidFS, &ctx.sr.shaderProgram)
+	err = loadShader(unifiedVS, unifiedFS, &ctx.shd.shaderProgram)
 	if err != nil {
 		return nil, err
 	}
-	ctx.sr.shaderProgram.mustLoadLocations(&ctx.sr)
-	if err = glError(); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(linearGradientVS, linearGradientFS, &ctx.lgr.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.lgr.shaderProgram.mustLoadLocations(&ctx.lgr)
-	if err = glError(); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(radialGradientVS, radialGradientFS, &ctx.rgr.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.rgr.shaderProgram.mustLoadLocations(&ctx.rgr)
-	if err = glError(); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(imagePatternVS, imagePatternFS, &ctx.ipr.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.ipr.shaderProgram.mustLoadLocations(&ctx.ipr)
-	if err = glError(); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(solidAlphaVS, solidAlphaFS, &ctx.sar.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.sar.shaderProgram.mustLoadLocations(&ctx.sar)
-	if err = glError(); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(linearGradientAlphaVS, linearGradientFS, &ctx.lgar.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.lgar.shaderProgram.mustLoadLocations(&ctx.lgar)
-	if err = glError(); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(radialGradientAlphaVS, radialGradientAlphaFS, &ctx.rgar.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.rgar.shaderProgram.mustLoadLocations(&ctx.rgar)
-	if err = glError(); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(imagePatternAlphaVS, imagePatternAlphaFS, &ctx.ipar.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.ipar.shaderProgram.mustLoadLocations(&ctx.ipar)
+	ctx.shd.shaderProgram.mustLoadLocations(&ctx.shd)
 	if err = glError(); err != nil {
 		return nil, err
 	}
@@ -397,150 +327,99 @@ func colorGoToGL(c color.RGBA) glColor {
 	return glc
 }
 
-func (b *GoGLBackend) useShader(style *backendbase.FillStyle) (vertexLoc uint32) {
+func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alphaTexSlot int32) (vertexLoc, alphaTexCoordLoc uint32) {
+	var alphaVal int32
+	if useAlpha {
+		alphaVal = 1
+	}
 	if lg := style.LinearGradient; lg != nil {
 		lg := lg.(*LinearGradient)
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, lg.tex)
-		gl.UseProgram(b.lgr.ID)
+		gl.UseProgram(b.shd.ID)
 		from := vec{style.Gradient.X0, style.Gradient.Y0}
 		to := vec{style.Gradient.X1, style.Gradient.Y1}
 		dir := to.sub(from)
 		length := dir.len()
 		dir = dir.scale(1 / length)
-		gl.Uniform2f(b.lgr.CanvasSize, float32(b.fw), float32(b.fh))
-		gl.Uniform2f(b.lgr.From, float32(from[0]), float32(from[1]))
-		gl.Uniform2f(b.lgr.Dir, float32(dir[0]), float32(dir[1]))
-		gl.Uniform1f(b.lgr.Len, float32(length))
-		gl.Uniform1i(b.lgr.Gradient, 0)
-		gl.Uniform1f(b.lgr.GlobalAlpha, float32(style.Color.A)/255)
-		return b.lgr.Vertex
+		gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+		gl.Uniform2f(b.shd.From, float32(from[0]), float32(from[1]))
+		gl.Uniform2f(b.shd.Dir, float32(dir[0]), float32(dir[1]))
+		gl.Uniform1f(b.shd.Len, float32(length))
+		gl.Uniform1i(b.shd.Gradient, 0)
+		gl.Uniform1f(b.shd.GlobalAlpha, float32(style.Color.A)/255)
+		gl.Uniform1i(b.shd.AlphaTex, alphaTexSlot)
+		gl.Uniform1i(b.shd.UseAlphaTex, alphaVal)
+		gl.Uniform1i(b.shd.UseLinearGradient, 1)
+		gl.Uniform1i(b.shd.UseRadialGradient, 0)
+		gl.Uniform1i(b.shd.UseImagePattern, 0)
+		return b.shd.Vertex, b.shd.AlphaTexCoord
 	}
 	if rg := style.RadialGradient; rg != nil {
 		rg := rg.(*RadialGradient)
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, rg.tex)
-		gl.UseProgram(b.rgr.ID)
+		gl.UseProgram(b.shd.ID)
 		from := vec{style.Gradient.X0, style.Gradient.Y0}
 		to := vec{style.Gradient.X1, style.Gradient.Y1}
-		gl.Uniform2f(b.rgr.CanvasSize, float32(b.fw), float32(b.fh))
-		gl.Uniform2f(b.rgr.From, float32(from[0]), float32(from[1]))
-		gl.Uniform2f(b.rgr.To, float32(to[0]), float32(to[1]))
-		gl.Uniform1f(b.rgr.RadFrom, float32(style.Gradient.RadFrom))
-		gl.Uniform1f(b.rgr.RadTo, float32(style.Gradient.RadTo))
-		gl.Uniform1i(b.rgr.Gradient, 0)
-		gl.Uniform1f(b.rgr.GlobalAlpha, float32(style.Color.A)/255)
-		return b.rgr.Vertex
+		gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+		gl.Uniform2f(b.shd.From, float32(from[0]), float32(from[1]))
+		gl.Uniform2f(b.shd.To, float32(to[0]), float32(to[1]))
+		gl.Uniform1f(b.shd.RadFrom, float32(style.Gradient.RadFrom))
+		gl.Uniform1f(b.shd.RadTo, float32(style.Gradient.RadTo))
+		gl.Uniform1i(b.shd.Gradient, 0)
+		gl.Uniform1f(b.shd.GlobalAlpha, float32(style.Color.A)/255)
+		gl.Uniform1i(b.shd.AlphaTex, alphaTexSlot)
+		gl.Uniform1i(b.shd.UseAlphaTex, alphaVal)
+		gl.Uniform1i(b.shd.UseLinearGradient, 0)
+		gl.Uniform1i(b.shd.UseRadialGradient, 1)
+		gl.Uniform1i(b.shd.UseImagePattern, 0)
+		return b.shd.Vertex, b.shd.AlphaTexCoord
 	}
 	if ip := style.ImagePattern; ip != nil {
 		ipd := ip.(*ImagePattern).data
 		img := ipd.Image.(*Image)
-		gl.UseProgram(b.ipr.ID)
+		gl.UseProgram(b.shd.ID)
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, img.tex)
-		gl.Uniform2f(b.ipr.CanvasSize, float32(b.fw), float32(b.fh))
-		gl.Uniform2f(b.ipr.ImageSize, float32(img.w), float32(img.h))
-		gl.Uniform1i(b.ipr.Image, 0)
+		gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+		gl.Uniform2f(b.shd.ImageSize, float32(img.w), float32(img.h))
+		gl.Uniform1i(b.shd.Image, 0)
 		var f32mat [9]float32
 		for i, v := range ipd.Transform {
 			f32mat[i] = float32(v)
 		}
-		gl.UniformMatrix3fv(b.ipr.ImageTransform, 1, false, &f32mat[0])
+		gl.UniformMatrix3fv(b.shd.ImageTransform, 1, false, &f32mat[0])
 		switch ipd.Repeat {
 		case backendbase.Repeat:
-			gl.Uniform2f(b.ipr.Repeat, 1, 1)
+			gl.Uniform2f(b.shd.Repeat, 1, 1)
 		case backendbase.RepeatX:
-			gl.Uniform2f(b.ipr.Repeat, 1, 0)
+			gl.Uniform2f(b.shd.Repeat, 1, 0)
 		case backendbase.RepeatY:
-			gl.Uniform2f(b.ipr.Repeat, 0, 1)
+			gl.Uniform2f(b.shd.Repeat, 0, 1)
 		case backendbase.NoRepeat:
-			gl.Uniform2f(b.ipr.Repeat, 0, 0)
+			gl.Uniform2f(b.shd.Repeat, 0, 0)
 		}
-		gl.Uniform1f(b.ipr.GlobalAlpha, float32(style.Color.A)/255)
-		return b.ipr.Vertex
+		gl.Uniform1f(b.shd.GlobalAlpha, float32(style.Color.A)/255)
+		gl.Uniform1i(b.shd.AlphaTex, alphaTexSlot)
+		gl.Uniform1i(b.shd.UseAlphaTex, alphaVal)
+		gl.Uniform1i(b.shd.UseLinearGradient, 0)
+		gl.Uniform1i(b.shd.UseRadialGradient, 0)
+		gl.Uniform1i(b.shd.UseImagePattern, 1)
+		return b.shd.Vertex, b.shd.AlphaTexCoord
 	}
 
-	gl.UseProgram(b.sr.ID)
-	gl.Uniform2f(b.sr.CanvasSize, float32(b.fw), float32(b.fh))
+	gl.UseProgram(b.shd.ID)
+	gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
 	c := colorGoToGL(style.Color)
-	gl.Uniform4f(b.sr.Color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
-	gl.Uniform1f(b.sr.GlobalAlpha, 1)
-	return b.sr.Vertex
-}
-
-func (b *GoGLBackend) useAlphaShader(style *backendbase.FillStyle, alphaTexSlot int32) (vertexLoc, alphaTexCoordLoc uint32) {
-	if lg := style.LinearGradient; lg != nil {
-		lg := lg.(*LinearGradient)
-		gl.ActiveTexture(gl.TEXTURE0)
-		gl.BindTexture(gl.TEXTURE_2D, lg.tex)
-		gl.UseProgram(b.lgar.ID)
-		from := vec{style.Gradient.X0, style.Gradient.Y0}
-		to := vec{style.Gradient.X1, style.Gradient.Y1}
-		dir := to.sub(from)
-		length := dir.len()
-		dir = dir.scale(1 / length)
-		gl.Uniform2f(b.lgar.CanvasSize, float32(b.fw), float32(b.fh))
-		gl.Uniform2f(b.lgar.From, float32(from[0]), float32(from[1]))
-		gl.Uniform2f(b.lgar.Dir, float32(dir[0]), float32(dir[1]))
-		gl.Uniform1f(b.lgar.Len, float32(length))
-		gl.Uniform1i(b.lgar.Gradient, 0)
-		gl.Uniform1i(b.lgar.AlphaTex, alphaTexSlot)
-		gl.Uniform1f(b.lgar.GlobalAlpha, float32(style.Color.A)/255)
-		return b.lgar.Vertex, b.lgar.AlphaTexCoord
-	}
-	if rg := style.RadialGradient; rg != nil {
-		rg := rg.(*RadialGradient)
-		gl.ActiveTexture(gl.TEXTURE0)
-		gl.BindTexture(gl.TEXTURE_2D, rg.tex)
-		gl.UseProgram(b.rgar.ID)
-		from := vec{style.Gradient.X0, style.Gradient.Y0}
-		to := vec{style.Gradient.X1, style.Gradient.Y1}
-		gl.Uniform2f(b.rgar.CanvasSize, float32(b.fw), float32(b.fh))
-		gl.Uniform2f(b.rgar.From, float32(from[0]), float32(from[1]))
-		gl.Uniform2f(b.rgar.To, float32(to[0]), float32(to[1]))
-		gl.Uniform1f(b.rgar.RadFrom, float32(style.Gradient.RadFrom))
-		gl.Uniform1f(b.rgar.RadTo, float32(style.Gradient.RadTo))
-		gl.Uniform1i(b.rgar.Gradient, 0)
-		gl.Uniform1i(b.rgar.AlphaTex, alphaTexSlot)
-		gl.Uniform1f(b.rgar.GlobalAlpha, float32(style.Color.A)/255)
-		return b.rgar.Vertex, b.rgar.AlphaTexCoord
-	}
-	if ip := style.ImagePattern; ip != nil {
-		ipd := ip.(*ImagePattern).data
-		img := ipd.Image.(*Image)
-		gl.UseProgram(b.ipar.ID)
-		gl.ActiveTexture(gl.TEXTURE0)
-		gl.BindTexture(gl.TEXTURE_2D, img.tex)
-		gl.Uniform2f(b.ipar.CanvasSize, float32(b.fw), float32(b.fh))
-		gl.Uniform2f(b.ipar.ImageSize, float32(img.w), float32(img.h))
-		gl.Uniform1i(b.ipar.Image, 0)
-		var f32mat [9]float32
-		for i, v := range ipd.Transform {
-			f32mat[i] = float32(v)
-		}
-		gl.UniformMatrix3fv(b.ipr.ImageTransform, 1, false, &f32mat[0])
-		switch ipd.Repeat {
-		case backendbase.Repeat:
-			gl.Uniform2f(b.ipr.Repeat, 1, 1)
-		case backendbase.RepeatX:
-			gl.Uniform2f(b.ipr.Repeat, 1, 0)
-		case backendbase.RepeatY:
-			gl.Uniform2f(b.ipr.Repeat, 0, 1)
-		case backendbase.NoRepeat:
-			gl.Uniform2f(b.ipr.Repeat, 0, 0)
-		}
-		gl.Uniform1i(b.ipar.AlphaTex, alphaTexSlot)
-		gl.Uniform1f(b.ipar.GlobalAlpha, float32(style.Color.A)/255)
-		return b.ipar.Vertex, b.ipar.AlphaTexCoord
-	}
-
-	gl.UseProgram(b.sar.ID)
-	gl.Uniform2f(b.sar.CanvasSize, float32(b.fw), float32(b.fh))
-	c := colorGoToGL(style.Color)
-	gl.Uniform4f(b.sar.Color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
-	gl.Uniform1i(b.sar.AlphaTex, alphaTexSlot)
-	gl.Uniform1f(b.sar.GlobalAlpha, 1)
-	return b.sar.Vertex, b.sar.AlphaTexCoord
+	gl.Uniform4f(b.shd.Color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
+	gl.Uniform1f(b.shd.GlobalAlpha, 1)
+	gl.Uniform1i(b.shd.AlphaTex, alphaTexSlot)
+	gl.Uniform1i(b.shd.UseAlphaTex, alphaVal)
+	gl.Uniform1i(b.shd.UseLinearGradient, 0)
+	gl.Uniform1i(b.shd.UseRadialGradient, 0)
+	gl.Uniform1i(b.shd.UseImagePattern, 0)
+	return b.shd.Vertex, b.shd.AlphaTexCoord
 }
 
 func (b *GoGLBackend) enableTextureRenderTarget(offscr *offscreenBuffer) {

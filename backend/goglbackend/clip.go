@@ -33,13 +33,17 @@ func (b *GoGLBackend) Clip(pts [][2]float64) {
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, b.buf)
 	gl.BufferData(gl.ARRAY_BUFFER, len(b.ptsBuf)*4, unsafe.Pointer(&b.ptsBuf[0]), gl.STREAM_DRAW)
-	gl.VertexAttribPointer(b.sr.Vertex, 2, gl.FLOAT, false, 0, nil)
+	gl.VertexAttribPointer(b.shd.Vertex, 2, gl.FLOAT, false, 0, nil)
 
-	gl.UseProgram(b.sr.ID)
-	gl.Uniform4f(b.sr.Color, 1, 1, 1, 1)
-	gl.Uniform2f(b.sr.CanvasSize, float32(b.fw), float32(b.fh))
-	gl.Uniform1f(b.sr.GlobalAlpha, 1)
-	gl.EnableVertexAttribArray(b.sr.Vertex)
+	gl.UseProgram(b.shd.ID)
+	gl.Uniform4f(b.shd.Color, 1, 1, 1, 1)
+	gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	gl.Uniform1f(b.shd.GlobalAlpha, 1)
+	gl.Uniform1i(b.shd.UseAlphaTex, 0)
+	gl.Uniform1i(b.shd.UseLinearGradient, 0)
+	gl.Uniform1i(b.shd.UseRadialGradient, 0)
+	gl.Uniform1i(b.shd.UseImagePattern, 0)
+	gl.EnableVertexAttribArray(b.shd.Vertex)
 
 	gl.ColorMask(false, false, false, false)
 
@@ -61,7 +65,7 @@ func (b *GoGLBackend) Clip(pts [][2]float64) {
 	gl.StencilOp(gl.ZERO, gl.ZERO, gl.ZERO)
 	gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 
-	gl.DisableVertexAttribArray(b.sr.Vertex)
+	gl.DisableVertexAttribArray(b.shd.Vertex)
 
 	gl.ColorMask(true, true, true, true)
 	gl.StencilOp(gl.KEEP, gl.KEEP, gl.KEEP)

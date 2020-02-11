@@ -33,10 +33,14 @@ func (b *GoGLBackend) Clear(pts [4][2]float64) {
 		float32(pts[2][0]), float32(pts[2][1]),
 		float32(pts[3][0]), float32(pts[3][1])}
 
-	gl.UseProgram(b.sr.ID)
-	gl.Uniform2f(b.sr.CanvasSize, float32(b.fw), float32(b.fh))
-	gl.Uniform4f(b.sr.Color, 0, 0, 0, 0)
-	gl.Uniform1f(b.sr.GlobalAlpha, 1)
+	gl.UseProgram(b.shd.ID)
+	gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	gl.Uniform4f(b.shd.Color, 0, 0, 0, 0)
+	gl.Uniform1f(b.shd.GlobalAlpha, 1)
+	gl.Uniform1i(b.shd.UseAlphaTex, 0)
+	gl.Uniform1i(b.shd.UseLinearGradient, 0)
+	gl.Uniform1i(b.shd.UseRadialGradient, 0)
+	gl.Uniform1i(b.shd.UseImagePattern, 0)
 
 	gl.Disable(gl.BLEND)
 
@@ -45,10 +49,10 @@ func (b *GoGLBackend) Clear(pts [4][2]float64) {
 
 	gl.StencilFunc(gl.EQUAL, 0, 0xFF)
 
-	gl.VertexAttribPointer(b.sr.Vertex, 2, gl.FLOAT, false, 0, nil)
-	gl.EnableVertexAttribArray(b.sr.Vertex)
+	gl.VertexAttribPointer(b.shd.Vertex, 2, gl.FLOAT, false, 0, nil)
+	gl.EnableVertexAttribArray(b.shd.Vertex)
 	gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
-	gl.DisableVertexAttribArray(b.sr.Vertex)
+	gl.DisableVertexAttribArray(b.shd.Vertex)
 
 	gl.StencilFunc(gl.ALWAYS, 0, 0xFF)
 
@@ -111,7 +115,7 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64, canOv
 	gl.BufferData(gl.ARRAY_BUFFER, len(b.ptsBuf)*4, unsafe.Pointer(&b.ptsBuf[0]), gl.STREAM_DRAW)
 
 	if !canOverlap || style.Color.A >= 255 {
-		vertex := b.useShader(style)
+		vertex, _ := b.useShader(style, false, 0)
 
 		gl.StencilFunc(gl.EQUAL, 0, 0xFF)
 		gl.EnableVertexAttribArray(vertex)
@@ -125,21 +129,25 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64, canOv
 		gl.StencilOp(gl.REPLACE, gl.REPLACE, gl.REPLACE)
 		gl.StencilMask(0x01)
 
-		gl.UseProgram(b.sr.ID)
-		gl.Uniform4f(b.sr.Color, 0, 0, 0, 0)
-		gl.Uniform2f(b.sr.CanvasSize, float32(b.fw), float32(b.fh))
-		gl.Uniform1f(b.sr.GlobalAlpha, 1)
+		gl.UseProgram(b.shd.ID)
+		gl.Uniform4f(b.shd.Color, 0, 0, 0, 0)
+		gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+		gl.Uniform1f(b.shd.GlobalAlpha, 1)
+		gl.Uniform1i(b.shd.UseAlphaTex, 0)
+		gl.Uniform1i(b.shd.UseLinearGradient, 0)
+		gl.Uniform1i(b.shd.UseRadialGradient, 0)
+		gl.Uniform1i(b.shd.UseImagePattern, 0)
 
-		gl.EnableVertexAttribArray(b.sr.Vertex)
-		gl.VertexAttribPointer(b.sr.Vertex, 2, gl.FLOAT, false, 0, nil)
+		gl.EnableVertexAttribArray(b.shd.Vertex)
+		gl.VertexAttribPointer(b.shd.Vertex, 2, gl.FLOAT, false, 0, nil)
 		gl.DrawArrays(mode, 4, int32(len(pts)))
-		gl.DisableVertexAttribArray(b.sr.Vertex)
+		gl.DisableVertexAttribArray(b.shd.Vertex)
 
 		gl.ColorMask(true, true, true, true)
 
 		gl.StencilFunc(gl.EQUAL, 1, 0xFF)
 
-		vertex := b.useShader(style)
+		vertex, _ := b.useShader(style, false, 0)
 		gl.EnableVertexAttribArray(vertex)
 		gl.VertexAttribPointer(vertex, 2, gl.FLOAT, false, 0, nil)
 
@@ -181,7 +189,7 @@ func (b *GoGLBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Al
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, b.buf)
 
-	vertex, alphaTexCoord := b.useAlphaShader(style, 1)
+	vertex, alphaTexCoord := b.useShader(style, true, 1)
 
 	gl.EnableVertexAttribArray(vertex)
 	gl.EnableVertexAttribArray(alphaTexCoord)
