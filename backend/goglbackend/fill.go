@@ -229,8 +229,6 @@ func (b *GoGLBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Al
 }
 
 func (b *GoGLBackend) drawBlurred(blur float64) {
-	gl.BlendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
-
 	var kernel []float32
 	var kernelBuf [255]float32
 	var gs *gaussianShader
@@ -249,14 +247,17 @@ func (b *GoGLBackend) drawBlurred(blur float64) {
 
 	b.offscr2.alpha = true
 	b.enableTextureRenderTarget(&b.offscr2)
-	gl.ClearColor(0, 0, 0, 0)
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
-
-	gl.StencilFunc(gl.EQUAL, 0, 0xFF)
+	gl.Disable(gl.STENCIL_TEST)
+	gl.Disable(gl.BLEND)
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, b.shadowBuf)
 	data := [16]float32{0, 0, 0, float32(b.h), float32(b.w), float32(b.h), float32(b.w), 0, 0, 0, 0, 1, 1, 1, 1, 0}
 	gl.BufferData(gl.ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl.STREAM_DRAW)
+
+	gl.VertexAttribPointer(gs.Vertex, 2, gl.FLOAT, false, 0, nil)
+	gl.VertexAttribPointer(gs.TexCoord, 2, gl.FLOAT, false, 0, gl.PtrOffset(8*4))
+	gl.EnableVertexAttribArray(gs.Vertex)
+	gl.EnableVertexAttribArray(gs.TexCoord)
 
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindTexture(gl.TEXTURE_2D, b.offscr1.tex)
@@ -266,42 +267,22 @@ func (b *GoGLBackend) drawBlurred(blur float64) {
 	gl.Uniform2f(gs.CanvasSize, float32(b.fw), float32(b.fh))
 	gl.Uniform2f(gs.KernelScale, 1.0/float32(b.fw), 0.0)
 	gl.Uniform1fv(gs.Kernel, int32(len(kernel)), &kernel[0])
-	gl.VertexAttribPointer(gs.Vertex, 2, gl.FLOAT, false, 0, nil)
-	gl.VertexAttribPointer(gs.TexCoord, 2, gl.FLOAT, false, 0, gl.PtrOffset(8*4))
-	gl.EnableVertexAttribArray(gs.Vertex)
-	gl.EnableVertexAttribArray(gs.TexCoord)
 	gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
-	gl.DisableVertexAttribArray(gs.Vertex)
-	gl.DisableVertexAttribArray(gs.TexCoord)
-
-	gl.StencilFunc(gl.ALWAYS, 0, 0xFF)
 
 	b.disableTextureRenderTarget()
 
-	gl.StencilFunc(gl.EQUAL, 0, 0xFF)
+	gl.Enable(gl.BLEND)
+	gl.BlendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
 
-	gl.BindBuffer(gl.ARRAY_BUFFER, b.shadowBuf)
-	data = [16]float32{0, 0, 0, float32(b.h), float32(b.w), float32(b.h), float32(b.w), 0, 0, 0, 0, 1, 1, 1, 1, 0}
-	gl.BufferData(gl.ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl.STREAM_DRAW)
-
-	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindTexture(gl.TEXTURE_2D, b.offscr2.tex)
 
-	gl.UseProgram(gs.ID)
-	gl.Uniform1i(gs.Image, 0)
-	gl.Uniform2f(gs.CanvasSize, float32(b.fw), float32(b.fh))
 	gl.Uniform2f(gs.KernelScale, 0.0, 1.0/float32(b.fh))
-	gl.Uniform1fv(gs.Kernel, int32(len(kernel)), &kernel[0])
-	gl.VertexAttribPointer(gs.Vertex, 2, gl.FLOAT, false, 0, nil)
-	gl.VertexAttribPointer(gs.TexCoord, 2, gl.FLOAT, false, 0, gl.PtrOffset(8*4))
-	gl.EnableVertexAttribArray(gs.Vertex)
-	gl.EnableVertexAttribArray(gs.TexCoord)
 	gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
+
 	gl.DisableVertexAttribArray(gs.Vertex)
 	gl.DisableVertexAttribArray(gs.TexCoord)
 
-	gl.StencilFunc(gl.ALWAYS, 0, 0xFF)
-
+	gl.Enable(gl.STENCIL_TEST)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 }
 
