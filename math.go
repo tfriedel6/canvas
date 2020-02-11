@@ -79,12 +79,10 @@ func (m *mat) String() string {
 	return fmt.Sprintf("[%f,%f,0,\n %f,%f,0,\n %f,%f,1,]", m[0], m[2], m[4], m[1], m[3], m[5])
 }
 
-func matIdentity() mat {
-	return mat{
-		1, 0,
-		0, 1,
-		0, 0}
-}
+var matIdentity = mat{
+	1, 0,
+	0, 1,
+	0, 0}
 
 func matTranslate(v vec) mat {
 	return mat{

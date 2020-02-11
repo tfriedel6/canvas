@@ -114,13 +114,21 @@ func (p *Path2D) lineTo(x, y float64, checkSelfIntersection bool) {
 
 // Arc (see equivalent function on canvas type)
 func (p *Path2D) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise bool) {
+	p.arc(x, y, radius, startAngle, endAngle, anticlockwise, matIdentity, true)
+}
+
+func (p *Path2D) arc(x, y, radius, startAngle, endAngle float64, anticlockwise bool, m mat, ident bool) {
 	checkSelfIntersection := len(p.p) > 0
 
 	lastWasMove := len(p.p) == 0 || p.p[len(p.p)-1].flags&pathMove != 0
 
 	if endAngle == startAngle {
 		s, c := math.Sincos(endAngle)
-		p.lineTo(x+radius*c, y+radius*s, checkSelfIntersection)
+		pt := vec{x + radius*c, y + radius*s}
+		if !ident {
+			pt = pt.mulMat(m)
+		}
+		p.lineTo(pt[0], pt[1], checkSelfIntersection)
 
 		if lastWasMove {
 			p.p[len(p.p)-1].flags |= pathIsConvex
@@ -153,16 +161,28 @@ func (p *Path2D) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise b
 	if !anticlockwise {
 		for a := startAngle; a < endAngle; a += step {
 			s, c := math.Sincos(a)
-			p.lineTo(x+radius*c, y+radius*s, checkSelfIntersection)
+			pt := vec{x + radius*c, y + radius*s}
+			if !ident {
+				pt = pt.mulMat(m)
+			}
+			p.lineTo(pt[0], pt[1], checkSelfIntersection)
 		}
 	} else {
 		for a := startAngle; a > endAngle; a -= step {
 			s, c := math.Sincos(a)
-			p.lineTo(x+radius*c, y+radius*s, checkSelfIntersection)
+			pt := vec{x + radius*c, y + radius*s}
+			if !ident {
+				pt = pt.mulMat(m)
+			}
+			p.lineTo(pt[0], pt[1], checkSelfIntersection)
 		}
 	}
 	s, c := math.Sincos(endAngle)
-	p.lineTo(x+radius*c, y+radius*s, checkSelfIntersection)
+	pt := vec{x + radius*c, y + radius*s}
+	if !ident {
+		pt = pt.mulMat(m)
+	}
+	p.lineTo(pt[0], pt[1], checkSelfIntersection)
 
 	if lastWasMove {
 		p.p[len(p.p)-1].flags |= pathIsConvex
@@ -171,10 +191,17 @@ func (p *Path2D) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise b
 
 // ArcTo (see equivalent function on canvas type)
 func (p *Path2D) ArcTo(x1, y1, x2, y2, radius float64) {
+	p.arcTo(x1, y1, x2, y2, radius, matIdentity, true)
+}
+
+func (p *Path2D) arcTo(x1, y1, x2, y2, radius float64, m mat, ident bool) {
 	if len(p.p) == 0 {
 		return
 	}
 	p0, p1, p2 := p.p[len(p.p)-1].pos, vec{x1, y1}, vec{x2, y2}
+	if !ident {
+		p0 = p0.mulMat(m.invert())
+	}
 	v0, v1 := p0.sub(p1).norm(), p2.sub(p1).norm()
 	angle := math.Acos(v0.dot(v1))
 	// should be in the range [0-pi]. if parallel, use a straight line
@@ -201,7 +228,7 @@ func (p *Path2D) ArcTo(x1, y1, x2, y2, radius float64) {
 			a1 += math.Pi * 2
 		}
 	}
-	p.Arc(center[0], center[1], radius, a0, a1, x > 0)
+	p.arc(center[0], center[1], radius, a0, a1, x > 0, m, ident)
 }
 
 // QuadraticCurveTo (see equivalent function on canvas type)

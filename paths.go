@@ -32,11 +32,10 @@ func (cv *Canvas) LineTo(x, y float64) {
 // is the radius, startAngle and endAngle are angles in radians, anticlockwise
 // means that the line is added anticlockwise
 func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise bool) {
-	tf := cv.tf(vec{x, y})
 	ax, ay := math.Sincos(startAngle)
 	startAngle2 := vec{ay, ax}.mulMat2(cv.state.transform.mat2()).atan2()
 	endAngle2 := startAngle2 + (endAngle - startAngle)
-	cv.path.Arc(tf[0], tf[1], radius, startAngle2, endAngle2, anticlockwise)
+	cv.path.arc(x, y, radius, startAngle2, endAngle2, anticlockwise, cv.state.transform, false)
 }
 
 // ArcTo adds to the current path by drawing a line toward x1/y1 and a circle
@@ -44,9 +43,7 @@ func (cv *Canvas) Arc(x, y, radius, startAngle, endAngle float64, anticlockwise 
 // lines from the end of the path to x1/y1, and from x1/y1 to x2/y2. The line
 // will only go to where the circle segment would touch the latter line
 func (cv *Canvas) ArcTo(x1, y1, x2, y2, radius float64) {
-	tf1 := cv.tf(vec{x1, y1})
-	tf2 := cv.tf(vec{x2, y2})
-	cv.path.ArcTo(tf1[0], tf1[1], tf2[0], tf2[1], radius)
+	cv.path.arcTo(x1, y1, x2, y2, radius, cv.state.transform, false)
 }
 
 // QuadraticCurveTo adds a quadratic curve to the path. It uses the current end
@@ -368,7 +365,7 @@ func linePointDistSqr(a, b, p vec) float64 {
 
 // Fill fills the current path with the current FillStyle
 func (cv *Canvas) Fill() {
-	cv.fillPath(&cv.path, matIdentity())
+	cv.fillPath(&cv.path, matIdentity)
 }
 
 // FillPath fills the given path with the current FillStyle
@@ -426,7 +423,7 @@ func appendSubPathTriangles(tris [][2]float64, mat mat, path []pathPoint) [][2]f
 // Clip uses the current path to clip any further drawing. Use Save/Restore to
 // remove the clipping again
 func (cv *Canvas) Clip() {
-	cv.clip(&cv.path, matIdentity())
+	cv.clip(&cv.path, matIdentity)
 }
 
 func (cv *Canvas) clip(path *Path2D, tf mat) {

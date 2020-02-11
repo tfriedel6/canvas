@@ -141,7 +141,7 @@ func New(backend backendbase.Backend) *Canvas {
 	cv.state.globalAlpha = 1
 	cv.state.fill.color = color.RGBA{A: 255}
 	cv.state.stroke.color = color.RGBA{A: 255}
-	cv.state.transform = matIdentity()
+	cv.state.transform = matIdentity
 	cv.path.cv = cv
 	return cv
 }
@@ -395,7 +395,7 @@ func (cv *Canvas) Restore() {
 	cv.b.ClearClip()
 	for _, st := range cv.stateStack {
 		if len(st.clip.p) > 0 {
-			cv.clip(&st.clip, matIdentity())
+			cv.clip(&st.clip, matIdentity)
 		}
 	}
 	cv.state = cv.stateStack[l-1]
