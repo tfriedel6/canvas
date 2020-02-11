@@ -33,6 +33,20 @@ func main() {
 		cv.SetFillStyle("#000")
 		cv.FillRect(0, 0, w, h)
 
+		// Estimated size used for scaling
+		const (
+			contentWidth  = 1000
+			contentHeight = 350
+		)
+
+		// Calculate scaling
+		sx := w / contentWidth
+		sy := h / contentHeight
+		scale := math.Min(sx, sy)
+		cv.Save()
+		defer cv.Restore()
+		cv.Scale(scale, scale)
+
 		// Draw lines with different colors and line thickness
 		for x := 1.0; x < 10.5; x += 1.0 {
 			cv.SetStrokeStyle(int(x*25), 255, 255)

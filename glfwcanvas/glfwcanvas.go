@@ -33,8 +33,6 @@ type Window struct {
 	KeyUp      func(scancode int, rn rune, name string)
 	KeyChar    func(rn rune)
 	SizeChange func(w, h int)
-	scalex     float64
-	scaley     float64
 }
 
 // CreateWindow creates a window using SDL and initializes the OpenGL context
@@ -79,8 +77,6 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 	wnd := &Window{
 		Window: window,
 		canvas: cv,
-		scalex: float64(fbw) / float64(w),
-		scaley: float64(fbh) / float64(h),
 	}
 
 	var mx, my int
@@ -93,7 +89,7 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 		}
 	})
 	window.SetCursorPosCallback(func(w *glfw.Window, xpos, ypos float64) {
-		mx, my = int(math.Round(xpos*wnd.scalex)), int(math.Round(ypos*wnd.scaley))
+		mx, my = int(math.Round(xpos)), int(math.Round(ypos))
 		if wnd.MouseMove != nil {
 			wnd.MouseMove(mx, my)
 		}
@@ -116,12 +112,10 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 		}
 	})
 	window.SetSizeCallback(func(w *glfw.Window, width, height int) {
-		fbw, fbh := window.GetFramebufferSize()
-		wnd.scalex = float64(fbw) / float64(width)
-		wnd.scaley = float64(fbh) / float64(height)
 		if wnd.SizeChange != nil {
 			wnd.SizeChange(width, height)
 		} else {
+			fbw, fbh := window.GetFramebufferSize()
 			backend.SetBounds(0, 0, fbw, fbh)
 		}
 	})
@@ -168,25 +162,23 @@ func (wnd *Window) FinishFrame() {
 func (wnd *Window) MainLoop(run func()) {
 	for !wnd.close {
 		wnd.StartFrame()
-		if wnd.scalex != 1 || wnd.scaley != 1 {
-			wnd.canvas.Save()
-			wnd.canvas.Scale(wnd.scalex, wnd.scaley)
-		}
 		run()
-		if wnd.scalex != 1 || wnd.scaley != 1 {
-			wnd.canvas.Restore()
-		}
 		wnd.FinishFrame()
 	}
 }
 
-// Size returns the current width and height of the window
+// Size returns the current width and height of the window.
+// Note that this size may not be the same as the size of the
+// framebuffer, since some operating systems scale the window.
+// Use the Width/Height/Size function on Canvas to determine
+// the drawing size
 func (wnd *Window) Size() (int, int) {
 	return wnd.Window.GetSize()
 }
 
 // FramebufferSize returns the current width and height of
-// the framebuffer
+// the framebuffer, which is also the internal size of the
+// canvas
 func (wnd *Window) FramebufferSize() (int, int) {
 	return wnd.Window.GetFramebufferSize()
 }

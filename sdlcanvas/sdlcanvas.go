@@ -5,7 +5,6 @@ import (
 	_ "image/gif" // Imported here so that applications based on this package support these formats by default
 	_ "image/jpeg"
 	_ "image/png"
-	"math"
 	"runtime"
 	"time"
 	"unicode/utf8"
@@ -39,8 +38,6 @@ type Window struct {
 	KeyUp      func(scancode int, rn rune, name string)
 	KeyChar    func(rn rune)
 	SizeChange func(w, h int)
-	scalex     float64
-	scaley     float64
 }
 
 // CreateWindow creates a window using SDL and initializes the OpenGL context
@@ -108,8 +105,6 @@ func CreateWindow(w, h int, title string) (*Window, *canvas.Canvas, error) {
 		Backend:   backend,
 		canvas:    cv,
 		events:    make([]sdl.Event, 0, 100),
-		scalex:    float64(fbw) / float64(w),
-		scaley:    float64(fbh) / float64(h),
 	}
 
 	return wnd, cv, nil
@@ -150,27 +145,23 @@ func (wnd *Window) StartFrame() error {
 		case *sdl.MouseButtonEvent:
 			if e.Type == sdl.MOUSEBUTTONDOWN {
 				if wnd.MouseDown != nil {
-					mx, my := wnd.mpos(e.X, e.Y)
-					wnd.MouseDown(int(e.Button), mx, my)
+					wnd.MouseDown(int(e.Button), int(e.X), int(e.Y))
 					handled = true
 				}
 			} else if e.Type == sdl.MOUSEBUTTONUP {
 				if wnd.MouseUp != nil {
-					mx, my := wnd.mpos(e.X, e.Y)
-					wnd.MouseUp(int(e.Button), mx, my)
+					wnd.MouseUp(int(e.Button), int(e.X), int(e.Y))
 					handled = true
 				}
 			}
 		case *sdl.MouseMotionEvent:
 			if wnd.MouseMove != nil {
-				mx, my := wnd.mpos(e.X, e.Y)
-				wnd.MouseMove(mx, my)
+				wnd.MouseMove(int(e.X), int(e.Y))
 				handled = true
 			}
 		case *sdl.MouseWheelEvent:
 			if wnd.MouseWheel != nil {
-				mx, my := wnd.mpos(e.X, e.Y)
-				wnd.MouseWheel(mx, my)
+				wnd.MouseWheel(int(e.X), int(e.Y))
 				handled = true
 			}
 		case *sdl.KeyboardEvent:
@@ -195,8 +186,6 @@ func (wnd *Window) StartFrame() error {
 			if e.WindowID == wnd.WindowID {
 				if e.Event == sdl.WINDOWEVENT_SIZE_CHANGED {
 					fbw, fbh := wnd.Window.GLGetDrawableSize()
-					wnd.scalex = float64(fbw) / float64(e.Data1)
-					wnd.scaley = float64(fbh) / float64(e.Data2)
 					if wnd.SizeChange != nil {
 						wnd.SizeChange(int(e.Data1), int(e.Data2))
 						handled = true
@@ -218,12 +207,6 @@ func (wnd *Window) StartFrame() error {
 	}
 
 	return nil
-}
-
-func (wnd *Window) mpos(x, y int32) (int, int) {
-	mx := int(math.Round(float64(x) * wnd.scalex))
-	my := int(math.Round(float64(y) * wnd.scaley))
-	return mx, my
 }
 
 // FinishFrame updates the FPS count and displays the frame
@@ -267,27 +250,25 @@ func (wnd *Window) MainLoop(run func()) {
 			}
 		}
 
-		if wnd.scalex != 1 || wnd.scaley != 1 {
-			wnd.canvas.Save()
-			wnd.canvas.Scale(wnd.scalex, wnd.scaley)
-		}
 		run()
-		if wnd.scalex != 1 || wnd.scaley != 1 {
-			wnd.canvas.Restore()
-		}
 
 		wnd.FinishFrame()
 	}
 }
 
-// Size returns the current width and height of the window
+// Size returns the current width and height of the window.
+// Note that this size may not be the same as the size of the
+// framebuffer, since some operating systems scale the window.
+// Use the Width/Height/Size function on Canvas to determine
+// the drawing size
 func (wnd *Window) Size() (int, int) {
 	w, h := wnd.Window.GetSize()
 	return int(w), int(h)
 }
 
 // FramebufferSize returns the current width and height of
-// the framebuffer
+// the framebuffer, which is also the internal size of the
+// canvas
 func (wnd *Window) FramebufferSize() (int, int) {
 	w, h := wnd.Window.GLGetDrawableSize()
 	return int(w), int(h)
