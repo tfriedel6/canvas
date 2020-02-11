@@ -40,9 +40,7 @@ func (b *GoGLBackend) Clip(pts [][2]float64) {
 	gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
 	gl.Uniform1f(b.shd.GlobalAlpha, 1)
 	gl.Uniform1i(b.shd.UseAlphaTex, 0)
-	gl.Uniform1i(b.shd.UseLinearGradient, 0)
-	gl.Uniform1i(b.shd.UseRadialGradient, 0)
-	gl.Uniform1i(b.shd.UseImagePattern, 0)
+	gl.Uniform1i(b.shd.Func, shdFuncSolid)
 	gl.EnableVertexAttribArray(b.shd.Vertex)
 
 	gl.ColorMask(false, false, false, false)

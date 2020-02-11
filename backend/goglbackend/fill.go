@@ -38,9 +38,7 @@ func (b *GoGLBackend) Clear(pts [4][2]float64) {
 	gl.Uniform4f(b.shd.Color, 0, 0, 0, 0)
 	gl.Uniform1f(b.shd.GlobalAlpha, 1)
 	gl.Uniform1i(b.shd.UseAlphaTex, 0)
-	gl.Uniform1i(b.shd.UseLinearGradient, 0)
-	gl.Uniform1i(b.shd.UseRadialGradient, 0)
-	gl.Uniform1i(b.shd.UseImagePattern, 0)
+	gl.Uniform1i(b.shd.Func, shdFuncSolid)
 
 	gl.Disable(gl.BLEND)
 
@@ -134,9 +132,7 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64, canOv
 		gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
 		gl.Uniform1f(b.shd.GlobalAlpha, 1)
 		gl.Uniform1i(b.shd.UseAlphaTex, 0)
-		gl.Uniform1i(b.shd.UseLinearGradient, 0)
-		gl.Uniform1i(b.shd.UseRadialGradient, 0)
-		gl.Uniform1i(b.shd.UseImagePattern, 0)
+		gl.Uniform1i(b.shd.Func, shdFuncSolid)
 
 		gl.EnableVertexAttribArray(b.shd.Vertex)
 		gl.VertexAttribPointer(b.shd.Vertex, 2, gl.FLOAT, false, 0, nil)
@@ -238,14 +234,16 @@ func (b *GoGLBackend) drawBlurred(size float64) {
 		0, 1, 0, 0, 1, 0, 1, 1}
 	gl.BufferData(gl.ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl.STREAM_DRAW)
 
-	gl.UseProgram(b.bbshd.ID)
-	gl.Uniform1i(b.bbshd.Image, 0)
-	gl.Uniform2f(b.bbshd.CanvasSize, float32(b.fw), float32(b.fh))
+	gl.UseProgram(b.shd.ID)
+	gl.Uniform1i(b.shd.Image, 0)
+	gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	gl.Uniform1i(b.shd.UseAlphaTex, 0)
+	gl.Uniform1i(b.shd.Func, shdFuncBoxBlur)
 
-	gl.VertexAttribPointer(b.bbshd.Vertex, 2, gl.FLOAT, false, 0, nil)
-	gl.VertexAttribPointer(b.bbshd.TexCoord, 2, gl.FLOAT, false, 0, gl.PtrOffset(8*4))
-	gl.EnableVertexAttribArray(b.bbshd.Vertex)
-	gl.EnableVertexAttribArray(b.bbshd.TexCoord)
+	gl.VertexAttribPointer(b.shd.Vertex, 2, gl.FLOAT, false, 0, nil)
+	gl.VertexAttribPointer(b.shd.TexCoord, 2, gl.FLOAT, false, 0, gl.PtrOffset(8*4))
+	gl.EnableVertexAttribArray(b.shd.Vertex)
+	gl.EnableVertexAttribArray(b.shd.TexCoord)
 
 	gl.Disable(gl.BLEND)
 
@@ -284,22 +282,20 @@ func (b *GoGLBackend) drawBlurred(size float64) {
 	b.disableTextureRenderTarget()
 	b.box3(sizec, true)
 
-	gl.DisableVertexAttribArray(b.bbshd.Vertex)
-	gl.DisableVertexAttribArray(b.bbshd.TexCoord)
+	gl.DisableVertexAttribArray(b.shd.Vertex)
+	gl.DisableVertexAttribArray(b.shd.TexCoord)
 
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 }
 
 func (b *GoGLBackend) box3(size int, vertical bool) {
-	gl.Uniform1i(b.bbshd.BoxSize, int32(size))
+	gl.Uniform1i(b.shd.BoxSize, int32(size))
 	if vertical {
-		gl.Uniform1i(b.bbshd.BoxVertical, 1)
-		gl.Uniform1f(b.bbshd.BoxScale, 1/float32(b.fh))
+		gl.Uniform1i(b.shd.BoxVertical, 1)
+		gl.Uniform1f(b.shd.BoxScale, 1/float32(b.fh))
 	} else {
-		gl.Uniform1i(b.bbshd.BoxVertical, 0)
-		gl.Uniform1f(b.bbshd.BoxScale, 1/float32(b.fw))
+		gl.Uniform1i(b.shd.BoxVertical, 0)
+		gl.Uniform1f(b.shd.BoxScale, 1/float32(b.fw))
 	}
 	gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
-
-	gl.StencilFunc(gl.ALWAYS, 0, 0xFF)
 }

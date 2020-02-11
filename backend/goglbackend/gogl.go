@@ -20,8 +20,7 @@ type GLContext struct {
 	shadowBuf uint32
 	alphaTex  uint32
 
-	shd   unifiedShader
-	bbshd boxBlurShader
+	shd unifiedShader
 
 	offscr1 offscreenBuffer
 	offscr2 offscreenBuffer
@@ -54,15 +53,6 @@ func NewGLContext() (*GLContext, error) {
 		return nil, err
 	}
 	ctx.shd.shaderProgram.mustLoadLocations(&ctx.shd)
-	if err = glError(); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(boxVS, boxFS, &ctx.bbshd.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.bbshd.shaderProgram.mustLoadLocations(&ctx.bbshd)
 	if err = glError(); err != nil {
 		return nil, err
 	}
@@ -320,10 +310,7 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alp
 		gl.Uniform1f(b.shd.GlobalAlpha, float32(style.Color.A)/255)
 		gl.Uniform1i(b.shd.AlphaTex, alphaTexSlot)
 		gl.Uniform1i(b.shd.UseAlphaTex, alphaVal)
-		gl.Uniform1i(b.shd.UseLinearGradient, 1)
-		gl.Uniform1i(b.shd.UseRadialGradient, 0)
-		gl.Uniform1i(b.shd.UseImagePattern, 0)
-		gl.Uniform1i(b.shd.UseImage, 0)
+		gl.Uniform1i(b.shd.Func, shdFuncLinearGradient)
 		return b.shd.Vertex, b.shd.TexCoord
 	}
 	if rg := style.RadialGradient; rg != nil {
@@ -342,10 +329,7 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alp
 		gl.Uniform1f(b.shd.GlobalAlpha, float32(style.Color.A)/255)
 		gl.Uniform1i(b.shd.AlphaTex, alphaTexSlot)
 		gl.Uniform1i(b.shd.UseAlphaTex, alphaVal)
-		gl.Uniform1i(b.shd.UseLinearGradient, 0)
-		gl.Uniform1i(b.shd.UseRadialGradient, 1)
-		gl.Uniform1i(b.shd.UseImagePattern, 0)
-		gl.Uniform1i(b.shd.UseImage, 0)
+		gl.Uniform1i(b.shd.Func, shdFuncRadialGradient)
 		return b.shd.Vertex, b.shd.TexCoord
 	}
 	if ip := style.ImagePattern; ip != nil {
@@ -375,10 +359,7 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alp
 		gl.Uniform1f(b.shd.GlobalAlpha, float32(style.Color.A)/255)
 		gl.Uniform1i(b.shd.AlphaTex, alphaTexSlot)
 		gl.Uniform1i(b.shd.UseAlphaTex, alphaVal)
-		gl.Uniform1i(b.shd.UseLinearGradient, 0)
-		gl.Uniform1i(b.shd.UseRadialGradient, 0)
-		gl.Uniform1i(b.shd.UseImagePattern, 1)
-		gl.Uniform1i(b.shd.UseImage, 0)
+		gl.Uniform1i(b.shd.Func, shdFuncImagePattern)
 		return b.shd.Vertex, b.shd.TexCoord
 	}
 
@@ -389,10 +370,7 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alp
 	gl.Uniform1f(b.shd.GlobalAlpha, 1)
 	gl.Uniform1i(b.shd.AlphaTex, alphaTexSlot)
 	gl.Uniform1i(b.shd.UseAlphaTex, alphaVal)
-	gl.Uniform1i(b.shd.UseLinearGradient, 0)
-	gl.Uniform1i(b.shd.UseRadialGradient, 0)
-	gl.Uniform1i(b.shd.UseImagePattern, 0)
-	gl.Uniform1i(b.shd.UseImage, 0)
+	gl.Uniform1i(b.shd.Func, shdFuncSolid)
 	return b.shd.Vertex, b.shd.TexCoord
 }
 
