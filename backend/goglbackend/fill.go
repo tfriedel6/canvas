@@ -158,7 +158,7 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts [][2]float64, canOv
 	}
 
 	if style.Blur > 0 {
-		b.drawBlurred(style.Blur)
+		b.drawBlurred(style.Blur, min, max)
 	}
 }
 
@@ -220,18 +220,43 @@ func (b *GoGLBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Al
 	gl.ActiveTexture(gl.TEXTURE0)
 
 	if style.Blur > 0 {
-		b.drawBlurred(style.Blur)
+		min, max := extent(pts[:])
+		b.drawBlurred(style.Blur, min, max)
 	}
 }
 
-func (b *GoGLBackend) drawBlurred(size float64) {
+func (b *GoGLBackend) drawBlurred(size float64, min, max vec) {
 	b.offscr1.alpha = true
 	b.offscr2.alpha = true
 
+	// calculate box blur size
+	fsize := math.Max(1, math.Floor(size))
+	sizea := int(fsize)
+	sizeb := sizea
+	sizec := sizea
+	if size-fsize > 0.333333333 {
+		sizeb++
+	}
+	if size-fsize > 0.666666666 {
+		sizec++
+	}
+
+	min[0] -= fsize * 3
+	min[1] -= fsize * 3
+	max[0] += fsize * 3
+	max[1] += fsize * 3
+
 	gl.BindBuffer(gl.ARRAY_BUFFER, b.shadowBuf)
 	data := [16]float32{
-		0, 0, 0, float32(b.h), float32(b.w), float32(b.h), float32(b.w), 0,
-		0, 1, 0, 0, 1, 0, 1, 1}
+		float32(min[0]), float32(min[1]),
+		float32(min[0]), float32(max[1]),
+		float32(max[0]), float32(max[1]),
+		float32(max[0]), float32(min[1]),
+		float32(min[0] / b.fw), 1 - float32(min[1]/b.fh),
+		float32(min[0] / b.fw), 1 - float32(max[1]/b.fh),
+		float32(max[0] / b.fw), 1 - float32(max[1]/b.fh),
+		float32(max[0] / b.fw), 1 - float32(min[1]/b.fh),
+	}
 	gl.BufferData(gl.ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl.STREAM_DRAW)
 
 	gl.UseProgram(b.shd.ID)
@@ -249,20 +274,11 @@ func (b *GoGLBackend) drawBlurred(size float64) {
 
 	gl.ActiveTexture(gl.TEXTURE0)
 
-	// calculate box blur size
-	fsize := math.Max(1, math.Floor(size))
-	sizea := int(fsize)
-	sizeb := sizea
-	sizec := sizea
-	if size-fsize > 0.333333333 {
-		sizeb++
-	}
-	if size-fsize > 0.666666666 {
-		sizec++
-	}
+	gl.ClearColor(0, 0, 0, 0)
 
 	gl.BindTexture(gl.TEXTURE_2D, b.offscr1.tex)
 	b.enableTextureRenderTarget(&b.offscr2)
+	gl.Clear(gl.COLOR_BUFFER_BIT)
 	b.box3(sizea, false)
 	gl.BindTexture(gl.TEXTURE_2D, b.offscr2.tex)
 	b.enableTextureRenderTarget(&b.offscr1)
