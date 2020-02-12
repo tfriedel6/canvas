@@ -41,6 +41,7 @@ uniform sampler2D alphaTex;
 uniform int boxSize;
 uniform bool boxVertical;
 uniform float boxScale;
+uniform float boxOffset;
 
 bool isNaN(float v) {
   return v < 0.0 || 0.0 < v || v == 0.0 ? false : true;
@@ -52,17 +53,17 @@ void main() {
 	if (func == 5) {
 		vec4 sum = vec4(0.0);
 		if (boxVertical) {
-			vec2 start = v_tc - vec2(0.0, (float)(boxSize) * boxScale);
-			for (int i=0; i<boxSize*2; i++) {
-				sum += texture2D(image, start + vec2(0.0, (float)(i) * boxScale));
+			vec2 start = v_tc - vec2(0.0, (float(boxSize) * 0.5 + boxOffset) * boxScale);
+			for (int i=0; i <= boxSize; i++) {
+				sum += texture2D(image, start + vec2(0.0, float(i) * boxScale));
 			}
 		} else {
-			vec2 start = v_tc - vec2((float)(boxSize) * boxScale, 0.0);
-			for (int i=0; i<boxSize*2; i++) {
-				sum += texture2D(image, start + vec2((float)(i) * boxScale, 0.0));
+			vec2 start = v_tc - vec2((float(boxSize) * 0.5 + boxOffset) * boxScale, 0.0);
+			for (int i=0; i <= boxSize; i++) {
+				sum += texture2D(image, start + vec2(float(i) * boxScale, 0.0));
 			}
 		}
-		gl_FragColor = sum / float(boxSize * 2);
+		gl_FragColor = sum / float(boxSize+1);
 		return;
 	}
 
@@ -149,4 +150,5 @@ type unifiedShader struct {
 	BoxSize     int32
 	BoxVertical int32
 	BoxScale    int32
+	BoxOffset   int32
 }

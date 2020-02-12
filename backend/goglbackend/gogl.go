@@ -139,6 +139,7 @@ func New(x, y, w, h int, ctx *GLContext) (*GoGLBackend, error) {
 	}
 	b.disableTextureRenderTarget = func() {
 		gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
+		gl.Viewport(int32(b.x), int32(b.y), int32(b.w), int32(b.h))
 	}
 
 	return b, nil
@@ -288,28 +289,29 @@ func colorGoToGL(c color.RGBA) glColor {
 }
 
 func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alphaTexSlot int32) (vertexLoc, alphaTexCoordLoc uint32) {
-	var alphaVal int32
+	gl.UseProgram(b.shd.ID)
+	gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
 	if useAlpha {
-		alphaVal = 1
+		gl.Uniform1i(b.shd.UseAlphaTex, 1)
+		gl.Uniform1i(b.shd.AlphaTex, alphaTexSlot)
+	} else {
+		gl.Uniform1i(b.shd.UseAlphaTex, 0)
 	}
+	gl.Uniform1f(b.shd.GlobalAlpha, float32(style.Color.A)/255)
+
 	if lg := style.LinearGradient; lg != nil {
 		lg := lg.(*LinearGradient)
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, lg.tex)
-		gl.UseProgram(b.shd.ID)
 		from := vec{style.Gradient.X0, style.Gradient.Y0}
 		to := vec{style.Gradient.X1, style.Gradient.Y1}
 		dir := to.sub(from)
 		length := dir.len()
 		dir = dir.scale(1 / length)
-		gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
 		gl.Uniform2f(b.shd.From, float32(from[0]), float32(from[1]))
 		gl.Uniform2f(b.shd.Dir, float32(dir[0]), float32(dir[1]))
 		gl.Uniform1f(b.shd.Len, float32(length))
 		gl.Uniform1i(b.shd.Gradient, 0)
-		gl.Uniform1f(b.shd.GlobalAlpha, float32(style.Color.A)/255)
-		gl.Uniform1i(b.shd.AlphaTex, alphaTexSlot)
-		gl.Uniform1i(b.shd.UseAlphaTex, alphaVal)
 		gl.Uniform1i(b.shd.Func, shdFuncLinearGradient)
 		return b.shd.Vertex, b.shd.TexCoord
 	}
@@ -317,28 +319,21 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alp
 		rg := rg.(*RadialGradient)
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, rg.tex)
-		gl.UseProgram(b.shd.ID)
 		from := vec{style.Gradient.X0, style.Gradient.Y0}
 		to := vec{style.Gradient.X1, style.Gradient.Y1}
-		gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
 		gl.Uniform2f(b.shd.From, float32(from[0]), float32(from[1]))
 		gl.Uniform2f(b.shd.To, float32(to[0]), float32(to[1]))
 		gl.Uniform1f(b.shd.RadFrom, float32(style.Gradient.RadFrom))
 		gl.Uniform1f(b.shd.RadTo, float32(style.Gradient.RadTo))
 		gl.Uniform1i(b.shd.Gradient, 0)
-		gl.Uniform1f(b.shd.GlobalAlpha, float32(style.Color.A)/255)
-		gl.Uniform1i(b.shd.AlphaTex, alphaTexSlot)
-		gl.Uniform1i(b.shd.UseAlphaTex, alphaVal)
 		gl.Uniform1i(b.shd.Func, shdFuncRadialGradient)
 		return b.shd.Vertex, b.shd.TexCoord
 	}
 	if ip := style.ImagePattern; ip != nil {
 		ipd := ip.(*ImagePattern).data
 		img := ipd.Image.(*Image)
-		gl.UseProgram(b.shd.ID)
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, img.tex)
-		gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
 		gl.Uniform2f(b.shd.ImageSize, float32(img.w), float32(img.h))
 		gl.Uniform1i(b.shd.Image, 0)
 		var f32mat [9]float32
@@ -356,20 +351,13 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alp
 		case backendbase.NoRepeat:
 			gl.Uniform2f(b.shd.Repeat, 0, 0)
 		}
-		gl.Uniform1f(b.shd.GlobalAlpha, float32(style.Color.A)/255)
-		gl.Uniform1i(b.shd.AlphaTex, alphaTexSlot)
-		gl.Uniform1i(b.shd.UseAlphaTex, alphaVal)
 		gl.Uniform1i(b.shd.Func, shdFuncImagePattern)
 		return b.shd.Vertex, b.shd.TexCoord
 	}
 
-	gl.UseProgram(b.shd.ID)
-	gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
 	c := colorGoToGL(style.Color)
 	gl.Uniform4f(b.shd.Color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
 	gl.Uniform1f(b.shd.GlobalAlpha, 1)
-	gl.Uniform1i(b.shd.AlphaTex, alphaTexSlot)
-	gl.Uniform1i(b.shd.UseAlphaTex, alphaVal)
 	gl.Uniform1i(b.shd.Func, shdFuncSolid)
 	return b.shd.Vertex, b.shd.TexCoord
 }

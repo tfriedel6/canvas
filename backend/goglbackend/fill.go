@@ -245,6 +245,10 @@ func (b *GoGLBackend) drawBlurred(size float64, min, max vec) {
 	min[1] -= fsize * 3
 	max[0] += fsize * 3
 	max[1] += fsize * 3
+	min[0] = math.Max(0.0, math.Min(b.fw, min[0]))
+	min[1] = math.Max(0.0, math.Min(b.fh, min[1]))
+	max[0] = math.Max(0.0, math.Min(b.fw, max[0]))
+	max[1] = math.Max(0.0, math.Min(b.fh, max[1]))
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, b.shadowBuf)
 	data := [16]float32{
@@ -276,27 +280,27 @@ func (b *GoGLBackend) drawBlurred(size float64, min, max vec) {
 
 	gl.ClearColor(0, 0, 0, 0)
 
-	gl.BindTexture(gl.TEXTURE_2D, b.offscr1.tex)
 	b.enableTextureRenderTarget(&b.offscr2)
-	gl.Clear(gl.COLOR_BUFFER_BIT)
-	b.box3(sizea, false)
-	gl.BindTexture(gl.TEXTURE_2D, b.offscr2.tex)
+	gl.BindTexture(gl.TEXTURE_2D, b.offscr1.tex)
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
+	b.box3(sizea, 0, false)
 	b.enableTextureRenderTarget(&b.offscr1)
-	b.box3(sizeb, false)
-	gl.BindTexture(gl.TEXTURE_2D, b.offscr1.tex)
-	b.enableTextureRenderTarget(&b.offscr2)
-	b.box3(sizec, false)
 	gl.BindTexture(gl.TEXTURE_2D, b.offscr2.tex)
-	b.enableTextureRenderTarget(&b.offscr1)
-	b.box3(sizea, true)
-	gl.BindTexture(gl.TEXTURE_2D, b.offscr1.tex)
+	b.box3(sizeb, -0.5, false)
 	b.enableTextureRenderTarget(&b.offscr2)
-	b.box3(sizeb, true)
+	gl.BindTexture(gl.TEXTURE_2D, b.offscr1.tex)
+	b.box3(sizec, 0, false)
+	b.enableTextureRenderTarget(&b.offscr1)
+	gl.BindTexture(gl.TEXTURE_2D, b.offscr2.tex)
+	b.box3(sizea, 0, true)
+	b.enableTextureRenderTarget(&b.offscr2)
+	gl.BindTexture(gl.TEXTURE_2D, b.offscr1.tex)
+	b.box3(sizeb, -0.5, true)
 	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
-	gl.BindTexture(gl.TEXTURE_2D, b.offscr2.tex)
 	b.disableTextureRenderTarget()
-	b.box3(sizec, true)
+	gl.BindTexture(gl.TEXTURE_2D, b.offscr2.tex)
+	b.box3(sizec, 0, true)
 
 	gl.DisableVertexAttribArray(b.shd.Vertex)
 	gl.DisableVertexAttribArray(b.shd.TexCoord)
@@ -304,7 +308,7 @@ func (b *GoGLBackend) drawBlurred(size float64, min, max vec) {
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 }
 
-func (b *GoGLBackend) box3(size int, vertical bool) {
+func (b *GoGLBackend) box3(size int, offset float32, vertical bool) {
 	gl.Uniform1i(b.shd.BoxSize, int32(size))
 	if vertical {
 		gl.Uniform1i(b.shd.BoxVertical, 1)
@@ -313,5 +317,6 @@ func (b *GoGLBackend) box3(size int, vertical bool) {
 		gl.Uniform1i(b.shd.BoxVertical, 0)
 		gl.Uniform1f(b.shd.BoxScale, 1/float32(b.fw))
 	}
+	gl.Uniform1f(b.shd.BoxOffset, offset)
 	gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 }
