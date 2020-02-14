@@ -26,7 +26,7 @@ func (cv *Canvas) reduceCache(keepSize int) {
 	var total int
 	for _, img := range cv.images {
 		w, h := img.img.Size()
-		total += w * h
+		total += w * h * 4
 	}
 	if total <= keepSize {
 		return
@@ -44,7 +44,7 @@ func (cv *Canvas) reduceCache(keepSize int) {
 		pos++
 		delete(cv.images, img.src)
 		w, h := img.img.Size()
-		total -= w * h
+		total -= w * h * 4
 	}
 }
 
