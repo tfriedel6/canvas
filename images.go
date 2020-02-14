@@ -7,15 +7,45 @@ import (
 	"image"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strings"
+	"time"
 
 	"github.com/tfriedel6/canvas/backend/backendbase"
 )
 
 type Image struct {
-	cv      *Canvas
-	img     backendbase.Image
-	deleted bool
+	src      interface{}
+	cv       *Canvas
+	img      backendbase.Image
+	deleted  bool
+	lastUsed time.Time
+}
+
+func (cv *Canvas) reduceCache(keepSize int) {
+	var total int
+	for _, img := range cv.images {
+		w, h := img.img.Size()
+		total += w * h
+	}
+	if total <= keepSize {
+		return
+	}
+	list := make([]*Image, 0, len(cv.images))
+	for _, img := range cv.images {
+		list = append(list, img)
+	}
+	sort.Slice(list, func(i, j int) bool {
+		return list[i].lastUsed.Before(list[j].lastUsed)
+	})
+	pos := 0
+	for total > keepSize {
+		img := list[pos]
+		pos++
+		delete(cv.images, img.src)
+		w, h := img.img.Size()
+		total -= w * h
+	}
 }
 
 // LoadImage loads an image. The src parameter can be either an image from the
@@ -24,12 +54,15 @@ type Image struct {
 // import the required format packages
 func (cv *Canvas) LoadImage(src interface{}) (*Image, error) {
 	if img, ok := src.(*Image); ok {
+		img.lastUsed = time.Now()
 		return img, nil
 	} else if _, ok := src.([]byte); !ok {
 		if img, ok := cv.images[src]; ok {
+			img.lastUsed = time.Now()
 			return img, nil
 		}
 	}
+	cv.reduceCache(16_000_000)
 	var srcImg image.Image
 	switch v := src.(type) {
 	case image.Image:
@@ -59,7 +92,7 @@ func (cv *Canvas) LoadImage(src interface{}) (*Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	cvimg := &Image{cv: cv, img: backendImg}
+	cvimg := &Image{cv: cv, img: backendImg, lastUsed: time.Now(), src: src}
 	if _, ok := src.([]byte); !ok {
 		cv.images[src] = cvimg
 	}
@@ -72,6 +105,7 @@ func (cv *Canvas) getImage(src interface{}) *Image {
 	} else if img, ok := cv.images[src]; ok {
 		return img
 	}
+	cv.reduceCache(16_000_000)
 	switch v := src.(type) {
 	case *Image:
 		return v
