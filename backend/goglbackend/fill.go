@@ -72,6 +72,8 @@ func (b *GoGLBackend) clearRect(x, y, w, h int) {
 }
 
 func extent(pts [][2]float64) (min, max vec) {
+	max[0] = -math.MaxFloat64
+	max[1] = -math.MaxFloat64
 	min[0] = math.MaxFloat64
 	min[1] = math.MaxFloat64
 	for _, v := range pts {

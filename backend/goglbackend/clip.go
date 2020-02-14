@@ -17,11 +17,12 @@ func (b *GoGLBackend) Clip(pts [][2]float64) {
 	b.activate()
 
 	b.ptsBuf = b.ptsBuf[:0]
+	min, max := extent(pts)
 	b.ptsBuf = append(b.ptsBuf,
-		0, 0,
-		0, float32(b.fh),
-		float32(b.fw), float32(b.fh),
-		float32(b.fw), 0)
+		float32(min[0]), float32(min[1]),
+		float32(min[0]), float32(max[1]),
+		float32(max[0]), float32(max[1]),
+		float32(max[0]), float32(min[1]))
 	for _, pt := range pts {
 		b.ptsBuf = append(b.ptsBuf, float32(pt[0]), float32(pt[1]))
 	}
