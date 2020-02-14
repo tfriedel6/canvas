@@ -123,7 +123,10 @@ const (
 var Performance = struct {
 	IgnoreSelfIntersections bool
 	AssumeConvex            bool
-}{}
+	ImageCacheSize          int
+}{
+	ImageCacheSize: 16_000_000,
+}
 
 // New creates a new canvas with the given viewport coordinates.
 // While all functions on the canvas use the top left point as

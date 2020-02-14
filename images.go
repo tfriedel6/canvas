@@ -62,7 +62,7 @@ func (cv *Canvas) LoadImage(src interface{}) (*Image, error) {
 			return img, nil
 		}
 	}
-	cv.reduceCache(16_000_000)
+	cv.reduceCache(Performance.ImageCacheSize)
 	var srcImg image.Image
 	switch v := src.(type) {
 	case image.Image:
@@ -105,7 +105,7 @@ func (cv *Canvas) getImage(src interface{}) *Image {
 	} else if img, ok := cv.images[src]; ok {
 		return img
 	}
-	cv.reduceCache(16_000_000)
+	cv.reduceCache(Performance.ImageCacheSize)
 	switch v := src.(type) {
 	case *Image:
 		return v
