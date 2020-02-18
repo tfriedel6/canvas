@@ -24,9 +24,8 @@ type RadialGradient struct {
 }
 
 type gradient struct {
-	b      *GoGLBackend
-	tex    uint32
-	loaded bool
+	b   *GoGLBackend
+	tex uint32
 }
 
 func (b *GoGLBackend) LoadLinearGradient(data backendbase.Gradient) backendbase.LinearGradient {
@@ -84,10 +83,6 @@ func (lg *LinearGradient) Replace(data backendbase.Gradient) { lg.load(data) }
 func (rg *RadialGradient) Replace(data backendbase.Gradient) { rg.load(data) }
 
 func (g *gradient) load(stops backendbase.Gradient) {
-	if g.loaded {
-		return
-	}
-
 	g.b.activate()
 
 	gl.ActiveTexture(gl.TEXTURE0)
@@ -104,5 +99,4 @@ func (g *gradient) load(stops backendbase.Gradient) {
 	}
 
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 2048, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(&pixels[0]))
-	g.loaded = true
 }
