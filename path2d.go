@@ -390,8 +390,7 @@ func runSubPaths(path []pathPoint, close bool, fn func(subPath []pathPoint) bool
 			continue
 		}
 		if i >= start+3 {
-			end := i
-			if runSubPath(path[start:end], close, fn) {
+			if runSubPath(path[start:i], close, fn) {
 				return
 			}
 		}

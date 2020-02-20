@@ -400,11 +400,11 @@ func appendSubPathTriangles(tris [][2]float64, mat mat, path []pathPoint) [][2]f
 	last := path[len(path)-1]
 	if last.flags&pathIsConvex != 0 {
 		p0, p1 := path[0].pos.mulMat(mat), path[1].pos.mulMat(mat)
-		last := len(path)
-		if path[0].pos == path[last-1].pos {
-			last--
+		lastIdx := len(path)
+		if path[0].pos == path[lastIdx-1].pos {
+			lastIdx--
 		}
-		for i := 2; i < last; i++ {
+		for i := 2; i < lastIdx; i++ {
 			p2 := path[i].pos.mulMat(mat)
 			tris = append(tris, p0, p1, p2)
 			p1 = p2

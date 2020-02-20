@@ -179,16 +179,6 @@ type offscreenBuffer struct {
 	alpha            bool
 }
 
-type gaussianShader struct {
-	id          uint32
-	vertex      uint32
-	texCoord    uint32
-	canvasSize  int32
-	kernelScale int32
-	image       int32
-	kernel      int32
-}
-
 // SetFillStyle sets the color, gradient, or image for any fill calls. To set a
 // color, there are several acceptable formats: 3 or 4 int values for RGB(A) in
 // the range 0-255, 3 or 4 float values for RGB(A) in the range 0-1, hex strings
@@ -362,6 +352,7 @@ func (cv *Canvas) SetLineDash(dash []float64) {
 	cv.state.lineDashOffset = 0
 }
 
+// SetLineDashOffset sets the line dash offset
 func (cv *Canvas) SetLineDashOffset(offset float64) {
 	cv.state.lineDashOffset = offset
 }

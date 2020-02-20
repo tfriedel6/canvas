@@ -8,49 +8,6 @@ import (
 	"strings"
 )
 
-type glColor struct {
-	r, g, b, a float64
-}
-
-func colorGoToGL(color color.Color) glColor {
-	ir, ig, ib, ia := color.RGBA()
-	var c glColor
-	c.r = float64(ir) / 65535
-	c.g = float64(ig) / 65535
-	c.b = float64(ib) / 65535
-	c.a = float64(ia) / 65535
-	return c
-}
-
-func colorGLToGo(c glColor) color.RGBA {
-	if c.r < 0 {
-		c.r = 0
-	} else if c.r > 1 {
-		c.r = 1
-	}
-	if c.g < 0 {
-		c.g = 0
-	} else if c.g > 1 {
-		c.g = 1
-	}
-	if c.b < 0 {
-		c.b = 0
-	} else if c.b > 1 {
-		c.b = 1
-	}
-	if c.a < 0 {
-		c.a = 0
-	} else if c.a > 1 {
-		c.a = 1
-	}
-	return color.RGBA{
-		R: uint8(c.r * 255),
-		G: uint8(c.g * 255),
-		B: uint8(c.b * 255),
-		A: uint8(c.a * 255),
-	}
-}
-
 func parseHexRune(rn rune) (int, bool) {
 	switch {
 	case rn >= '0' && rn <= '9':

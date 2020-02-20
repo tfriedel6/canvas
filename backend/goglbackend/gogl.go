@@ -2,7 +2,6 @@ package goglbackend
 
 import (
 	"fmt"
-	"image/color"
 	"math"
 
 	"github.com/tfriedel6/canvas/backend/backendbase"
@@ -275,19 +274,6 @@ func (b *GoGLBackendOffscreen) AsImage() backendbase.Image {
 	return &b.offscrImg
 }
 
-type glColor struct {
-	r, g, b, a float64
-}
-
-func colorGoToGL(c color.RGBA) glColor {
-	var glc glColor
-	glc.r = float64(c.R) / 255
-	glc.g = float64(c.G) / 255
-	glc.b = float64(c.B) / 255
-	glc.a = float64(c.A) / 255
-	return glc
-}
-
 func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alphaTexSlot int32) (vertexLoc, alphaTexCoordLoc uint32) {
 	gl.UseProgram(b.shd.ID)
 	gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
@@ -355,8 +341,11 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alp
 		return b.shd.Vertex, b.shd.TexCoord
 	}
 
-	c := colorGoToGL(style.Color)
-	gl.Uniform4f(b.shd.Color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
+	cr := float32(style.Color.R) / 255
+	cg := float32(style.Color.G) / 255
+	cb := float32(style.Color.B) / 255
+	ca := float32(style.Color.A) / 255
+	gl.Uniform4f(b.shd.Color, cr, cg, cb, ca)
 	gl.Uniform1f(b.shd.GlobalAlpha, 1)
 	gl.Uniform1i(b.shd.Func, shdFuncSolid)
 	return b.shd.Vertex, b.shd.TexCoord
