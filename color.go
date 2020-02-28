@@ -68,7 +68,7 @@ func parseColorComponent(value interface{}) (uint8, bool) {
 			} else if conv > 1 {
 				conv = 1
 			}
-			return uint8(conv), true
+			return uint8(math.Round(conv * 255.0)), true
 		} else {
 			conv, err := strconv.ParseUint(v, 10, 8)
 			if err != nil {
