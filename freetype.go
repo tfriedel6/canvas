@@ -42,11 +42,8 @@ type frContext struct {
 	r        *raster.Rasterizer
 	f        *truetype.Font
 	glyphBuf truetype.GlyphBuf
-	// clip is the clip rectangle for drawing.
-	clip image.Rectangle
 	// dst and src are the destination and source images for drawing.
 	dst draw.Image
-	src image.Image
 	// fontSize and dpi are used to calculate scale. scale is the number of
 	// 26.6 fixed point units in 1 em. hinting is the hinting policy.
 	fontSize, dpi float64
@@ -224,58 +221,6 @@ func (c *frContext) glyphBounds(glyph truetype.Index, p fixed.Point26_6) (image.
 
 const maxInt = int(^uint(0) >> 1)
 
-// DrawString draws s at p and returns p advanced by the text extent. The text
-// is placed so that the left edge of the em square of the first character of s
-// and the baseline intersect at p. The majority of the affected pixels will be
-// above and to the right of the point, but some may be below or to the left.
-// For example, drawing a string that starts with a 'J' in an italic font may
-// affect pixels below and left of the point.
-//
-// p is a fixed.Point26_6 and can therefore represent sub-pixel positions.
-func (c *frContext) drawString(s string, p fixed.Point26_6) (fixed.Point26_6, image.Rectangle, error) {
-	if c.f == nil {
-		return fixed.Point26_6{}, image.Rectangle{}, errors.New("freetype: DrawText called with a nil font")
-	}
-	bounds := image.Rectangle{Min: image.Point{X: maxInt, Y: maxInt}}
-	prev, hasPrev := truetype.Index(0), false
-	for _, rune := range s {
-		index := c.f.Index(rune)
-		if hasPrev {
-			kern := c.f.Kern(c.scale, prev, index)
-			if c.hinting != font.HintingNone {
-				kern = (kern + 32) &^ 63
-			}
-			p.X += kern
-		}
-		advanceWidth, mask, offset, err := c.glyph(index, p)
-		if err != nil {
-			return fixed.Point26_6{}, image.Rectangle{}, err
-		}
-		p.X += advanceWidth
-		glyphRect := mask.Bounds().Add(offset)
-		if glyphRect.Min.X < bounds.Min.X {
-			bounds.Min.X = glyphRect.Min.X
-		}
-		if glyphRect.Min.Y < bounds.Min.Y {
-			bounds.Min.Y = glyphRect.Min.Y
-		}
-		if glyphRect.Max.X > bounds.Max.X {
-			bounds.Max.X = glyphRect.Max.X
-		}
-		if glyphRect.Max.Y > bounds.Max.Y {
-			bounds.Max.Y = glyphRect.Max.Y
-		}
-		dr := c.clip.Intersect(glyphRect)
-		if !dr.Empty() {
-			mp := image.Point{0, dr.Min.Y - glyphRect.Min.Y}
-			draw.DrawMask(c.dst, dr, c.src, image.ZP, mask, mp, draw.Src)
-		}
-		prev, hasPrev = index, true
-	}
-	bounds = c.clip.Intersect(bounds)
-	return p, bounds, nil
-}
-
 // recalc recalculates scale and bounds values from the font size, screen
 // resolution and font metrics, and invalidates the glyph cache.
 func (c *frContext) recalc() {
@@ -334,17 +279,6 @@ func (c *frContext) setHinting(hinting font.Hinting) {
 // SetDst sets the destination image for draw operations.
 func (c *frContext) setDst(dst draw.Image) {
 	c.dst = dst
-}
-
-// SetSrc sets the source image for draw operations. This is typically an
-// image.Uniform.
-func (c *frContext) setSrc(src image.Image) {
-	c.src = src
-}
-
-// SetClip sets the clip rectangle for drawing.
-func (c *frContext) setClip(clip image.Rectangle) {
-	c.clip = clip
 }
 
 // TODO(nigeltao): implement Context.SetGamma.

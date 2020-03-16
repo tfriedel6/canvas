@@ -4,6 +4,7 @@ package canvas
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 	"os"
 
@@ -207,20 +208,23 @@ func (cv *Canvas) parseStyle(value ...interface{}) drawStyle {
 		case *RadialGradient:
 			style.radialGradient = v
 			return style
+		case *ImagePattern:
+			style.imagePattern = v
+			return style
 		}
 	}
 	c, ok := parseColor(value...)
 	if ok {
 		style.color = c
-	} else if len(value) == 1 {
+		return style
+	}
+	if len(value) == 1 {
 		switch v := value[0].(type) {
-		case *Image, string:
+		case *Image, image.Image, string:
 			if _, ok := imagePatterns[v]; !ok {
 				imagePatterns[v] = cv.CreatePattern(v, Repeat)
 			}
 			style.imagePattern = imagePatterns[v]
-		case *ImagePattern:
-			style.imagePattern = v
 		}
 	}
 	return style

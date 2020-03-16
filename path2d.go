@@ -431,7 +431,7 @@ func (p *Path2D) IsPointInPath(x, y float64, rule pathRule) bool {
 	runSubPaths(p.p, false, func(sp []pathPoint) bool {
 		num := 0
 		prev := sp[len(sp)-1].pos
-		for _, pt := range p.p {
+		for _, pt := range sp {
 			r, dir := pointIsRightOfLine(prev, pt.pos, vec{x, y})
 			prev = pt.pos
 			if !r {
