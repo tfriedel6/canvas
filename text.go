@@ -234,6 +234,9 @@ func (cv *Canvas) StrokeText(str string, x, y float64) {
 	frc.setFontSize(float64(cv.state.fontSize))
 	fnt := cv.state.font.font
 
+	prevPath := cv.path
+	cv.BeginPath()
+
 	for _, rn := range str {
 		idx := fnt.Index(rn)
 		if idx == 0 {
@@ -244,20 +247,18 @@ func (cv *Canvas) StrokeText(str string, x, y float64) {
 			continue
 		}
 
-		cv.strokeRune(rn, vec{x, y})
+		cv.runePath(rn, vec{x, y})
 
 		x += float64(advance) / 64
 	}
+
+	cv.Stroke()
+	cv.path = prevPath
 }
 
-func (cv *Canvas) strokeRune(rn rune, pos vec) {
+func (cv *Canvas) runePath(rn rune, pos vec) {
 	gb := &truetype.GlyphBuf{}
 	gb.Load(cv.state.font.font, fixed.Int26_6(cv.state.fontSize*64), cv.state.font.font.Index(rn), font.HintingNone)
-
-	prevPath := cv.path
-	defer func() {
-		cv.path = prevPath
-	}()
 
 	from := 0
 	for _, to := range gb.Ends {
