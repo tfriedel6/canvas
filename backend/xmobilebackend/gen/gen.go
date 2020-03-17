@@ -142,6 +142,12 @@ func rewrite(filename, src string) (string, string) {
 		params[2] = params[2][1 : len(params[2])-3]
 		return "b.glctx.Uniform1fv(" + params[0] + ", " + params[2] + ")"
 	})
+	src = rewriteCalls(src, "b.glctx.Uniform1i", func(params []string) string {
+		if strings.HasPrefix(params[1], "int32(") {
+			params[1] = params[1][6 : len(params[1])-1]
+		}
+		return "b.glctx.Uniform1i(" + strings.Join(params, ",") + ")"
+	})
 	src = rewriteCalls(src, "b.glctx.UniformMatrix3fv", func(params []string) string {
 		return "b.glctx.UniformMatrix3fv(" + params[0] + ", " + params[3][1:len(params[3])-3] + "[:])"
 	})
@@ -364,23 +370,18 @@ func byteSlice(ptr unsafe.Pointer, size int) []byte {
 
 func rewriteShaders(src string) string {
 	src = strings.Replace(src,
-		`import (
-	"bytes"
-	"fmt"
-	"strings"
-)
+		`package xmobilebackend
 `,
-		`import (
-	"bytes"
-	"fmt"
-	"strings"
+		`package xmobilebackend
 
+import (
 	"golang.org/x/mobile/gl"
 )
 `, 1)
 
 	src = strings.Replace(src, "uint32", "gl.Attrib", -1)
 	src = strings.Replace(src, "int32", "gl.Uniform", -1)
+	src = strings.Replace(src, "shdFuncSolid gl.Uniform", "shdFuncSolid int", -1)
 
 	return src
 }

@@ -2,7 +2,6 @@ package xmobilebackend
 
 import (
 	"fmt"
-	"image/color"
 	"math"
 	"reflect"
 	"unsafe"
@@ -24,18 +23,7 @@ type GLContext struct {
 	shadowBuf gl.Buffer
 	alphaTex  gl.Texture
 
-	sr        solidShader
-	lgr       linearGradientShader
-	rgr       radialGradientShader
-	ipr       imagePatternShader
-	sar       solidAlphaShader
-	rgar      radialGradientAlphaShader
-	lgar      linearGradientAlphaShader
-	ipar      imagePatternAlphaShader
-	ir        imageShader
-	gauss15r  gaussianShader
-	gauss63r  gaussianShader
-	gauss127r gaussianShader
+	shd unifiedShader
 
 	offscr1 offscreenBuffer
 	offscr2 offscreenBuffer
@@ -64,110 +52,11 @@ func NewGLContext(glctx gl.Context) (*GLContext, error) {
 
 	b.glctx.GetError() // clear error state
 
-	err = loadShader(b, solidVS, solidFS, &ctx.sr.shaderProgram)
+	err = loadShader(b, unifiedVS, unifiedFS, &ctx.shd.shaderProgram)
 	if err != nil {
 		return nil, err
 	}
-	ctx.sr.shaderProgram.mustLoadLocations(&ctx.sr)
-	if err = glError(b); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(b, linearGradientVS, linearGradientFS, &ctx.lgr.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.lgr.shaderProgram.mustLoadLocations(&ctx.lgr)
-	if err = glError(b); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(b, radialGradientVS, radialGradientFS, &ctx.rgr.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.rgr.shaderProgram.mustLoadLocations(&ctx.rgr)
-	if err = glError(b); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(b, imagePatternVS, imagePatternFS, &ctx.ipr.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.ipr.shaderProgram.mustLoadLocations(&ctx.ipr)
-	if err = glError(b); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(b, solidAlphaVS, solidAlphaFS, &ctx.sar.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.sar.shaderProgram.mustLoadLocations(&ctx.sar)
-	if err = glError(b); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(b, linearGradientAlphaVS, linearGradientFS, &ctx.lgar.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.lgar.shaderProgram.mustLoadLocations(&ctx.lgar)
-	if err = glError(b); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(b, radialGradientAlphaVS, radialGradientAlphaFS, &ctx.rgar.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.rgar.shaderProgram.mustLoadLocations(&ctx.rgar)
-	if err = glError(b); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(b, imagePatternAlphaVS, imagePatternAlphaFS, &ctx.ipar.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.ipar.shaderProgram.mustLoadLocations(&ctx.ipar)
-	if err = glError(b); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(b, imageVS, imageFS, &ctx.ir.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.ir.shaderProgram.mustLoadLocations(&ctx.ir)
-	if err = glError(b); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(b, gaussian15VS, gaussian15FS, &ctx.gauss15r.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.gauss15r.shaderProgram.mustLoadLocations(&ctx.gauss15r)
-	if err = glError(b); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(b, gaussian63VS, gaussian63FS, &ctx.gauss63r.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.gauss63r.shaderProgram.mustLoadLocations(&ctx.gauss63r)
-	if err = glError(b); err != nil {
-		return nil, err
-	}
-
-	err = loadShader(b, gaussian127VS, gaussian127FS, &ctx.gauss127r.shaderProgram)
-	if err != nil {
-		return nil, err
-	}
-	ctx.gauss127r.shaderProgram.mustLoadLocations(&ctx.gauss127r)
+	ctx.shd.shaderProgram.mustLoadLocations(&ctx.shd)
 	if err = glError(b); err != nil {
 		return nil, err
 	}
@@ -244,6 +133,7 @@ func New(x, y, w, h int, ctx *GLContext) (*XMobileBackend, error) {
 	}
 	b.disableTextureRenderTarget = func() {
 		b.glctx.BindFramebuffer(gl.FRAMEBUFFER, gl.Framebuffer{Value: 0})
+		b.glctx.Viewport(b.x, b.y, b.w, b.h)
 	}
 
 	return b, nil
@@ -377,163 +267,81 @@ func (b *XMobileBackendOffscreen) AsImage() backendbase.Image {
 	return &b.offscrImg
 }
 
-type glColor struct {
-	r, g, b, a float64
-}
+func (b *XMobileBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alphaTexSlot int) (vertexLoc, alphaTexCoordLoc gl.Attrib) {
+	b.glctx.UseProgram(b.shd.ID)
+	b.glctx.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	if useAlpha {
+		b.glctx.Uniform1i(b.shd.UseAlphaTex, 1)
+		b.glctx.Uniform1i(b.shd.AlphaTex, alphaTexSlot)
+	} else {
+		b.glctx.Uniform1i(b.shd.UseAlphaTex, 0)
+	}
+	b.glctx.Uniform1f(b.shd.GlobalAlpha, float32(style.Color.A)/255)
 
-func colorGoToGL(c color.RGBA) glColor {
-	var glc glColor
-	glc.r = float64(c.R) / 255
-	glc.g = float64(c.G) / 255
-	glc.b = float64(c.B) / 255
-	glc.a = float64(c.A) / 255
-	return glc
-}
-
-func (b *XMobileBackend) useShader(style *backendbase.FillStyle) (vertexLoc gl.Attrib) {
 	if lg := style.LinearGradient; lg != nil {
 		lg := lg.(*LinearGradient)
 		b.glctx.ActiveTexture(gl.TEXTURE0)
 		b.glctx.BindTexture(gl.TEXTURE_2D, lg.tex)
-		b.glctx.UseProgram(b.lgr.ID)
 		from := vec{style.Gradient.X0, style.Gradient.Y0}
 		to := vec{style.Gradient.X1, style.Gradient.Y1}
 		dir := to.sub(from)
 		length := dir.len()
 		dir = dir.scale(1 / length)
-		b.glctx.Uniform2f(b.lgr.CanvasSize, float32(b.fw), float32(b.fh))
-		b.glctx.Uniform2f(b.lgr.From, float32(from[0]), float32(from[1]))
-		b.glctx.Uniform2f(b.lgr.Dir, float32(dir[0]), float32(dir[1]))
-		b.glctx.Uniform1f(b.lgr.Len, float32(length))
-		b.glctx.Uniform1i(b.lgr.Gradient, 0)
-		b.glctx.Uniform1f(b.lgr.GlobalAlpha, float32(style.Color.A)/255)
-		return b.lgr.Vertex
+		b.glctx.Uniform2f(b.shd.From, float32(from[0]), float32(from[1]))
+		b.glctx.Uniform2f(b.shd.Dir, float32(dir[0]), float32(dir[1]))
+		b.glctx.Uniform1f(b.shd.Len, float32(length))
+		b.glctx.Uniform1i(b.shd.Gradient, 0)
+		b.glctx.Uniform1i(b.shd.Func, shdFuncLinearGradient)
+		return b.shd.Vertex, b.shd.TexCoord
 	}
 	if rg := style.RadialGradient; rg != nil {
 		rg := rg.(*RadialGradient)
 		b.glctx.ActiveTexture(gl.TEXTURE0)
 		b.glctx.BindTexture(gl.TEXTURE_2D, rg.tex)
-		b.glctx.UseProgram(b.rgr.ID)
 		from := vec{style.Gradient.X0, style.Gradient.Y0}
 		to := vec{style.Gradient.X1, style.Gradient.Y1}
-		b.glctx.Uniform2f(b.rgr.CanvasSize, float32(b.fw), float32(b.fh))
-		b.glctx.Uniform2f(b.rgr.From, float32(from[0]), float32(from[1]))
-		b.glctx.Uniform2f(b.rgr.To, float32(to[0]), float32(to[1]))
-		b.glctx.Uniform1f(b.rgr.RadFrom, float32(style.Gradient.RadFrom))
-		b.glctx.Uniform1f(b.rgr.RadTo, float32(style.Gradient.RadTo))
-		b.glctx.Uniform1i(b.rgr.Gradient, 0)
-		b.glctx.Uniform1f(b.rgr.GlobalAlpha, float32(style.Color.A)/255)
-		return b.rgr.Vertex
+		b.glctx.Uniform2f(b.shd.From, float32(from[0]), float32(from[1]))
+		b.glctx.Uniform2f(b.shd.To, float32(to[0]), float32(to[1]))
+		b.glctx.Uniform1f(b.shd.RadFrom, float32(style.Gradient.RadFrom))
+		b.glctx.Uniform1f(b.shd.RadTo, float32(style.Gradient.RadTo))
+		b.glctx.Uniform1i(b.shd.Gradient, 0)
+		b.glctx.Uniform1i(b.shd.Func, shdFuncRadialGradient)
+		return b.shd.Vertex, b.shd.TexCoord
 	}
 	if ip := style.ImagePattern; ip != nil {
 		ipd := ip.(*ImagePattern).data
 		img := ipd.Image.(*Image)
-		b.glctx.UseProgram(b.ipr.ID)
 		b.glctx.ActiveTexture(gl.TEXTURE0)
 		b.glctx.BindTexture(gl.TEXTURE_2D, img.tex)
-		b.glctx.Uniform2f(b.ipr.CanvasSize, float32(b.fw), float32(b.fh))
-		b.glctx.Uniform2f(b.ipr.ImageSize, float32(img.w), float32(img.h))
-		b.glctx.Uniform1i(b.ipr.Image, 0)
+		b.glctx.Uniform2f(b.shd.ImageSize, float32(img.w), float32(img.h))
+		b.glctx.Uniform1i(b.shd.Image, 0)
 		var f32mat [9]float32
 		for i, v := range ipd.Transform {
 			f32mat[i] = float32(v)
 		}
-		b.glctx.UniformMatrix3fv(b.ipr.ImageTransform, f32mat[:])
+		b.glctx.UniformMatrix3fv(b.shd.ImageTransform, f32mat[:])
 		switch ipd.Repeat {
 		case backendbase.Repeat:
-			b.glctx.Uniform2f(b.ipr.Repeat, 1, 1)
+			b.glctx.Uniform2f(b.shd.Repeat, 1, 1)
 		case backendbase.RepeatX:
-			b.glctx.Uniform2f(b.ipr.Repeat, 1, 0)
+			b.glctx.Uniform2f(b.shd.Repeat, 1, 0)
 		case backendbase.RepeatY:
-			b.glctx.Uniform2f(b.ipr.Repeat, 0, 1)
+			b.glctx.Uniform2f(b.shd.Repeat, 0, 1)
 		case backendbase.NoRepeat:
-			b.glctx.Uniform2f(b.ipr.Repeat, 0, 0)
+			b.glctx.Uniform2f(b.shd.Repeat, 0, 0)
 		}
-		b.glctx.Uniform1f(b.ipr.GlobalAlpha, float32(style.Color.A)/255)
-		return b.ipr.Vertex
+		b.glctx.Uniform1i(b.shd.Func, shdFuncImagePattern)
+		return b.shd.Vertex, b.shd.TexCoord
 	}
 
-	b.glctx.UseProgram(b.sr.ID)
-	b.glctx.Uniform2f(b.sr.CanvasSize, float32(b.fw), float32(b.fh))
-	c := colorGoToGL(style.Color)
-	b.glctx.Uniform4f(b.sr.Color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
-	b.glctx.Uniform1f(b.sr.GlobalAlpha, 1)
-	return b.sr.Vertex
-}
-
-func (b *XMobileBackend) useAlphaShader(style *backendbase.FillStyle, alphaTexSlot int) (vertexLoc, alphaTexCoordLoc gl.Attrib) {
-	if lg := style.LinearGradient; lg != nil {
-		lg := lg.(*LinearGradient)
-		b.glctx.ActiveTexture(gl.TEXTURE0)
-		b.glctx.BindTexture(gl.TEXTURE_2D, lg.tex)
-		b.glctx.UseProgram(b.lgar.ID)
-		from := vec{style.Gradient.X0, style.Gradient.Y0}
-		to := vec{style.Gradient.X1, style.Gradient.Y1}
-		dir := to.sub(from)
-		length := dir.len()
-		dir = dir.scale(1 / length)
-		b.glctx.Uniform2f(b.lgar.CanvasSize, float32(b.fw), float32(b.fh))
-		b.glctx.Uniform2f(b.lgar.From, float32(from[0]), float32(from[1]))
-		b.glctx.Uniform2f(b.lgar.Dir, float32(dir[0]), float32(dir[1]))
-		b.glctx.Uniform1f(b.lgar.Len, float32(length))
-		b.glctx.Uniform1i(b.lgar.Gradient, 0)
-		b.glctx.Uniform1i(b.lgar.AlphaTex, alphaTexSlot)
-		b.glctx.Uniform1f(b.lgar.GlobalAlpha, float32(style.Color.A)/255)
-		return b.lgar.Vertex, b.lgar.AlphaTexCoord
-	}
-	if rg := style.RadialGradient; rg != nil {
-		rg := rg.(*RadialGradient)
-		b.glctx.ActiveTexture(gl.TEXTURE0)
-		b.glctx.BindTexture(gl.TEXTURE_2D, rg.tex)
-		b.glctx.UseProgram(b.rgar.ID)
-		from := vec{style.Gradient.X0, style.Gradient.Y0}
-		to := vec{style.Gradient.X1, style.Gradient.Y1}
-		b.glctx.Uniform2f(b.rgar.CanvasSize, float32(b.fw), float32(b.fh))
-		b.glctx.Uniform2f(b.rgar.From, float32(from[0]), float32(from[1]))
-		b.glctx.Uniform2f(b.rgar.To, float32(to[0]), float32(to[1]))
-		b.glctx.Uniform1f(b.rgar.RadFrom, float32(style.Gradient.RadFrom))
-		b.glctx.Uniform1f(b.rgar.RadTo, float32(style.Gradient.RadTo))
-		b.glctx.Uniform1i(b.rgar.Gradient, 0)
-		b.glctx.Uniform1i(b.rgar.AlphaTex, alphaTexSlot)
-		b.glctx.Uniform1f(b.rgar.GlobalAlpha, float32(style.Color.A)/255)
-		return b.rgar.Vertex, b.rgar.AlphaTexCoord
-	}
-	if ip := style.ImagePattern; ip != nil {
-		ipd := ip.(*ImagePattern).data
-		img := ipd.Image.(*Image)
-		b.glctx.UseProgram(b.ipar.ID)
-		b.glctx.ActiveTexture(gl.TEXTURE0)
-		b.glctx.BindTexture(gl.TEXTURE_2D, img.tex)
-		b.glctx.Uniform2f(b.ipar.CanvasSize, float32(b.fw), float32(b.fh))
-		b.glctx.Uniform2f(b.ipar.ImageSize, float32(img.w), float32(img.h))
-		b.glctx.Uniform1i(b.ipar.Image, 0)
-		var f32mat [9]float32
-		for i, v := range ipd.Transform {
-			f32mat[i] = float32(v)
-		}
-		b.glctx.UniformMatrix3fv(b.ipr.ImageTransform, f32mat[:])
-		switch ipd.Repeat {
-		case backendbase.Repeat:
-			b.glctx.Uniform2f(b.ipr.Repeat, 1, 1)
-		case backendbase.RepeatX:
-			b.glctx.Uniform2f(b.ipr.Repeat, 1, 0)
-		case backendbase.RepeatY:
-			b.glctx.Uniform2f(b.ipr.Repeat, 0, 1)
-		case backendbase.NoRepeat:
-			b.glctx.Uniform2f(b.ipr.Repeat, 0, 0)
-		}
-		b.glctx.Uniform1i(b.ipar.AlphaTex, alphaTexSlot)
-		b.glctx.Uniform1f(b.ipar.GlobalAlpha, float32(style.Color.A)/255)
-		return b.ipar.Vertex, b.ipar.AlphaTexCoord
-	}
-
-	b.glctx.UseProgram(b.sar.ID)
-	b.glctx.Uniform2f(b.sar.CanvasSize, float32(b.fw), float32(b.fh))
-	c := colorGoToGL(style.Color)
-	b.glctx.Uniform4f(b.sar.Color, float32(c.r), float32(c.g), float32(c.b), float32(c.a))
-	b.glctx.Uniform1i(b.sar.AlphaTex, alphaTexSlot)
-	b.glctx.Uniform1f(b.sar.GlobalAlpha, 1)
-	return b.sar.Vertex, b.sar.AlphaTexCoord
+	cr := float32(style.Color.R) / 255
+	cg := float32(style.Color.G) / 255
+	cb := float32(style.Color.B) / 255
+	ca := float32(style.Color.A) / 255
+	b.glctx.Uniform4f(b.shd.Color, cr, cg, cb, ca)
+	b.glctx.Uniform1f(b.shd.GlobalAlpha, 1)
+	b.glctx.Uniform1i(b.shd.Func, shdFuncSolid)
+	return b.shd.Vertex, b.shd.TexCoord
 }
 
 func (b *XMobileBackend) enableTextureRenderTarget(offscr *offscreenBuffer) {

@@ -33,10 +33,12 @@ func (b *XMobileBackend) Clear(pts [4][2]float64) {
 		float32(pts[2][0]), float32(pts[2][1]),
 		float32(pts[3][0]), float32(pts[3][1])}
 
-	b.glctx.UseProgram(b.sr.ID)
-	b.glctx.Uniform2f(b.sr.CanvasSize, float32(b.fw), float32(b.fh))
-	b.glctx.Uniform4f(b.sr.Color, 0, 0, 0, 0)
-	b.glctx.Uniform1f(b.sr.GlobalAlpha, 1)
+	b.glctx.UseProgram(b.shd.ID)
+	b.glctx.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	b.glctx.Uniform4f(b.shd.Color, 0, 0, 0, 0)
+	b.glctx.Uniform1f(b.shd.GlobalAlpha, 1)
+	b.glctx.Uniform1i(b.shd.UseAlphaTex, 0)
+	b.glctx.Uniform1i(b.shd.Func, shdFuncSolid)
 
 	b.glctx.Disable(gl.BLEND)
 
@@ -45,10 +47,10 @@ func (b *XMobileBackend) Clear(pts [4][2]float64) {
 
 	b.glctx.StencilFunc(gl.EQUAL, 0, 0xFF)
 
-	b.glctx.VertexAttribPointer(b.sr.Vertex, 2, gl.FLOAT, false, 0, 0)
-	b.glctx.EnableVertexAttribArray(b.sr.Vertex)
+	b.glctx.VertexAttribPointer(b.shd.Vertex, 2, gl.FLOAT, false, 0, 0)
+	b.glctx.EnableVertexAttribArray(b.shd.Vertex)
 	b.glctx.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
-	b.glctx.DisableVertexAttribArray(b.sr.Vertex)
+	b.glctx.DisableVertexAttribArray(b.shd.Vertex)
 
 	b.glctx.StencilFunc(gl.ALWAYS, 0, 0xFF)
 
@@ -70,6 +72,8 @@ func (b *XMobileBackend) clearRect(x, y, w, h int) {
 }
 
 func extent(pts [][2]float64) (min, max vec) {
+	max[0] = -math.MaxFloat64
+	max[1] = -math.MaxFloat64
 	min[0] = math.MaxFloat64
 	min[1] = math.MaxFloat64
 	for _, v := range pts {
@@ -111,7 +115,7 @@ func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts [][2]float64, ca
 	b.glctx.BufferData(gl.ARRAY_BUFFER, byteSlice(unsafe.Pointer(&b.ptsBuf[0]), len(b.ptsBuf)*4), gl.STREAM_DRAW)
 
 	if !canOverlap || style.Color.A >= 255 {
-		vertex := b.useShader(style)
+		vertex, _ := b.useShader(style, false, 0)
 
 		b.glctx.StencilFunc(gl.EQUAL, 0, 0xFF)
 		b.glctx.EnableVertexAttribArray(vertex)
@@ -125,21 +129,23 @@ func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts [][2]float64, ca
 		b.glctx.StencilOp(gl.REPLACE, gl.REPLACE, gl.REPLACE)
 		b.glctx.StencilMask(0x01)
 
-		b.glctx.UseProgram(b.sr.ID)
-		b.glctx.Uniform4f(b.sr.Color, 0, 0, 0, 0)
-		b.glctx.Uniform2f(b.sr.CanvasSize, float32(b.fw), float32(b.fh))
-		b.glctx.Uniform1f(b.sr.GlobalAlpha, 1)
+		b.glctx.UseProgram(b.shd.ID)
+		b.glctx.Uniform4f(b.shd.Color, 0, 0, 0, 0)
+		b.glctx.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+		b.glctx.Uniform1f(b.shd.GlobalAlpha, 1)
+		b.glctx.Uniform1i(b.shd.UseAlphaTex, 0)
+		b.glctx.Uniform1i(b.shd.Func, shdFuncSolid)
 
-		b.glctx.EnableVertexAttribArray(b.sr.Vertex)
-		b.glctx.VertexAttribPointer(b.sr.Vertex, 2, gl.FLOAT, false, 0, 0)
+		b.glctx.EnableVertexAttribArray(b.shd.Vertex)
+		b.glctx.VertexAttribPointer(b.shd.Vertex, 2, gl.FLOAT, false, 0, 0)
 		b.glctx.DrawArrays(mode, 4, len(pts))
-		b.glctx.DisableVertexAttribArray(b.sr.Vertex)
+		b.glctx.DisableVertexAttribArray(b.shd.Vertex)
 
 		b.glctx.ColorMask(true, true, true, true)
 
 		b.glctx.StencilFunc(gl.EQUAL, 1, 0xFF)
 
-		vertex := b.useShader(style)
+		vertex, _ := b.useShader(style, false, 0)
 		b.glctx.EnableVertexAttribArray(vertex)
 		b.glctx.VertexAttribPointer(vertex, 2, gl.FLOAT, false, 0, 0)
 
@@ -154,7 +160,7 @@ func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts [][2]float64, ca
 	}
 
 	if style.Blur > 0 {
-		b.drawBlurred(style.Blur)
+		b.drawBlurred(style.Blur, min, max)
 	}
 }
 
@@ -181,7 +187,7 @@ func (b *XMobileBackend) FillImageMask(style *backendbase.FillStyle, mask *image
 
 	b.glctx.BindBuffer(gl.ARRAY_BUFFER, b.buf)
 
-	vertex, alphaTexCoord := b.useAlphaShader(style, 1)
+	vertex, alphaTexCoord := b.useShader(style, true, 1)
 
 	b.glctx.EnableVertexAttribArray(vertex)
 	b.glctx.EnableVertexAttribArray(alphaTexCoord)
@@ -216,105 +222,103 @@ func (b *XMobileBackend) FillImageMask(style *backendbase.FillStyle, mask *image
 	b.glctx.ActiveTexture(gl.TEXTURE0)
 
 	if style.Blur > 0 {
-		b.drawBlurred(style.Blur)
+		min, max := extent(pts[:])
+		b.drawBlurred(style.Blur, min, max)
 	}
 }
 
-func (b *XMobileBackend) drawBlurred(blur float64) {
-	b.glctx.BlendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
+func (b *XMobileBackend) drawBlurred(size float64, min, max vec) {
+	b.offscr1.alpha = true
+	b.offscr2.alpha = true
 
-	var kernel []float32
-	var kernelBuf [255]float32
-	var gs *gaussianShader
-	if blur < 3 {
-		gs = &b.gauss15r
-		kernel = kernelBuf[:15]
-	} else if blur < 12 {
-		gs = &b.gauss63r
-		kernel = kernelBuf[:63]
-	} else {
-		gs = &b.gauss127r
-		kernel = kernelBuf[:127]
+	// calculate box blur size
+	fsize := math.Max(1, math.Floor(size))
+	sizea := int(fsize)
+	sizeb := sizea
+	sizec := sizea
+	if size-fsize > 0.333333333 {
+		sizeb++
+	}
+	if size-fsize > 0.666666666 {
+		sizec++
 	}
 
-	gaussianKernel(blur, kernel)
+	min[0] -= fsize * 3
+	min[1] -= fsize * 3
+	max[0] += fsize * 3
+	max[1] += fsize * 3
+	min[0] = math.Max(0.0, math.Min(b.fw, min[0]))
+	min[1] = math.Max(0.0, math.Min(b.fh, min[1]))
+	max[0] = math.Max(0.0, math.Min(b.fw, max[0]))
+	max[1] = math.Max(0.0, math.Min(b.fh, max[1]))
 
-	b.offscr2.alpha = true
-	b.enableTextureRenderTarget(&b.offscr2)
+	b.glctx.BindBuffer(gl.ARRAY_BUFFER, b.shadowBuf)
+	data := [16]float32{
+		float32(min[0]), float32(min[1]),
+		float32(min[0]), float32(max[1]),
+		float32(max[0]), float32(max[1]),
+		float32(max[0]), float32(min[1]),
+		float32(min[0] / b.fw), 1 - float32(min[1]/b.fh),
+		float32(min[0] / b.fw), 1 - float32(max[1]/b.fh),
+		float32(max[0] / b.fw), 1 - float32(max[1]/b.fh),
+		float32(max[0] / b.fw), 1 - float32(min[1]/b.fh),
+	}
+	b.glctx.BufferData(gl.ARRAY_BUFFER, byteSlice(unsafe.Pointer(&data[0]), len(data)*4), gl.STREAM_DRAW)
+
+	b.glctx.UseProgram(b.shd.ID)
+	b.glctx.Uniform1i(b.shd.Image, 0)
+	b.glctx.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	b.glctx.Uniform1i(b.shd.UseAlphaTex, 0)
+	b.glctx.Uniform1i(b.shd.Func, shdFuncBoxBlur)
+
+	b.glctx.VertexAttribPointer(b.shd.Vertex, 2, gl.FLOAT, false, 0, 0)
+	b.glctx.VertexAttribPointer(b.shd.TexCoord, 2, gl.FLOAT, false, 0, 8*4)
+	b.glctx.EnableVertexAttribArray(b.shd.Vertex)
+	b.glctx.EnableVertexAttribArray(b.shd.TexCoord)
+
+	b.glctx.Disable(gl.BLEND)
+
+	b.glctx.ActiveTexture(gl.TEXTURE0)
+
 	b.glctx.ClearColor(0, 0, 0, 0)
-	b.glctx.Clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
 
-	b.glctx.StencilFunc(gl.EQUAL, 0, 0xFF)
-
-	b.glctx.BindBuffer(gl.ARRAY_BUFFER, b.shadowBuf)
-	data := [16]float32{0, 0, 0, float32(b.h), float32(b.w), float32(b.h), float32(b.w), 0, 0, 0, 0, 1, 1, 1, 1, 0}
-	b.glctx.BufferData(gl.ARRAY_BUFFER, byteSlice(unsafe.Pointer(&data[0]), len(data)*4), gl.STREAM_DRAW)
-
-	b.glctx.ActiveTexture(gl.TEXTURE0)
+	b.enableTextureRenderTarget(&b.offscr2)
 	b.glctx.BindTexture(gl.TEXTURE_2D, b.offscr1.tex)
-
-	b.glctx.UseProgram(gs.ID)
-	b.glctx.Uniform1i(gs.Image, 0)
-	b.glctx.Uniform2f(gs.CanvasSize, float32(b.fw), float32(b.fh))
-	b.glctx.Uniform2f(gs.KernelScale, 1.0/float32(b.fw), 0.0)
-	b.glctx.Uniform1fv(gs.Kernel, kernel)
-	b.glctx.VertexAttribPointer(gs.Vertex, 2, gl.FLOAT, false, 0, 0)
-	b.glctx.VertexAttribPointer(gs.TexCoord, 2, gl.FLOAT, false, 0, 8*4)
-	b.glctx.EnableVertexAttribArray(gs.Vertex)
-	b.glctx.EnableVertexAttribArray(gs.TexCoord)
-	b.glctx.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
-	b.glctx.DisableVertexAttribArray(gs.Vertex)
-	b.glctx.DisableVertexAttribArray(gs.TexCoord)
-
-	b.glctx.StencilFunc(gl.ALWAYS, 0, 0xFF)
-
-	b.disableTextureRenderTarget()
-
-	b.glctx.StencilFunc(gl.EQUAL, 0, 0xFF)
-
-	b.glctx.BindBuffer(gl.ARRAY_BUFFER, b.shadowBuf)
-	data = [16]float32{0, 0, 0, float32(b.h), float32(b.w), float32(b.h), float32(b.w), 0, 0, 0, 0, 1, 1, 1, 1, 0}
-	b.glctx.BufferData(gl.ARRAY_BUFFER, byteSlice(unsafe.Pointer(&data[0]), len(data)*4), gl.STREAM_DRAW)
-
-	b.glctx.ActiveTexture(gl.TEXTURE0)
+	b.glctx.Clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
+	b.box3(sizea, 0, false)
+	b.enableTextureRenderTarget(&b.offscr1)
 	b.glctx.BindTexture(gl.TEXTURE_2D, b.offscr2.tex)
+	b.box3(sizeb, -0.5, false)
+	b.enableTextureRenderTarget(&b.offscr2)
+	b.glctx.BindTexture(gl.TEXTURE_2D, b.offscr1.tex)
+	b.box3(sizec, 0, false)
+	b.enableTextureRenderTarget(&b.offscr1)
+	b.glctx.BindTexture(gl.TEXTURE_2D, b.offscr2.tex)
+	b.box3(sizea, 0, true)
+	b.enableTextureRenderTarget(&b.offscr2)
+	b.glctx.BindTexture(gl.TEXTURE_2D, b.offscr1.tex)
+	b.box3(sizeb, -0.5, true)
+	b.glctx.Enable(gl.BLEND)
+	b.glctx.BlendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
+	b.disableTextureRenderTarget()
+	b.glctx.BindTexture(gl.TEXTURE_2D, b.offscr2.tex)
+	b.box3(sizec, 0, true)
 
-	b.glctx.UseProgram(gs.ID)
-	b.glctx.Uniform1i(gs.Image, 0)
-	b.glctx.Uniform2f(gs.CanvasSize, float32(b.fw), float32(b.fh))
-	b.glctx.Uniform2f(gs.KernelScale, 0.0, 1.0/float32(b.fh))
-	b.glctx.Uniform1fv(gs.Kernel, kernel)
-	b.glctx.VertexAttribPointer(gs.Vertex, 2, gl.FLOAT, false, 0, 0)
-	b.glctx.VertexAttribPointer(gs.TexCoord, 2, gl.FLOAT, false, 0, 8*4)
-	b.glctx.EnableVertexAttribArray(gs.Vertex)
-	b.glctx.EnableVertexAttribArray(gs.TexCoord)
-	b.glctx.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
-	b.glctx.DisableVertexAttribArray(gs.Vertex)
-	b.glctx.DisableVertexAttribArray(gs.TexCoord)
-
-	b.glctx.StencilFunc(gl.ALWAYS, 0, 0xFF)
+	b.glctx.DisableVertexAttribArray(b.shd.Vertex)
+	b.glctx.DisableVertexAttribArray(b.shd.TexCoord)
 
 	b.glctx.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 }
 
-func gaussianKernel(stddev float64, target []float32) {
-	stddevSqr := stddev * stddev
-	center := float64(len(target) / 2)
-	factor := 1.0 / math.Sqrt(2*math.Pi*stddevSqr)
-	for i := range target {
-		x := float64(i) - center
-		target[i] = float32(factor * math.Pow(math.E, -x*x/(2*stddevSqr)))
+func (b *XMobileBackend) box3(size int, offset float32, vertical bool) {
+	b.glctx.Uniform1i(b.shd.BoxSize, size)
+	if vertical {
+		b.glctx.Uniform1i(b.shd.BoxVertical, 1)
+		b.glctx.Uniform1f(b.shd.BoxScale, 1/float32(b.fh))
+	} else {
+		b.glctx.Uniform1i(b.shd.BoxVertical, 0)
+		b.glctx.Uniform1f(b.shd.BoxScale, 1/float32(b.fw))
 	}
-	// normalizeKernel(target)
-}
-
-func normalizeKernel(kernel []float32) {
-	var sum float32
-	for _, v := range kernel {
-		sum += v
-	}
-	factor := 1.0 / sum
-	for i := range kernel {
-		kernel[i] *= factor
-	}
+	b.glctx.Uniform1f(b.shd.BoxOffset, offset)
+	b.glctx.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 }
