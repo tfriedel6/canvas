@@ -25,24 +25,6 @@ func pointIsRightOfLine(a, b, p vec) (bool, bool) {
 	return p[0] > x, dir
 }
 
-func pointIsBelowLine(a, b, p vec) (bool, bool) {
-	if a[0] == b[0] {
-		return false, false
-	}
-	dir := false
-	if a[0] > b[0] {
-		a, b = b, a
-		dir = !dir
-	}
-	if p[0] < a[0] || p[0] > b[0] {
-		return false, false
-	}
-	v := b.sub(a)
-	r := (p[0] - a[0]) / v[0]
-	x := a[1] + r*v[1]
-	return p[1] > x, dir
-}
-
 func triangleContainsPoint(a, b, c, p vec) bool {
 	// if point is outside triangle bounds, return false
 	if p[0] < a[0] && p[0] < b[0] && p[0] < c[0] {
@@ -316,61 +298,66 @@ func setPathLeftRightInside(net *tessNet) {
 		a1, b1 := net.verts[e1.a], net.verts[e1.b]
 		diff := b1.pos.sub(a1.pos)
 		mid := a1.pos.add(diff.mulf(0.5))
-		num := 0
 
-		if math.Abs(diff[1]) < math.Abs(diff[0]) {
-			edir := diff[1] > 0
-
+		left, right := 0, 0
+		if math.Abs(diff[1]) > math.Abs(diff[0]) {
 			for j, e2 := range net.edges {
 				if i == j {
 					continue
 				}
-				a2, b2 := net.verts[e2.a], net.verts[e2.b]
-				r, dir := pointIsRightOfLine(a2.pos, b2.pos, mid)
-				if !r {
+				a2, b2 := net.verts[e2.a].pos, net.verts[e2.b].pos
+				if a2[1] == b2[1] {
 					continue
 				}
-				if dir {
-					num++
-				} else {
-					num--
+				if a2[1] > b2[1] {
+					a2, b2 = b2, a2
+				}
+				if mid[1] < a2[1] || mid[1] > b2[1] {
+					continue
+				}
+				v := b2.sub(a2)
+				r := (mid[1] - a2[1]) / v[1]
+				x := a2[0] + r*v[0]
+				if mid[0] > x {
+					left++
+				} else if mid[0] < x {
+					right++
 				}
 			}
-
-			if edir {
-				net.edges[i].leftInside = (num - 1) != 0
-				net.edges[i].rightInside = num != 0
-			} else {
-				net.edges[i].leftInside = num != 0
-				net.edges[i].rightInside = (num + 1) != 0
+			if diff[1] > 0 {
+				left, right = right, left
 			}
 		} else {
-			edir := diff[0] > 0
-
 			for j, e2 := range net.edges {
 				if i == j {
 					continue
 				}
-				a2, b2 := net.verts[e2.a], net.verts[e2.b]
-				b, dir := pointIsBelowLine(a2.pos, b2.pos, mid)
-				if !b {
+				a2, b2 := net.verts[e2.a].pos, net.verts[e2.b].pos
+				if a2[0] == b2[0] {
 					continue
 				}
-				if dir {
-					num++
-				} else {
-					num--
+				if a2[0] > b2[0] {
+					a2, b2 = b2, a2
+				}
+				if mid[0] < a2[0] || mid[0] > b2[0] {
+					continue
+				}
+				v := b2.sub(a2)
+				r := (mid[0] - a2[0]) / v[0]
+				y := a2[1] + r*v[1]
+				if mid[1] > y {
+					left++
+				} else if mid[1] < y {
+					right++
 				}
 			}
-
-			if edir {
-				net.edges[i].leftInside = num != 0
-				net.edges[i].rightInside = (num - 1) != 0
-			} else {
-				net.edges[i].leftInside = (num + 1) != 0
-				net.edges[i].rightInside = num != 0
+			if diff[0] < 0 {
+				left, right = right, left
 			}
 		}
+
+		net.edges[i].leftInside = left%2 == 1
+		net.edges[i].rightInside = right%2 == 1
 	}
 }
 
@@ -408,8 +395,6 @@ func selfIntersectingPathParts(p []pathPoint, partFn func(sp []pathPoint) bool) 
 			if count == 0 {
 				break
 			}
-
-			// fmt.Println("start", start, from, cur, net.verts[cur], left)
 
 			sp2 = append(sp2, pathPoint{
 				pos:   net.verts[cur].pos,
@@ -458,13 +443,11 @@ func selfIntersectingPathParts(p []pathPoint, partFn func(sp []pathPoint) bool) 
 							next = e.a
 						}
 						any = true
-						// fmt.Println("-", e, nextEdge, next)
 					}
 				}
 				if !any {
 					break
 				}
-				// fmt.Println(start, from, cur, net.verts[cur], nextEdge, next, net.verts[next])
 				if left {
 					net.edges[nextEdge].leftInside = false
 				} else {
@@ -480,9 +463,11 @@ func selfIntersectingPathParts(p []pathPoint, partFn func(sp []pathPoint) bool) 
 				}
 			}
 
-			stop := partFn(sp2)
-			if stop {
-				return true
+			if len(sp2) >= 3 {
+				stop := partFn(sp2)
+				if stop {
+					return true
+				}
 			}
 			sp2 = sp2[:0]
 		}

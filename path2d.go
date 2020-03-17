@@ -41,7 +41,7 @@ func (p *Path2D) MoveTo(x, y float64) {
 	if len(p.p) > 0 && isSamePoint(p.p[len(p.p)-1].pos, vec{x, y}, 0.1) {
 		return
 	}
-	p.p = append(p.p, pathPoint{pos: vec{x, y}, flags: pathMove}) // todo more flags probably
+	p.p = append(p.p, pathPoint{pos: vec{x, y}, flags: pathMove | pathIsConvex})
 	p.cwSum = 0
 	p.move = vec{x, y}
 }
@@ -66,48 +66,48 @@ func (p *Path2D) lineTo(x, y float64, checkSelfIntersection bool) {
 	p.p = append(p.p, pathPoint{pos: vec{x, y}})
 	newp := &p.p[count]
 
-	px, py := prev.pos[0], prev.pos[1]
-	p.cwSum += (x - px) * (y + py)
-	cwTotal := p.cwSum
-	cwTotal += (p.move[0] - x) * (p.move[1] + y)
-	if cwTotal <= 0 {
-		newp.flags |= pathIsClockwise
-	}
-
-	if prev.flags&pathSelfIntersects > 0 {
-		newp.flags |= pathSelfIntersects
+	if prev.flags&pathIsConvex > 0 {
+		px, py := prev.pos[0], prev.pos[1]
+		p.cwSum += (x - px) * (y + py)
+		cwTotal := p.cwSum
+		cwTotal += (p.move[0] - x) * (p.move[1] + y)
+		if cwTotal <= 0 {
+			newp.flags |= pathIsClockwise
+		}
 	}
 
 	if len(p.p) < 4 || Performance.AssumeConvex {
 		newp.flags |= pathIsConvex
 	} else if prev.flags&pathIsConvex > 0 {
+		prev2 := &p.p[count-2]
+		cw := (prev.flags & pathIsClockwise) > 0
+
+		ln := prev.pos.sub(prev2.pos)
+		lo := vec{ln[1], -ln[0]}
+		dot := newp.pos.sub(prev2.pos).dot(lo)
+
+		if (cw && dot <= 0) || (!cw && dot >= 0) {
+			newp.flags |= pathIsConvex
+		}
+	}
+
+	if prev.flags&pathSelfIntersects > 0 {
+		newp.flags |= pathSelfIntersects
+	} else if newp.flags&pathIsConvex == 0 && newp.flags&pathSelfIntersects == 0 && checkSelfIntersection && !Performance.IgnoreSelfIntersections {
 		cuts := false
 		var cutPoint vec
-		if checkSelfIntersection && !Performance.IgnoreSelfIntersections {
-			b0, b1 := prev.pos, vec{x, y}
-			for i := 1; i < count; i++ {
-				a0, a1 := p.p[i-1].pos, p.p[i].pos
-				var r1, r2 float64
-				cutPoint, r1, r2 = lineIntersection(a0, a1, b0, b1)
-				if r1 > 0 && r1 < 1 && r2 > 0 && r2 < 1 {
-					cuts = true
-					break
-				}
+		b0, b1 := prev.pos, vec{x, y}
+		for i := 1; i < count; i++ {
+			a0, a1 := p.p[i-1].pos, p.p[i].pos
+			var r1, r2 float64
+			cutPoint, r1, r2 = lineIntersection(a0, a1, b0, b1)
+			if r1 > 0 && r1 < 1 && r2 > 0 && r2 < 1 {
+				cuts = true
+				break
 			}
 		}
 		if cuts && !isSamePoint(cutPoint, vec{x, y}, samePointTolerance) {
 			newp.flags |= pathSelfIntersects
-		} else {
-			prev2 := &p.p[len(p.p)-3]
-			cw := (newp.flags & pathIsClockwise) > 0
-
-			ln := prev.pos.sub(prev2.pos)
-			lo := vec{ln[1], -ln[0]}
-			dot := newp.pos.sub(prev2.pos).dot(lo)
-
-			if (cw && dot <= 0) || (!cw && dot >= 0) {
-				newp.flags |= pathIsConvex
-			}
 		}
 	}
 }
