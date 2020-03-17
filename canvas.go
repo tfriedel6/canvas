@@ -21,9 +21,7 @@ import (
 type Canvas struct {
 	b backendbase.Backend
 
-	path   Path2D
-	convex bool
-	rect   bool
+	path Path2D
 
 	state      drawState
 	stateStack []drawState
