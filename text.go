@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/draw"
 	"io/ioutil"
+	"math"
 	"os"
 	"time"
 
@@ -116,16 +117,17 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		return
 	}
 
-	frc := cv.getFRContext(cv.state.font, cv.state.fontSize)
+	scaleX := vec{cv.state.transform[0], cv.state.transform[1]}.len()
+	scaleY := vec{cv.state.transform[2], cv.state.transform[3]}.len()
+	scale := (scaleX + scaleY) * 0.5
+	fontSize := fixed.Int26_6(math.Round(float64(cv.state.fontSize) * scale))
+
+	frc := cv.getFRContext(cv.state.font, fontSize)
 	fnt := cv.state.font.font
 
-	curX := x
+	// measure rendered text size
 	var p fixed.Point26_6
 	prev, hasPrev := truetype.Index(0), false
-
-	strFrom, strTo := 0, len(str)
-	curInside := false
-
 	var textOffset image.Point
 	var strWidth, strMaxY int
 	for i, rn := range str {
@@ -137,33 +139,12 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		if err != nil {
 			continue
 		}
+		var kern fixed.Int26_6
 		if hasPrev {
-			kern := fnt.Kern(frc.fontSize, prev, idx)
+			kern = fnt.Kern(fontSize, prev, idx)
 			if frc.hinting != font.HintingNone {
 				kern = (kern + 32) &^ 63
 			}
-			curX += float64(kern) / 64
-		}
-
-		w, h := cv.b.Size()
-		fw, fh := float64(w), float64(h)
-
-		p0 := cv.tf(vec{float64(bounds.Min.X) + curX, float64(bounds.Min.Y) + y})
-		p1 := cv.tf(vec{float64(bounds.Min.X) + curX, float64(bounds.Max.Y) + y})
-		p2 := cv.tf(vec{float64(bounds.Max.X) + curX, float64(bounds.Max.Y) + y})
-		p3 := cv.tf(vec{float64(bounds.Max.X) + curX, float64(bounds.Min.Y) + y})
-		inside := (p0[0] >= 0 || p1[0] >= 0 || p2[0] >= 0 || p3[0] >= 0) &&
-			(p0[1] >= 0 || p1[1] >= 0 || p2[1] >= 0 || p3[1] >= 0) &&
-			(p0[0] < fw || p1[0] < fw || p2[0] < fw || p3[0] < fw) &&
-			(p0[1] < fh || p1[1] < fh || p2[1] < fh || p3[1] < fh)
-
-		if !curInside && inside {
-			curInside = true
-			strFrom = i
-			x = curX
-		} else if curInside && !inside {
-			strTo = i
-			break
 		}
 
 		if i == 0 {
@@ -175,16 +156,93 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		if bounds.Max.Y > strMaxY {
 			strMaxY = bounds.Max.Y
 		}
-		p.X += advance
-		curX += float64(advance) / 64
+		p.X += advance + kern
 	}
 	strWidth = p.X.Ceil() - textOffset.X
 	strHeight := strMaxY - textOffset.Y
 
-	if strFrom == strTo || strWidth == 0 || strHeight == 0 {
+	if strWidth <= 0 || strHeight <= 0 {
 		return
 	}
 
+	fstrWidth := float64(strWidth) / scale
+	fstrHeight := float64(strHeight) / scale
+
+	// calculate offsets
+	if cv.state.textAlign == Center {
+		x -= float64(fstrWidth) * 0.5
+	} else if cv.state.textAlign == Right || cv.state.textAlign == End {
+		x -= float64(fstrWidth)
+	}
+	metrics := cv.state.fontMetrics
+	switch cv.state.textBaseline {
+	case Alphabetic:
+	case Middle:
+		y += (-float64(metrics.Descent)/64 + float64(metrics.Height)*0.5/64) / scale
+	case Top, Hanging:
+		y += (-float64(metrics.Descent)/64 + float64(metrics.Height)/64) / scale
+	case Bottom, Ideographic:
+		y += -float64(metrics.Descent) / 64 / scale
+	}
+
+	// find out which characters are inside the visible area
+	p = fixed.Point26_6{}
+	prev, hasPrev = truetype.Index(0), false
+	var insideCount int
+	strFrom, strTo := 0, len(str)
+	curInside := false
+	curX := x
+	for i, rn := range str {
+		idx := fnt.Index(rn)
+		if idx == 0 {
+			idx = fnt.Index(' ')
+		}
+		advance, bounds, err := frc.glyphMeasure(idx, p)
+		if err != nil {
+			continue
+		}
+		var kern fixed.Int26_6
+		if hasPrev {
+			kern = fnt.Kern(fontSize, prev, idx)
+			if frc.hinting != font.HintingNone {
+				kern = (kern + 32) &^ 63
+			}
+			curX += float64(kern) / 64 / scale
+		}
+
+		w, h := cv.b.Size()
+		fw, fh := float64(w), float64(h)
+
+		p0 := cv.tf(vec{float64(bounds.Min.X)/scale + curX, float64(bounds.Min.Y)/scale + y})
+		p1 := cv.tf(vec{float64(bounds.Min.X)/scale + curX, float64(bounds.Max.Y)/scale + y})
+		p2 := cv.tf(vec{float64(bounds.Max.X)/scale + curX, float64(bounds.Max.Y)/scale + y})
+		p3 := cv.tf(vec{float64(bounds.Max.X)/scale + curX, float64(bounds.Min.Y)/scale + y})
+		inside := (p0[0] >= 0 || p1[0] >= 0 || p2[0] >= 0 || p3[0] >= 0) &&
+			(p0[1] >= 0 || p1[1] >= 0 || p2[1] >= 0 || p3[1] >= 0) &&
+			(p0[0] < fw || p1[0] < fw || p2[0] < fw || p3[0] < fw) &&
+			(p0[1] < fh || p1[1] < fh || p2[1] < fh || p3[1] < fh)
+
+		if inside {
+			insideCount++
+		}
+		if !curInside && inside {
+			curInside = true
+			strFrom = i
+			x = curX
+		} else if curInside && !inside {
+			strTo = i
+			break
+		}
+
+		p.X += advance + kern
+		curX += float64(advance) / 64 / scale
+	}
+
+	if strFrom == strTo || insideCount == 0 {
+		return
+	}
+
+	// make sure textImage is large enough for the rendered string
 	if textImage == nil || textImage.Bounds().Dx() < strWidth || textImage.Bounds().Dy() < strHeight {
 		var size int
 		for size = 2; size < alphaTexSize; size *= 2 {
@@ -201,6 +259,7 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 	curX = x
 	p = fixed.Point26_6{}
 
+	// clear the render region in textImage
 	for y := 0; y < strHeight; y++ {
 		off := textImage.PixOffset(0, y)
 		line := textImage.Pix[off : off+strWidth]
@@ -209,6 +268,7 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		}
 	}
 
+	// render the string into textImage
 	prev, hasPrev = truetype.Index(0), false
 	for _, rn := range str[strFrom:strTo] {
 		idx := fnt.Index(rn)
@@ -218,7 +278,7 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 			continue
 		}
 		if hasPrev {
-			kern := fnt.Kern(frc.fontSize, prev, idx)
+			kern := fnt.Kern(fontSize, prev, idx)
 			if frc.hinting != font.HintingNone {
 				kern = (kern + 32) &^ 63
 			}
@@ -237,30 +297,12 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		curX += float64(advance) / 64
 	}
 
-	if cv.state.textAlign == Center {
-		x -= float64(strWidth) * 0.5
-	} else if cv.state.textAlign == Right || cv.state.textAlign == End {
-		x -= float64(strWidth)
-	}
-
-	var yOff float64
-	metrics := cv.state.fontMetrics
-	switch cv.state.textBaseline {
-	case Alphabetic:
-		yOff = 0
-	case Middle:
-		yOff = -float64(metrics.Descent)/64 + float64(metrics.Height)*0.5/64
-	case Top, Hanging:
-		yOff = -float64(metrics.Descent)/64 + float64(metrics.Height)/64
-	case Bottom, Ideographic:
-		yOff = -float64(metrics.Descent) / 64
-	}
-
+	// render textImage to the screen
 	var pts [4][2]float64
-	pts[0] = cv.tf(vec{float64(textOffset.X) + x, float64(textOffset.Y) + y + yOff})
-	pts[1] = cv.tf(vec{float64(textOffset.X) + x, float64(textOffset.Y+strHeight) + y + yOff})
-	pts[2] = cv.tf(vec{float64(textOffset.X+strWidth) + x, float64(textOffset.Y+strHeight) + y + yOff})
-	pts[3] = cv.tf(vec{float64(textOffset.X+strWidth) + x, float64(textOffset.Y) + y + yOff})
+	pts[0] = cv.tf(vec{float64(textOffset.X)/scale + x, float64(textOffset.Y)/scale + y})
+	pts[1] = cv.tf(vec{float64(textOffset.X)/scale + x, float64(textOffset.Y)/scale + fstrHeight + y})
+	pts[2] = cv.tf(vec{float64(textOffset.X)/scale + fstrWidth + x, float64(textOffset.Y)/scale + fstrHeight + y})
+	pts[3] = cv.tf(vec{float64(textOffset.X)/scale + fstrWidth + x, float64(textOffset.Y)/scale + y})
 
 	mask := textImage.SubImage(image.Rect(0, 0, strWidth, strHeight)).(*image.Alpha)
 
@@ -400,8 +442,9 @@ func (cv *Canvas) MeasureText(str string) TextMetrics {
 			hasPrev = false
 			continue
 		}
+		var kern fixed.Int26_6
 		if hasPrev {
-			kern := fnt.Kern(frc.fontSize, prev, idx)
+			kern = fnt.Kern(frc.fontSize, prev, idx)
 			if frc.hinting != font.HintingNone {
 				kern = (kern + 32) &^ 63
 			}
@@ -421,7 +464,7 @@ func (cv *Canvas) MeasureText(str string) TextMetrics {
 			maxY = glyphMaxY
 		}
 		x += float64(advance) / 64
-		p.X += advance
+		p.X += advance + kern
 	}
 
 	return TextMetrics{
