@@ -3,7 +3,6 @@ package goglbackend
 import (
 	"errors"
 	"image"
-	"runtime"
 	"unsafe"
 
 	"github.com/tfriedel6/canvas/backend/backendbase"
@@ -38,12 +37,6 @@ func (b *GoGLBackend) LoadImage(src image.Image) (backendbase.Image, error) {
 		return nil, err
 	}
 	img.b = b
-
-	runtime.SetFinalizer(img, func(img *Image) {
-		b.glChan <- func() {
-			gl.DeleteTextures(1, &img.tex)
-		}
-	})
 
 	return img, nil
 }

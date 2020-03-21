@@ -26,16 +26,22 @@ type Image struct {
 // string. If you want the canvas package to load the image, make sure you
 // import the required format packages
 func (cv *Canvas) LoadImage(src interface{}) (*Image, error) {
+	var reload *Image
 	if img, ok := src.(*Image); ok {
-		img.lastUsed = time.Now()
-		return img, nil
+		if img.deleted {
+			reload = img
+			src = img.src
+		} else {
+			img.lastUsed = time.Now()
+			return img, nil
+		}
 	} else if _, ok := src.([]byte); !ok {
 		if img, ok := cv.images[src]; ok {
 			img.lastUsed = time.Now()
 			return img, nil
 		}
 	}
-	cv.reduceCache(Performance.CacheSize)
+	cv.reduceCache(Performance.CacheSize, 0)
 	var srcImg image.Image
 	switch v := src.(type) {
 	case image.Image:
@@ -66,6 +72,10 @@ func (cv *Canvas) LoadImage(src interface{}) (*Image, error) {
 		return nil, err
 	}
 	cvimg := &Image{cv: cv, img: backendImg, lastUsed: time.Now(), src: src}
+	if reload != nil {
+		*reload = *cvimg
+		return reload, nil
+	}
 	if _, ok := src.([]byte); !ok {
 		cv.images[src] = cvimg
 	}
@@ -101,8 +111,6 @@ func (cv *Canvas) getImage(src interface{}) *Image {
 		default:
 			fmt.Fprintf(os.Stderr, "Failed to load image: %v\n", err)
 		}
-	} else {
-		cv.images[src] = img
 	}
 	return img
 }
@@ -116,12 +124,14 @@ func (img *Image) Height() int { return img.img.Height() }
 // Size returns the width and height of the image
 func (img *Image) Size() (int, int) { return img.img.Size() }
 
-// Delete deletes the image from memory. Any draw calls with a deleted image
-// will not do anything
+// Delete deletes the image from memory
 func (img *Image) Delete() {
-	img.img.Delete()
-	img.img = nil
+	if img == nil || img.deleted {
+		return
+	}
 	img.deleted = true
+	img.img.Delete()
+	delete(img.cv.images, img.src)
 }
 
 // Replace replaces the image with the new one
@@ -147,8 +157,7 @@ func (img *Image) Replace(src interface{}) error {
 // source coordinates
 func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 	img := cv.getImage(image)
-
-	if img == nil || img.deleted {
+	if img == nil {
 		return
 	}
 

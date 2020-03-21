@@ -7,14 +7,13 @@ import (
 	"image/draw"
 	"io/ioutil"
 	"os"
+	"time"
 
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 )
-
-var fontRenderingContext = newFRContext()
 
 // Font is a loaded font that can be passed to the
 // SetFont method
@@ -27,9 +26,9 @@ type fontKey struct {
 	size fixed.Int26_6
 }
 
-type fontCache struct {
-	font  *Font
-	frctx *frContext
+type frCache struct {
+	ctx      *frContext
+	lastUsed time.Time
 }
 
 var zeroes [alphaTexSize]byte
@@ -92,20 +91,32 @@ func (cv *Canvas) getFont(src interface{}) *Font {
 	return f
 }
 
-// func (cv *Canvas) getFRContext(src interface{}, size float64) *Font {
+func (cv *Canvas) getFRContext(font *Font, size fixed.Int26_6) *frContext {
+	k := fontKey{font: font, size: size}
+	if frctx, ok := cv.fontCtxs[k]; ok {
+		frctx.lastUsed = time.Now()
+		return frctx.ctx
+	}
 
-// }
+	cv.reduceCache(Performance.CacheSize, 0)
+	frctx := newFRContext()
+	frctx.fontSize = k.size
+	frctx.f = k.font.font
+	frctx.recalc()
+
+	cv.fontCtxs[k] = &frCache{ctx: frctx, lastUsed: time.Now()}
+
+	return frctx
+}
 
 // FillText draws the given string at the given coordinates
 // using the currently set font and font height
 func (cv *Canvas) FillText(str string, x, y float64) {
-	if cv.state.font == nil {
+	if cv.state.font.font == nil {
 		return
 	}
 
-	frc := fontRenderingContext
-	frc.setFont(cv.state.font.font)
-	frc.setFontSize(cv.state.fontSize)
+	frc := cv.getFRContext(cv.state.font, cv.state.fontSize)
 	fnt := cv.state.font.font
 
 	curX := x
@@ -127,7 +138,7 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 			continue
 		}
 		if hasPrev {
-			kern := fnt.Kern(frc.scale, prev, idx)
+			kern := fnt.Kern(frc.fontSize, prev, idx)
 			if frc.hinting != font.HintingNone {
 				kern = (kern + 32) &^ 63
 			}
@@ -207,7 +218,7 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 			continue
 		}
 		if hasPrev {
-			kern := fnt.Kern(frc.scale, prev, idx)
+			kern := fnt.Kern(frc.fontSize, prev, idx)
 			if frc.hinting != font.HintingNone {
 				kern = (kern + 32) &^ 63
 			}
@@ -267,9 +278,7 @@ func (cv *Canvas) StrokeText(str string, x, y float64) {
 		return
 	}
 
-	frc := fontRenderingContext
-	frc.setFont(cv.state.font.font)
-	frc.setFontSize(float64(cv.state.fontSize))
+	frc := cv.getFRContext(cv.state.font, cv.state.fontSize)
 	fnt := cv.state.font.font
 
 	prevPath := cv.path
@@ -296,7 +305,7 @@ func (cv *Canvas) StrokeText(str string, x, y float64) {
 
 func (cv *Canvas) runePath(rn rune, pos vec) {
 	gb := &truetype.GlyphBuf{}
-	gb.Load(cv.state.font.font, fixed.Int26_6(cv.state.fontSize*64), cv.state.font.font.Index(rn), font.HintingNone)
+	gb.Load(cv.state.font.font, cv.state.fontSize, cv.state.font.font.Index(rn), font.HintingNone)
 
 	from := 0
 	for _, to := range gb.Ends {
@@ -376,9 +385,7 @@ func (cv *Canvas) MeasureText(str string) TextMetrics {
 		return TextMetrics{}
 	}
 
-	frc := fontRenderingContext
-	frc.setFont(cv.state.font.font)
-	frc.setFontSize(float64(cv.state.fontSize))
+	frc := cv.getFRContext(cv.state.font, cv.state.fontSize)
 	fnt := cv.state.font.font
 
 	var p fixed.Point26_6
@@ -394,7 +401,7 @@ func (cv *Canvas) MeasureText(str string) TextMetrics {
 			continue
 		}
 		if hasPrev {
-			kern := fnt.Kern(frc.scale, prev, idx)
+			kern := fnt.Kern(frc.fontSize, prev, idx)
 			if frc.hinting != font.HintingNone {
 				kern = (kern + 32) &^ 63
 			}

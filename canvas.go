@@ -5,11 +5,13 @@ package canvas
 import (
 	"image"
 	"image/color"
-	"sort"
+	"math"
+	"time"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/tfriedel6/canvas/backend/backendbase"
 	"golang.org/x/image/font"
+	"golang.org/x/image/math/fixed"
 )
 
 //go:generate go run make_shaders.go
@@ -27,7 +29,7 @@ type Canvas struct {
 
 	images   map[interface{}]*Image
 	fonts    map[interface{}]*Font
-	fontCtxs map[fontKey]*frContext
+	fontCtxs map[fontKey]*frCache
 
 	shadowBuf [][2]float64
 }
@@ -37,7 +39,7 @@ type drawState struct {
 	fill          drawStyle
 	stroke        drawStyle
 	font          *Font
-	fontSize      float64
+	fontSize      fixed.Int26_6
 	fontMetrics   font.Metrics
 	textAlign     textAlign
 	textBaseline  textBaseline
@@ -127,7 +129,7 @@ var Performance = struct {
 	// CacheSize is only approximate
 	CacheSize int
 }{
-	CacheSize: 16_000_000,
+	CacheSize: 128_000_000,
 }
 
 // New creates a new canvas with the given viewport coordinates.
@@ -140,6 +142,7 @@ func New(backend backendbase.Backend) *Canvas {
 		stateStack: make([]drawState, 0, 20),
 		images:     make(map[interface{}]*Image),
 		fonts:      make(map[interface{}]*Font),
+		fontCtxs:   make(map[fontKey]*frCache),
 	}
 	cv.state.lineWidth = 1
 	cv.state.lineAlpha = 1
@@ -287,31 +290,12 @@ func (cv *Canvas) SetLineWidth(width float64) {
 // with the LoadFont function, a filename for a font to load (which will be
 // cached), or nil, in which case the first loaded font will be used
 func (cv *Canvas) SetFont(src interface{}, size float64) {
+	cv.state.fontSize = fixed.Int26_6(math.Round(size * 64))
 	if src == nil {
 		cv.state.font = defaultFont
 	} else {
 		cv.state.font = cv.getFont(src)
-		// switch v := src.(type) {
-		// case *Font:
-		// 	cv.state.font = v
-		// case *truetype.Font:
-		// 	cv.state.font = &Font{font: v}
-		// case string:
-		// 	if f, ok := fonts[v]; ok {
-		// 		cv.state.font = f
-		// 	} else {
-		// 		f, err := cv.LoadFont(v)
-		// 		if err != nil {
-		// 			fmt.Fprintf(os.Stderr, "Error loading font %s: %v\n", v, err)
-		// 			fonts[v] = nil
-		// 		} else {
-		// 			fonts[v] = f
-		// 			cv.state.font = f
-		// 		}
-		// 	}
-		// }
 	}
-	cv.state.fontSize = size
 
 	fontFace := truetype.NewFace(cv.state.font.font, &truetype.Options{Size: size})
 	cv.state.fontMetrics = fontFace.Metrics()
@@ -487,28 +471,42 @@ func (cv *Canvas) IsPointInStroke(x, y float64) bool {
 	return false
 }
 
-func (cv *Canvas) reduceCache(keepSize int) {
+func (cv *Canvas) reduceCache(keepSize, rec int) {
+	if rec > 100 {
+		return
+	}
+
 	var total int
-	for _, img := range cv.images {
+	oldest := time.Now()
+	var oldestFontKey fontKey
+	var oldestImageKey interface{}
+	for src, img := range cv.images {
 		w, h := img.img.Size()
 		total += w * h * 4
+		if img.lastUsed.Before(oldest) {
+			oldest = img.lastUsed
+			oldestImageKey = src
+		}
+	}
+	for key, frctx := range cv.fontCtxs {
+		total += frctx.ctx.cacheSize()
+		if frctx.lastUsed.Before(oldest) {
+			oldest = frctx.lastUsed
+			oldestFontKey = key
+			oldestImageKey = nil
+		}
 	}
 	if total <= keepSize {
 		return
 	}
-	list := make([]*Image, 0, len(cv.images))
-	for _, img := range cv.images {
-		list = append(list, img)
+
+	if oldestImageKey != nil {
+		cv.images[oldestImageKey].Delete()
+		delete(cv.images, oldestImageKey)
+	} else {
+		cv.fontCtxs[oldestFontKey].ctx = nil
+		delete(cv.fontCtxs, oldestFontKey)
 	}
-	sort.Slice(list, func(i, j int) bool {
-		return list[i].lastUsed.Before(list[j].lastUsed)
-	})
-	pos := 0
-	for total > keepSize {
-		img := list[pos]
-		pos++
-		delete(cv.images, img.src)
-		w, h := img.img.Size()
-		total -= w * h * 4
-	}
+
+	cv.reduceCache(keepSize, rec+1)
 }

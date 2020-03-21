@@ -44,11 +44,9 @@ type frContext struct {
 	glyphBuf truetype.GlyphBuf
 	// dst and src are the destination and source images for drawing.
 	dst draw.Image
-	// fontSize and dpi are used to calculate scale. scale is the number of
-	// 26.6 fixed point units in 1 em. hinting is the hinting policy.
-	fontSize, dpi float64
-	scale         fixed.Int26_6
-	hinting       font.Hinting
+
+	fontSize fixed.Int26_6
+	hinting  font.Hinting
 	// cache is the glyph cache.
 	cache [nGlyphs * nXFractions * nYFractions]cacheEntry
 }
@@ -132,7 +130,7 @@ func (c *frContext) drawContour(ps []truetype.Point, dx, dy fixed.Int26_6) {
 // The 26.6 fixed point arguments fx and fy must be in the range [0, 1).
 func (c *frContext) rasterize(glyph truetype.Index, fx, fy fixed.Int26_6) (fixed.Int26_6, *image.Alpha, image.Point, error) {
 
-	if err := c.glyphBuf.Load(c.f, c.scale, glyph, c.hinting); err != nil {
+	if err := c.glyphBuf.Load(c.f, c.fontSize, glyph, c.hinting); err != nil {
 		return 0, nil, image.Point{}, err
 	}
 	// Calculate the integer-pixel bounds for the glyph.
@@ -190,14 +188,14 @@ func (c *frContext) glyph(glyph truetype.Index, p fixed.Point26_6) (fixed.Int26_
 }
 
 func (c *frContext) glyphAdvance(glyph truetype.Index) (fixed.Int26_6, error) {
-	if err := c.glyphBuf.Load(c.f, c.scale, glyph, c.hinting); err != nil {
+	if err := c.glyphBuf.Load(c.f, c.fontSize, glyph, c.hinting); err != nil {
 		return 0, err
 	}
 	return c.glyphBuf.AdvanceWidth, nil
 }
 
 func (c *frContext) glyphMeasure(glyph truetype.Index, p fixed.Point26_6) (fixed.Int26_6, image.Rectangle, error) {
-	if err := c.glyphBuf.Load(c.f, c.scale, glyph, c.hinting); err != nil {
+	if err := c.glyphBuf.Load(c.f, c.fontSize, glyph, c.hinting); err != nil {
 		return 0, image.Rectangle{}, err
 	}
 
@@ -221,15 +219,12 @@ func (c *frContext) glyphBounds(glyph truetype.Index, p fixed.Point26_6) (image.
 
 const maxInt = int(^uint(0) >> 1)
 
-// recalc recalculates scale and bounds values from the font size, screen
-// resolution and font metrics, and invalidates the glyph cache.
 func (c *frContext) recalc() {
-	c.scale = fixed.Int26_6(c.fontSize * c.dpi * (64.0 / 72.0))
 	if c.f == nil {
 		c.r.SetBounds(0, 0)
 	} else {
 		// Set the rasterizer's bounds to be big enough to handle the largest glyph.
-		b := c.f.Bounds(c.scale)
+		b := c.f.Bounds(c.fontSize)
 		xmin := +int(b.Min.X) >> 6
 		ymin := -int(b.Max.Y) >> 6
 		xmax := +int(b.Max.X+63) >> 6
@@ -241,16 +236,7 @@ func (c *frContext) recalc() {
 	}
 }
 
-// SetDPI sets the screen resolution in dots per inch.
-func (c *frContext) setDPI(dpi float64) {
-	if c.dpi == dpi {
-		return
-	}
-	c.dpi = dpi
-	c.recalc()
-}
-
-// SetFont sets the font used to draw text.
+// setFont sets the font used to draw text.
 func (c *frContext) setFont(f *truetype.Font) {
 	if c.f == f {
 		return
@@ -259,8 +245,8 @@ func (c *frContext) setFont(f *truetype.Font) {
 	c.recalc()
 }
 
-// SetFontSize sets the font size in points (as in "a 12 point font").
-func (c *frContext) setFontSize(fontSize float64) {
+// setFontSize sets the font size in points (as in "a 12 point font").
+func (c *frContext) setFontSize(fontSize fixed.Int26_6) {
 	if c.fontSize == fontSize {
 		return
 	}
@@ -268,7 +254,7 @@ func (c *frContext) setFontSize(fontSize float64) {
 	c.recalc()
 }
 
-// SetHinting sets the hinting policy.
+// setHinting sets the hinting policy.
 func (c *frContext) setHinting(hinting font.Hinting) {
 	c.hinting = hinting
 	for i := range c.cache {
@@ -276,9 +262,24 @@ func (c *frContext) setHinting(hinting font.Hinting) {
 	}
 }
 
-// SetDst sets the destination image for draw operations.
+// setDst sets the destination image for draw operations.
 func (c *frContext) setDst(dst draw.Image) {
 	c.dst = dst
+}
+
+func (c *frContext) cacheSize() int {
+	if c.f == nil {
+		return 0
+	}
+
+	b := c.f.Bounds(c.fontSize)
+	xmin := +int(b.Min.X) >> 6
+	ymin := -int(b.Max.Y) >> 6
+	xmax := +int(b.Max.X+63) >> 6
+	ymax := -int(b.Min.Y-63) >> 6
+	w := xmax - xmin
+	h := ymax - ymin
+	return w * h * len(c.cache)
 }
 
 // TODO(nigeltao): implement Context.SetGamma.
@@ -287,8 +288,6 @@ func (c *frContext) setDst(dst draw.Image) {
 func newFRContext() *frContext {
 	return &frContext{
 		r:        raster.NewRasterizer(0, 0),
-		fontSize: 12,
-		dpi:      72,
-		scale:    12 << 6,
+		fontSize: fixed.I(12),
 	}
 }
