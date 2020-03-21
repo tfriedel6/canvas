@@ -8,7 +8,6 @@ package canvas
 import (
 	"errors"
 	"image"
-	"image/draw"
 
 	"github.com/golang/freetype/raster"
 	"github.com/golang/freetype/truetype"
@@ -42,8 +41,6 @@ type frContext struct {
 	r        *raster.Rasterizer
 	f        *truetype.Font
 	glyphBuf truetype.GlyphBuf
-	// dst and src are the destination and source images for drawing.
-	dst draw.Image
 
 	fontSize fixed.Int26_6
 	hinting  font.Hinting
@@ -236,37 +233,6 @@ func (c *frContext) recalc() {
 	}
 }
 
-// setFont sets the font used to draw text.
-func (c *frContext) setFont(f *truetype.Font) {
-	if c.f == f {
-		return
-	}
-	c.f = f
-	c.recalc()
-}
-
-// setFontSize sets the font size in points (as in "a 12 point font").
-func (c *frContext) setFontSize(fontSize fixed.Int26_6) {
-	if c.fontSize == fontSize {
-		return
-	}
-	c.fontSize = fontSize
-	c.recalc()
-}
-
-// setHinting sets the hinting policy.
-func (c *frContext) setHinting(hinting font.Hinting) {
-	c.hinting = hinting
-	for i := range c.cache {
-		c.cache[i] = cacheEntry{}
-	}
-}
-
-// setDst sets the destination image for draw operations.
-func (c *frContext) setDst(dst draw.Image) {
-	c.dst = dst
-}
-
 func (c *frContext) cacheSize() int {
 	if c.f == nil {
 		return 0
@@ -282,12 +248,10 @@ func (c *frContext) cacheSize() int {
 	return w * h * len(c.cache)
 }
 
-// TODO(nigeltao): implement Context.SetGamma.
-
-// NewContext creates a new Context.
 func newFRContext() *frContext {
 	return &frContext{
 		r:        raster.NewRasterizer(0, 0),
 		fontSize: fixed.I(12),
+		hinting:  font.HintingFull,
 	}
 }
