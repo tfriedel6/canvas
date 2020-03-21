@@ -171,15 +171,12 @@ func (b *GoGLBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Al
 
 	gl.ActiveTexture(gl.TEXTURE1)
 	gl.BindTexture(gl.TEXTURE_2D, b.alphaTex)
-	for y := 0; y < h; y++ {
-		off := y * mask.Stride
-		gl.TexSubImage2D(gl.TEXTURE_2D, 0, 0, int32(alphaTexSize-1-y), int32(w), 1, gl.ALPHA, gl.UNSIGNED_BYTE, gl.Ptr(&mask.Pix[off]))
+	gl.TexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, int32(mask.Stride), int32(h), gl.ALPHA, gl.UNSIGNED_BYTE, gl.Ptr(&mask.Pix[0]))
+	if w < alphaTexSize {
+		gl.TexSubImage2D(gl.TEXTURE_2D, 0, int32(w), 0, 1, int32(h), gl.ALPHA, gl.UNSIGNED_BYTE, gl.Ptr(&zeroes[0]))
 	}
 	if h < alphaTexSize {
-		gl.TexSubImage2D(gl.TEXTURE_2D, 0, 0, int32(alphaTexSize-1-h), int32(w), 1, gl.ALPHA, gl.UNSIGNED_BYTE, gl.Ptr(&zeroes[0]))
-	}
-	if w < alphaTexSize {
-		gl.TexSubImage2D(gl.TEXTURE_2D, 0, int32(w), int32(alphaTexSize-1-h), 1, int32(h), gl.ALPHA, gl.UNSIGNED_BYTE, gl.Ptr(&zeroes[0]))
+		gl.TexSubImage2D(gl.TEXTURE_2D, 0, 0, int32(h), int32(w), 1, gl.ALPHA, gl.UNSIGNED_BYTE, gl.Ptr(&zeroes[0]))
 	}
 
 	if style.Blur > 0 {
@@ -205,7 +202,7 @@ func (b *GoGLBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Al
 	for _, pt := range pts {
 		data = append(data, float32(pt[0]), float32(pt[1]))
 	}
-	data = append(data, 0, 1, 0, float32(1-th), float32(tw), float32(1-th), float32(tw), 1)
+	data = append(data, 0, 0, 0, float32(th), float32(tw), float32(th), float32(tw), 0)
 
 	gl.BufferData(gl.ARRAY_BUFFER, len(data)*4, unsafe.Pointer(&data[0]), gl.STREAM_DRAW)
 

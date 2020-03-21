@@ -171,9 +171,12 @@ func (b *XMobileBackend) FillImageMask(style *backendbase.FillStyle, mask *image
 
 	b.glctx.ActiveTexture(gl.TEXTURE1)
 	b.glctx.BindTexture(gl.TEXTURE_2D, b.alphaTex)
-	for y := 0; y < h; y++ {
-		off := y * mask.Stride
-		b.glctx.TexSubImage2D(gl.TEXTURE_2D, 0, 0, alphaTexSize-1-y, w, 1, gl.ALPHA, gl.UNSIGNED_BYTE, mask.Pix[off:])
+	b.glctx.TexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, mask.Stride, h, gl.ALPHA, gl.UNSIGNED_BYTE, mask.Pix[0:])
+	if w < alphaTexSize {
+		b.glctx.TexSubImage2D(gl.TEXTURE_2D, 0, w, 0, 1, h, gl.ALPHA, gl.UNSIGNED_BYTE, zeroes[0:])
+	}
+	if h < alphaTexSize {
+		b.glctx.TexSubImage2D(gl.TEXTURE_2D, 0, 0, h, w, 1, gl.ALPHA, gl.UNSIGNED_BYTE, zeroes[0:])
 	}
 
 	if style.Blur > 0 {
@@ -199,7 +202,7 @@ func (b *XMobileBackend) FillImageMask(style *backendbase.FillStyle, mask *image
 	for _, pt := range pts {
 		data = append(data, float32(pt[0]), float32(pt[1]))
 	}
-	data = append(data, 0, 1, 0, float32(1-th), float32(tw), float32(1-th), float32(tw), 1)
+	data = append(data, 0, 0, 0, float32(th), float32(tw), float32(th), float32(tw), 0)
 
 	b.glctx.BufferData(gl.ARRAY_BUFFER, byteSlice(unsafe.Pointer(&data[0]), len(data)*4), gl.STREAM_DRAW)
 
@@ -214,10 +217,6 @@ func (b *XMobileBackend) FillImageMask(style *backendbase.FillStyle, mask *image
 	b.glctx.BindTexture(gl.TEXTURE_2D, b.alphaTex)
 
 	b.glctx.StencilFunc(gl.ALWAYS, 0, 0xFF)
-
-	for y := 0; y < h; y++ {
-		b.glctx.TexSubImage2D(gl.TEXTURE_2D, 0, 0, alphaTexSize-1-y, w, 1, gl.ALPHA, gl.UNSIGNED_BYTE, zeroes[0:])
-	}
 
 	b.glctx.ActiveTexture(gl.TEXTURE0)
 
