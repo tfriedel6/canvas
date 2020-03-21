@@ -28,6 +28,9 @@ type Image struct {
 func (cv *Canvas) LoadImage(src interface{}) (*Image, error) {
 	var reload *Image
 	if img, ok := src.(*Image); ok {
+		if img.cv != cv {
+			panic("image loaded with different canvas")
+		}
 		if img.deleted {
 			reload = img
 			src = img.src
