@@ -1,8 +1,6 @@
 package xmobilebackend
 
 import (
-	"runtime"
-
 	"github.com/tfriedel6/canvas/backend/backendbase"
 	"golang.org/x/mobile/gl"
 )
@@ -42,11 +40,6 @@ func (b *XMobileBackend) LoadLinearGradient(data backendbase.Gradient) backendba
 	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 	lg.load(data)
-	runtime.SetFinalizer(lg, func(lg *LinearGradient) {
-		b.glChan <- func() {
-			b.glctx.DeleteTexture(lg.tex)
-		}
-	})
 	return lg
 }
 
@@ -64,11 +57,6 @@ func (b *XMobileBackend) LoadRadialGradient(data backendbase.Gradient) backendba
 	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	b.glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 	rg.load(data)
-	runtime.SetFinalizer(rg, func(rg *RadialGradient) {
-		b.glChan <- func() {
-			b.glctx.DeleteTexture(rg.tex)
-		}
-	})
 	return rg
 }
 

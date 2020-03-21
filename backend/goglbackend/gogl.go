@@ -28,8 +28,6 @@ type GLContext struct {
 	imageBuf    []byte
 
 	ptsBuf []float32
-
-	glChan chan func()
 }
 
 // NewGLContext creates all the necessary GL resources,
@@ -37,7 +35,6 @@ type GLContext struct {
 func NewGLContext() (*GLContext, error) {
 	ctx := &GLContext{
 		ptsBuf: make([]float32, 0, 4096),
-		glChan: make(chan func()),
 	}
 
 	err := gl.Init()
@@ -230,18 +227,6 @@ func (b *GoGLBackend) activate() {
 	if activeContext != b {
 		activeContext = b
 		b.activateFn()
-	}
-	b.runGLQueue()
-}
-
-func (b *GoGLBackend) runGLQueue() {
-	for {
-		select {
-		case f := <-b.glChan:
-			f()
-		default:
-			return
-		}
 	}
 }
 

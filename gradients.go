@@ -2,6 +2,7 @@ package canvas
 
 import (
 	"image/color"
+	"runtime"
 
 	"github.com/tfriedel6/canvas/backend/backendbase"
 )
@@ -15,7 +16,6 @@ type LinearGradient struct {
 	from, to vec
 	created  bool
 	loaded   bool
-	deleted  bool
 	opaque   bool
 	grad     backendbase.LinearGradient
 	data     backendbase.Gradient
@@ -32,7 +32,6 @@ type RadialGradient struct {
 	radTo    float64
 	created  bool
 	loaded   bool
-	deleted  bool
 	opaque   bool
 	grad     backendbase.RadialGradient
 	data     backendbase.Gradient
@@ -42,13 +41,17 @@ type RadialGradient struct {
 // the coordinates from where to where the gradient
 // will apply on the canvas
 func (cv *Canvas) CreateLinearGradient(x0, y0, x1, y1 float64) *LinearGradient {
-	return &LinearGradient{
+	lg := &LinearGradient{
 		cv:     cv,
 		opaque: true,
 		from:   vec{x0, y0},
 		to:     vec{x1, y1},
 		data:   make(backendbase.Gradient, 0, 20),
 	}
+	runtime.SetFinalizer(lg, func(*LinearGradient) {
+		lg.grad.Delete()
+	})
+	return lg
 }
 
 // CreateRadialGradient creates a new radial gradient with
@@ -56,7 +59,7 @@ func (cv *Canvas) CreateLinearGradient(x0, y0, x1, y1 float64) *LinearGradient {
 // gradient will apply from the first to the second
 // circle
 func (cv *Canvas) CreateRadialGradient(x0, y0, r0, x1, y1, r1 float64) *RadialGradient {
-	return &RadialGradient{
+	rg := &RadialGradient{
 		cv:      cv,
 		opaque:  true,
 		from:    vec{x0, y0},
@@ -65,30 +68,14 @@ func (cv *Canvas) CreateRadialGradient(x0, y0, r0, x1, y1, r1 float64) *RadialGr
 		radTo:   r1,
 		data:    make(backendbase.Gradient, 0, 20),
 	}
-}
-
-// Delete explicitly deletes the gradient
-func (lg *LinearGradient) Delete() {
-	if lg.deleted {
-		return
-	}
-	lg.grad.Delete()
-	lg.grad = nil
-	lg.deleted = true
-}
-
-// Delete explicitly deletes the gradient
-func (rg *RadialGradient) Delete() {
-	if rg.deleted {
-		return
-	}
-	rg.grad.Delete()
-	rg.grad = nil
-	rg.deleted = true
+	runtime.SetFinalizer(rg, func(*RadialGradient) {
+		rg.grad.Delete()
+	})
+	return rg
 }
 
 func (lg *LinearGradient) load() {
-	if lg.loaded || len(lg.data) < 1 || lg.deleted {
+	if lg.loaded || len(lg.data) < 1 {
 		return
 	}
 
@@ -102,7 +89,7 @@ func (lg *LinearGradient) load() {
 }
 
 func (rg *RadialGradient) load() {
-	if rg.loaded || len(rg.data) < 1 || rg.deleted {
+	if rg.loaded || len(rg.data) < 1 {
 		return
 	}
 

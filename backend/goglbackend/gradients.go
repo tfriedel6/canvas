@@ -1,8 +1,6 @@
 package goglbackend
 
 import (
-	"runtime"
-
 	"github.com/tfriedel6/canvas/backend/backendbase"
 	"github.com/tfriedel6/canvas/backend/goglbackend/gl"
 )
@@ -42,11 +40,6 @@ func (b *GoGLBackend) LoadLinearGradient(data backendbase.Gradient) backendbase.
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 	lg.load(data)
-	runtime.SetFinalizer(lg, func(lg *LinearGradient) {
-		b.glChan <- func() {
-			gl.DeleteTextures(1, &lg.tex)
-		}
-	})
 	return lg
 }
 
@@ -64,11 +57,6 @@ func (b *GoGLBackend) LoadRadialGradient(data backendbase.Gradient) backendbase.
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 	rg.load(data)
-	runtime.SetFinalizer(rg, func(rg *RadialGradient) {
-		b.glChan <- func() {
-			gl.DeleteTextures(1, &rg.tex)
-		}
-	})
 	return rg
 }
 

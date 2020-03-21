@@ -32,8 +32,6 @@ type GLContext struct {
 	imageBuf    []byte
 
 	ptsBuf []float32
-
-	glChan chan func()
 }
 
 // NewGLContext creates all the necessary GL resources,
@@ -43,7 +41,6 @@ func NewGLContext(glctx gl.Context) (*GLContext, error) {
 		glctx: glctx,
 
 		ptsBuf: make([]float32, 0, 4096),
-		glChan: make(chan func()),
 	}
 
 	var err error
@@ -223,18 +220,6 @@ func (b *XMobileBackend) activate() {
 	if activeContext != b {
 		activeContext = b
 		b.activateFn()
-	}
-	b.runGLQueue()
-}
-
-func (b *XMobileBackend) runGLQueue() {
-	for {
-		select {
-		case f := <-b.glChan:
-			f()
-		default:
-			return
-		}
 	}
 }
 
