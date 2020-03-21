@@ -3,10 +3,9 @@
 package canvas
 
 import (
-	"fmt"
 	"image"
 	"image/color"
-	"os"
+	"sort"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/tfriedel6/canvas/backend/backendbase"
@@ -26,7 +25,9 @@ type Canvas struct {
 	state      drawState
 	stateStack []drawState
 
-	images map[interface{}]*Image
+	images   map[interface{}]*Image
+	fonts    map[interface{}]*Font
+	fontCtxs map[fontKey]*frContext
 
 	shadowBuf [][2]float64
 }
@@ -122,9 +123,11 @@ const (
 var Performance = struct {
 	IgnoreSelfIntersections bool
 	AssumeConvex            bool
-	ImageCacheSize          int
+
+	// CacheSize is only approximate
+	CacheSize int
 }{
-	ImageCacheSize: 16_000_000,
+	CacheSize: 16_000_000,
 }
 
 // New creates a new canvas with the given viewport coordinates.
@@ -136,6 +139,7 @@ func New(backend backendbase.Backend) *Canvas {
 		b:          backend,
 		stateStack: make([]drawState, 0, 20),
 		images:     make(map[interface{}]*Image),
+		fonts:      make(map[interface{}]*Font),
 	}
 	cv.state.lineWidth = 1
 	cv.state.lineAlpha = 1
@@ -286,25 +290,26 @@ func (cv *Canvas) SetFont(src interface{}, size float64) {
 	if src == nil {
 		cv.state.font = defaultFont
 	} else {
-		switch v := src.(type) {
-		case *Font:
-			cv.state.font = v
-		case *truetype.Font:
-			cv.state.font = &Font{font: v}
-		case string:
-			if f, ok := fonts[v]; ok {
-				cv.state.font = f
-			} else {
-				f, err := cv.LoadFont(v)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error loading font %s: %v\n", v, err)
-					fonts[v] = nil
-				} else {
-					fonts[v] = f
-					cv.state.font = f
-				}
-			}
-		}
+		cv.state.font = cv.getFont(src)
+		// switch v := src.(type) {
+		// case *Font:
+		// 	cv.state.font = v
+		// case *truetype.Font:
+		// 	cv.state.font = &Font{font: v}
+		// case string:
+		// 	if f, ok := fonts[v]; ok {
+		// 		cv.state.font = f
+		// 	} else {
+		// 		f, err := cv.LoadFont(v)
+		// 		if err != nil {
+		// 			fmt.Fprintf(os.Stderr, "Error loading font %s: %v\n", v, err)
+		// 			fonts[v] = nil
+		// 		} else {
+		// 			fonts[v] = f
+		// 			cv.state.font = f
+		// 		}
+		// 	}
+		// }
 	}
 	cv.state.fontSize = size
 
@@ -480,4 +485,30 @@ func (cv *Canvas) IsPointInStroke(x, y float64) bool {
 		}
 	}
 	return false
+}
+
+func (cv *Canvas) reduceCache(keepSize int) {
+	var total int
+	for _, img := range cv.images {
+		w, h := img.img.Size()
+		total += w * h * 4
+	}
+	if total <= keepSize {
+		return
+	}
+	list := make([]*Image, 0, len(cv.images))
+	for _, img := range cv.images {
+		list = append(list, img)
+	}
+	sort.Slice(list, func(i, j int) bool {
+		return list[i].lastUsed.Before(list[j].lastUsed)
+	})
+	pos := 0
+	for total > keepSize {
+		img := list[pos]
+		pos++
+		delete(cv.images, img.src)
+		w, h := img.img.Size()
+		total -= w * h * 4
+	}
 }

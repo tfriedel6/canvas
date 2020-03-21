@@ -7,7 +7,6 @@ import (
 	"image"
 	"io/ioutil"
 	"os"
-	"sort"
 	"strings"
 	"time"
 
@@ -20,32 +19,6 @@ type Image struct {
 	img      backendbase.Image
 	deleted  bool
 	lastUsed time.Time
-}
-
-func (cv *Canvas) reduceCache(keepSize int) {
-	var total int
-	for _, img := range cv.images {
-		w, h := img.img.Size()
-		total += w * h * 4
-	}
-	if total <= keepSize {
-		return
-	}
-	list := make([]*Image, 0, len(cv.images))
-	for _, img := range cv.images {
-		list = append(list, img)
-	}
-	sort.Slice(list, func(i, j int) bool {
-		return list[i].lastUsed.Before(list[j].lastUsed)
-	})
-	pos := 0
-	for total > keepSize {
-		img := list[pos]
-		pos++
-		delete(cv.images, img.src)
-		w, h := img.img.Size()
-		total -= w * h * 4
-	}
 }
 
 // LoadImage loads an image. The src parameter can be either an image from the
@@ -62,7 +35,7 @@ func (cv *Canvas) LoadImage(src interface{}) (*Image, error) {
 			return img, nil
 		}
 	}
-	cv.reduceCache(Performance.ImageCacheSize)
+	cv.reduceCache(Performance.CacheSize)
 	var srcImg image.Image
 	switch v := src.(type) {
 	case image.Image:
@@ -100,54 +73,38 @@ func (cv *Canvas) LoadImage(src interface{}) (*Image, error) {
 }
 
 func (cv *Canvas) getImage(src interface{}) *Image {
-	if img, ok := src.(*Image); ok {
-		return img
-	} else if img, ok := cv.images[src]; ok {
-		return img
-	}
-	cv.reduceCache(Performance.ImageCacheSize)
-	switch v := src.(type) {
-	case *Image:
-		return v
-	case image.Image:
-		img, err := cv.LoadImage(v)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error loading image: %v\n", err)
-			cv.images[src] = nil
-			return nil
+	if cv2, ok := src.(*Canvas); ok {
+		if !cv.b.CanUseAsImage(cv2.b) {
+			w, h := cv2.Size()
+			return cv.getImage(cv2.GetImageData(0, 0, w, h))
 		}
-		cv.images[v] = img
-		return img
-	case string:
-		img, err := cv.LoadImage(v)
-		if err != nil {
+		bimg := cv2.b.AsImage()
+		if bimg == nil {
+			w, h := cv2.Size()
+			return cv.getImage(cv2.GetImageData(0, 0, w, h))
+		}
+		return &Image{cv: cv, img: bimg}
+	}
+
+	img, err := cv.LoadImage(src)
+	if err != nil {
+		cv.images[src] = nil
+		switch v := src.(type) {
+		case image.Image:
+			fmt.Fprintf(os.Stderr, "Error loading image: %v\n", err)
+		case string:
 			if strings.Contains(strings.ToLower(err.Error()), "format") {
 				fmt.Fprintf(os.Stderr, "Error loading image %s: %v\nIt may be necessary to import the appropriate decoder, e.g.\nimport _ \"image/jpeg\"\n", v, err)
 			} else {
 				fmt.Fprintf(os.Stderr, "Error loading image %s: %v\n", v, err)
 			}
-			cv.images[src] = nil
-			return nil
+		default:
+			fmt.Fprintf(os.Stderr, "Failed to load image: %v\n", err)
 		}
-		cv.images[v] = img
-		return img
-	case *Canvas:
-		if !cv.b.CanUseAsImage(v.b) {
-			w, h := v.Size()
-			return cv.getImage(v.GetImageData(0, 0, w, h))
-		}
-		bimg := v.b.AsImage()
-		if bimg == nil {
-			w, h := v.Size()
-			return cv.getImage(v.GetImageData(0, 0, w, h))
-		}
-		img := &Image{cv: cv, img: bimg}
-		cv.images[v] = img
-		return img
+	} else {
+		cv.images[src] = img
 	}
-	fmt.Fprintf(os.Stderr, "Unknown image type: %T\n", src)
-	cv.images[src] = nil
-	return nil
+	return img
 }
 
 // Width returns the width of the image

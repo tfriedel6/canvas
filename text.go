@@ -2,9 +2,11 @@ package canvas
 
 import (
 	"errors"
+	"fmt"
 	"image"
 	"image/draw"
 	"io/ioutil"
+	"os"
 
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
@@ -20,7 +22,16 @@ type Font struct {
 	font *truetype.Font
 }
 
-var fonts = make(map[string]*Font)
+type fontKey struct {
+	font *Font
+	size fixed.Int26_6
+}
+
+type fontCache struct {
+	font  *Font
+	frctx *frContext
+}
+
 var zeroes [alphaTexSize]byte
 var textImage *image.Alpha
 
@@ -29,6 +40,14 @@ var defaultFont *Font
 // LoadFont loads a font and returns the result. The font
 // can be a file name or a byte slice in TTF format
 func (cv *Canvas) LoadFont(src interface{}) (*Font, error) {
+	if f, ok := src.(*Font); ok {
+		return f, nil
+	} else if _, ok := src.([]byte); !ok {
+		if f, ok := cv.fonts[src]; ok {
+			return f, nil
+		}
+	}
+
 	var f *Font
 	switch v := src.(type) {
 	case *truetype.Font:
@@ -55,8 +74,27 @@ func (cv *Canvas) LoadFont(src interface{}) (*Font, error) {
 	if defaultFont == nil {
 		defaultFont = f
 	}
+
+	if _, ok := src.([]byte); !ok {
+		cv.fonts[src] = f
+	}
 	return f, nil
 }
+
+func (cv *Canvas) getFont(src interface{}) *Font {
+	f, err := cv.LoadFont(src)
+	if err != nil {
+		cv.fonts[src] = nil
+		fmt.Fprintf(os.Stderr, "Error loading font: %v\n", err)
+	} else {
+		cv.fonts[src] = f
+	}
+	return f
+}
+
+// func (cv *Canvas) getFRContext(src interface{}, size float64) *Font {
+
+// }
 
 // FillText draws the given string at the given coordinates
 // using the currently set font and font height
