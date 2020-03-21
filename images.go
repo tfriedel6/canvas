@@ -13,6 +13,8 @@ import (
 	"github.com/tfriedel6/canvas/backend/backendbase"
 )
 
+// Image is a type holding information on an image loaded with the LoadImage
+// function
 type Image struct {
 	src      interface{}
 	cv       *Canvas

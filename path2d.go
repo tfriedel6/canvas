@@ -4,6 +4,8 @@ import (
 	"math"
 )
 
+// Path2D is a type that holds a predefined path which can be drawn
+// with a single call
 type Path2D struct {
 	cv    *Canvas
 	p     []pathPoint
