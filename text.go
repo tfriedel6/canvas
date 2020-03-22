@@ -326,10 +326,19 @@ func (cv *Canvas) StrokeText(str string, x, y float64) {
 	prevPath := cv.path
 	cv.BeginPath()
 
+	prev, hasPrev := truetype.Index(0), false
 	for _, rn := range str {
 		idx := fnt.Index(rn)
 		if idx == 0 {
 			idx = fnt.Index(' ')
+		}
+
+		if hasPrev {
+			kern := fnt.Kern(cv.state.fontSize, prev, idx)
+			if frc.hinting != font.HintingNone {
+				kern = (kern + 32) &^ 63
+			}
+			x += float64(kern) / 64
 		}
 		advance, _, err := frc.glyphMeasure(idx, fixed.Point26_6{})
 		if err != nil {
