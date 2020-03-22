@@ -18,7 +18,7 @@ type Backend interface {
 	LoadRadialGradient(data Gradient) RadialGradient
 
 	Clear(pts [4]Vec)
-	Fill(style *FillStyle, pts []Vec, canOverlap bool)
+	Fill(style *FillStyle, pts []Vec, tf Mat, canOverlap bool)
 	DrawImage(dimg Image, sx, sy, sw, sh float64, pts [4]Vec, alpha float64)
 	FillImageMask(style *FillStyle, mask *image.Alpha, pts [4]Vec) // pts must have four points
 

@@ -88,6 +88,7 @@ func (b *GoGLBackend) PutImageData(img *image.RGBA, x, y int) {
 	gl.UseProgram(b.shd.ID)
 	gl.Uniform1i(b.shd.Image, 0)
 	gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	gl.UniformMatrix3fv(b.shd.Matrix, 1, false, &mat3identity[0])
 	gl.Uniform1f(b.shd.GlobalAlpha, 1)
 	gl.Uniform1i(b.shd.UseAlphaTex, 0)
 	gl.Uniform1i(b.shd.Func, shdFuncImage)

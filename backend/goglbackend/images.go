@@ -190,6 +190,7 @@ func (b *GoGLBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh float64, 
 	gl.UseProgram(b.shd.ID)
 	gl.Uniform1i(b.shd.Image, 0)
 	gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	gl.UniformMatrix3fv(b.shd.Matrix, 1, false, &mat3identity[0])
 	gl.Uniform1f(b.shd.GlobalAlpha, float32(alpha))
 	gl.Uniform1i(b.shd.UseAlphaTex, 0)
 	gl.Uniform1i(b.shd.Func, shdFuncImage)

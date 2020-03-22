@@ -39,6 +39,7 @@ func (b *GoGLBackend) Clip(pts []backendbase.Vec) {
 	gl.UseProgram(b.shd.ID)
 	gl.Uniform4f(b.shd.Color, 1, 1, 1, 1)
 	gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	gl.UniformMatrix3fv(b.shd.Matrix, 1, false, &mat3identity[0])
 	gl.Uniform1f(b.shd.GlobalAlpha, 1)
 	gl.Uniform1i(b.shd.UseAlphaTex, 0)
 	gl.Uniform1i(b.shd.Func, shdFuncSolid)

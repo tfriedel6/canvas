@@ -110,7 +110,7 @@ func (cv *Canvas) strokePath(path *Path2D, inv backendbase.Mat, doInv bool) {
 	cv.drawShadow(tris, nil, true)
 
 	stl := cv.backendFillStyle(&cv.state.stroke, 1)
-	cv.b.Fill(&stl, tris, true)
+	cv.b.Fill(&stl, tris, backendbase.MatIdentity, true)
 }
 
 func (cv *Canvas) strokeTris(path *Path2D, inv backendbase.Mat, doInv bool, target []backendbase.Vec) []backendbase.Vec {
@@ -381,13 +381,25 @@ func (cv *Canvas) fillPath(path *Path2D, tf backendbase.Mat) {
 		return
 	}
 
+	var tris []backendbase.Vec
 	var triBuf [500]backendbase.Vec
-	tris := triBuf[:0]
+	if path.standalone && path.fillCache != nil {
+		tris = path.fillCache
+	} else {
+		if path.standalone {
+			tris = make([]backendbase.Vec, 0, 500)
+		} else {
+			tris = triBuf[:0]
+		}
+		runSubPaths(path.p, true, func(sp []pathPoint) bool {
+			tris = appendSubPathTriangles(tris, backendbase.MatIdentity, sp)
+			return false
+		})
+		if path.standalone {
+			path.fillCache = tris
+		}
+	}
 
-	runSubPaths(path.p, true, func(sp []pathPoint) bool {
-		tris = appendSubPathTriangles(tris, tf, sp)
-		return false
-	})
 	if len(tris) == 0 {
 		return
 	}
@@ -395,7 +407,7 @@ func (cv *Canvas) fillPath(path *Path2D, tf backendbase.Mat) {
 	cv.drawShadow(tris, nil, false)
 
 	stl := cv.backendFillStyle(&cv.state.fill, 1)
-	cv.b.Fill(&stl, tris, false)
+	cv.b.Fill(&stl, tris, tf, false)
 }
 
 func appendSubPathTriangles(tris []backendbase.Vec, mat backendbase.Mat, path []pathPoint) []backendbase.Vec {
@@ -504,7 +516,7 @@ func (cv *Canvas) FillRect(x, y, w, h float64) {
 	cv.drawShadow(data[:], nil, false)
 
 	stl := cv.backendFillStyle(&cv.state.fill, 1)
-	cv.b.Fill(&stl, data[:], false)
+	cv.b.Fill(&stl, data[:], backendbase.MatIdentity, false)
 }
 
 // ClearRect sets the color of the rectangle to transparent black

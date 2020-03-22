@@ -4,13 +4,16 @@ var unifiedVS = `
 attribute vec2 vertex, texCoord;
 
 uniform vec2 canvasSize;
+uniform mat3 matrix;
 
 varying vec2 v_cp, v_tc;
 
 void main() {
-    v_tc = texCoord;
-	v_cp = vertex;
-	vec2 glp = vertex * 2.0 / canvasSize - 1.0;
+	v_tc = texCoord;
+	vec3 v = matrix * vec3(vertex.xy, 1.0);
+	vec2 tf = v.xy / v.z;
+	v_cp = tf;
+	vec2 glp = tf * 2.0 / canvasSize - 1.0;
     gl_Position = vec4(glp.x, -glp.y, 0.0, 1.0);
 }
 `
@@ -129,6 +132,7 @@ type unifiedShader struct {
 	TexCoord uint32
 
 	CanvasSize  int32
+	Matrix      int32
 	Color       int32
 	GlobalAlpha int32
 

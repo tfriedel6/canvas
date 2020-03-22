@@ -13,6 +13,9 @@ type Path2D struct {
 	p     []pathPoint
 	move  backendbase.Vec
 	cwSum float64
+
+	standalone bool
+	fillCache  []backendbase.Vec
 }
 
 type pathPoint struct {
@@ -34,7 +37,11 @@ const (
 
 // NewPath2D creates a new Path2D and returns it
 func (cv *Canvas) NewPath2D() *Path2D {
-	return &Path2D{cv: cv, p: make([]pathPoint, 0, 20)}
+	return &Path2D{cv: cv, p: make([]pathPoint, 0, 20), standalone: true}
+}
+
+func (p *Path2D) clearCache() {
+	p.fillCache = nil
 }
 
 // func (p *Path2D) AddPath(p2 *Path2D) {
@@ -45,6 +52,7 @@ func (p *Path2D) MoveTo(x, y float64) {
 	if len(p.p) > 0 && isSamePoint(p.p[len(p.p)-1].pos, backendbase.Vec{x, y}, 0.1) {
 		return
 	}
+	p.clearCache()
 	p.p = append(p.p, pathPoint{pos: backendbase.Vec{x, y}, flags: pathMove | pathIsConvex})
 	p.cwSum = 0
 	p.move = backendbase.Vec{x, y}
@@ -60,6 +68,7 @@ func (p *Path2D) lineTo(x, y float64, checkSelfIntersection bool) {
 	if count > 0 && isSamePoint(p.p[len(p.p)-1].pos, backendbase.Vec{x, y}, 0.1) {
 		return
 	}
+	p.clearCache()
 	if count == 0 {
 		p.MoveTo(x, y)
 		return

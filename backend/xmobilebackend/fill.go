@@ -35,6 +35,7 @@ func (b *XMobileBackend) Clear(pts [4]backendbase.Vec) {
 
 	b.glctx.UseProgram(b.shd.ID)
 	b.glctx.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	b.glctx.UniformMatrix3fv(b.shd.Matrix, mat3identity[:])
 	b.glctx.Uniform4f(b.shd.Color, 0, 0, 0, 0)
 	b.glctx.Uniform1f(b.shd.GlobalAlpha, 1)
 	b.glctx.Uniform1i(b.shd.UseAlphaTex, 0)
@@ -85,7 +86,7 @@ func extent(pts []backendbase.Vec) (min, max backendbase.Vec) {
 	return
 }
 
-func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Vec, canOverlap bool) {
+func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Vec, tf backendbase.Mat, canOverlap bool) {
 	b.activate()
 
 	if style.Blur > 0 {
@@ -115,7 +116,7 @@ func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Ve
 	b.glctx.BufferData(gl.ARRAY_BUFFER, byteSlice(unsafe.Pointer(&b.ptsBuf[0]), len(b.ptsBuf)*4), gl.STREAM_DRAW)
 
 	if !canOverlap || style.Color.A >= 255 {
-		vertex, _ := b.useShader(style, false, 0)
+		vertex, _ := b.useShader(style, mat3(tf), false, 0)
 
 		b.glctx.StencilFunc(gl.EQUAL, 0, 0xFF)
 		b.glctx.EnableVertexAttribArray(vertex)
@@ -132,6 +133,8 @@ func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Ve
 		b.glctx.UseProgram(b.shd.ID)
 		b.glctx.Uniform4f(b.shd.Color, 0, 0, 0, 0)
 		b.glctx.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+		m3 := mat3(tf)
+		b.glctx.UniformMatrix3fv(b.shd.Matrix, m3[:])
 		b.glctx.Uniform1f(b.shd.GlobalAlpha, 1)
 		b.glctx.Uniform1i(b.shd.UseAlphaTex, 0)
 		b.glctx.Uniform1i(b.shd.Func, shdFuncSolid)
@@ -145,7 +148,7 @@ func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Ve
 
 		b.glctx.StencilFunc(gl.EQUAL, 1, 0xFF)
 
-		vertex, _ := b.useShader(style, false, 0)
+		vertex, _ := b.useShader(style, mat3identity, false, 0)
 		b.glctx.EnableVertexAttribArray(vertex)
 		b.glctx.VertexAttribPointer(vertex, 2, gl.FLOAT, false, 0, 0)
 
@@ -190,7 +193,7 @@ func (b *XMobileBackend) FillImageMask(style *backendbase.FillStyle, mask *image
 
 	b.glctx.BindBuffer(gl.ARRAY_BUFFER, b.buf)
 
-	vertex, alphaTexCoord := b.useShader(style, true, 1)
+	vertex, alphaTexCoord := b.useShader(style, mat3identity, true, 1)
 
 	b.glctx.EnableVertexAttribArray(vertex)
 	b.glctx.EnableVertexAttribArray(alphaTexCoord)
@@ -267,6 +270,7 @@ func (b *XMobileBackend) drawBlurred(size float64, min, max backendbase.Vec) {
 	b.glctx.UseProgram(b.shd.ID)
 	b.glctx.Uniform1i(b.shd.Image, 0)
 	b.glctx.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	b.glctx.UniformMatrix3fv(b.shd.Matrix, mat3identity[:])
 	b.glctx.Uniform1i(b.shd.UseAlphaTex, 0)
 	b.glctx.Uniform1i(b.shd.Func, shdFuncBoxBlur)
 

@@ -19,8 +19,21 @@ func (b *SoftwareBackend) Clear(pts [4]backendbase.Vec) {
 	})
 }
 
-func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Vec, canOverlap bool) {
+func (b *SoftwareBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Vec, tf backendbase.Mat, canOverlap bool) {
 	ffn := fillFunc(style)
+
+	var triBuf [500]backendbase.Vec
+	if tf != backendbase.MatIdentity {
+		ptsOld := pts
+		if len(pts) < len(triBuf) {
+			pts = triBuf[:len(pts)]
+		} else {
+			pts = make([]backendbase.Vec, len(pts))
+		}
+		for i, pt := range ptsOld {
+			pts[i] = pt.MulMat(tf)
+		}
+	}
 
 	if style.Blur > 0 {
 		b.activateBlurTarget()

@@ -39,6 +39,7 @@ func (b *XMobileBackend) Clip(pts []backendbase.Vec) {
 	b.glctx.UseProgram(b.shd.ID)
 	b.glctx.Uniform4f(b.shd.Color, 1, 1, 1, 1)
 	b.glctx.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	b.glctx.UniformMatrix3fv(b.shd.Matrix, mat3identity[:])
 	b.glctx.Uniform1f(b.shd.GlobalAlpha, 1)
 	b.glctx.Uniform1i(b.shd.UseAlphaTex, 0)
 	b.glctx.Uniform1i(b.shd.Func, shdFuncSolid)

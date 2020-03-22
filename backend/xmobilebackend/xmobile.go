@@ -251,9 +251,10 @@ func (b *XMobileBackendOffscreen) AsImage() backendbase.Image {
 	return &b.offscrImg
 }
 
-func (b *XMobileBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alphaTexSlot int) (vertexLoc, alphaTexCoordLoc gl.Attrib) {
+func (b *XMobileBackend) useShader(style *backendbase.FillStyle, tf [9]float32, useAlpha bool, alphaTexSlot int) (vertexLoc, alphaTexCoordLoc gl.Attrib) {
 	b.glctx.UseProgram(b.shd.ID)
 	b.glctx.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	b.glctx.UniformMatrix3fv(b.shd.Matrix, tf[:])
 	if useAlpha {
 		b.glctx.Uniform1i(b.shd.UseAlphaTex, 1)
 		b.glctx.Uniform1i(b.shd.AlphaTex, alphaTexSlot)
@@ -375,6 +376,21 @@ func (b *XMobileBackend) enableTextureRenderTarget(offscr *offscreenBuffer) {
 
 	b.glctx.Clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
 }
+
+func mat3(m backendbase.Mat) (m3 [9]float32) {
+	m3[0] = float32(m[0])
+	m3[1] = float32(m[1])
+	m3[2] = 0
+	m3[3] = float32(m[2])
+	m3[4] = float32(m[3])
+	m3[5] = 0
+	m3[6] = float32(m[4])
+	m3[7] = float32(m[5])
+	m3[8] = 1
+	return
+}
+
+var mat3identity = [9]float32{1, 0, 0, 0, 1, 0, 0, 0, 1}
 
 func byteSlice(ptr unsafe.Pointer, size int) []byte {
 	var buf []byte

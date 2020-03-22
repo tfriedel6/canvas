@@ -38,6 +38,6 @@ func (cv *Canvas) drawShadow(pts []backendbase.Vec, mask *image.Alpha, canOverla
 		copy(quad[:], cv.shadowBuf)
 		cv.b.FillImageMask(&style, mask, quad)
 	} else {
-		cv.b.Fill(&style, cv.shadowBuf, canOverlap)
+		cv.b.Fill(&style, cv.shadowBuf, backendbase.MatIdentity, canOverlap)
 	}
 }

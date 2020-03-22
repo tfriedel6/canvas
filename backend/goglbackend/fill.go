@@ -35,6 +35,7 @@ func (b *GoGLBackend) Clear(pts [4]backendbase.Vec) {
 
 	gl.UseProgram(b.shd.ID)
 	gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	gl.UniformMatrix3fv(b.shd.Matrix, 1, false, &mat3identity[0])
 	gl.Uniform4f(b.shd.Color, 0, 0, 0, 0)
 	gl.Uniform1f(b.shd.GlobalAlpha, 1)
 	gl.Uniform1i(b.shd.UseAlphaTex, 0)
@@ -85,7 +86,7 @@ func extent(pts []backendbase.Vec) (min, max backendbase.Vec) {
 	return
 }
 
-func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Vec, canOverlap bool) {
+func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Vec, tf backendbase.Mat, canOverlap bool) {
 	b.activate()
 
 	if style.Blur > 0 {
@@ -115,7 +116,7 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Vec, 
 	gl.BufferData(gl.ARRAY_BUFFER, len(b.ptsBuf)*4, unsafe.Pointer(&b.ptsBuf[0]), gl.STREAM_DRAW)
 
 	if !canOverlap || style.Color.A >= 255 {
-		vertex, _ := b.useShader(style, false, 0)
+		vertex, _ := b.useShader(style, mat3(tf), false, 0)
 
 		gl.StencilFunc(gl.EQUAL, 0, 0xFF)
 		gl.EnableVertexAttribArray(vertex)
@@ -132,6 +133,8 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Vec, 
 		gl.UseProgram(b.shd.ID)
 		gl.Uniform4f(b.shd.Color, 0, 0, 0, 0)
 		gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+		m3 := mat3(tf)
+		gl.UniformMatrix3fv(b.shd.Matrix, 1, false, &m3[0])
 		gl.Uniform1f(b.shd.GlobalAlpha, 1)
 		gl.Uniform1i(b.shd.UseAlphaTex, 0)
 		gl.Uniform1i(b.shd.Func, shdFuncSolid)
@@ -145,7 +148,7 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Vec, 
 
 		gl.StencilFunc(gl.EQUAL, 1, 0xFF)
 
-		vertex, _ := b.useShader(style, false, 0)
+		vertex, _ := b.useShader(style, mat3identity, false, 0)
 		gl.EnableVertexAttribArray(vertex)
 		gl.VertexAttribPointer(vertex, 2, gl.FLOAT, false, 0, nil)
 
@@ -190,7 +193,7 @@ func (b *GoGLBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Al
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, b.buf)
 
-	vertex, alphaTexCoord := b.useShader(style, true, 1)
+	vertex, alphaTexCoord := b.useShader(style, mat3identity, true, 1)
 
 	gl.EnableVertexAttribArray(vertex)
 	gl.EnableVertexAttribArray(alphaTexCoord)
@@ -267,6 +270,7 @@ func (b *GoGLBackend) drawBlurred(size float64, min, max backendbase.Vec) {
 	gl.UseProgram(b.shd.ID)
 	gl.Uniform1i(b.shd.Image, 0)
 	gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	gl.UniformMatrix3fv(b.shd.Matrix, 1, false, &mat3identity[0])
 	gl.Uniform1i(b.shd.UseAlphaTex, 0)
 	gl.Uniform1i(b.shd.Func, shdFuncBoxBlur)
 

@@ -192,6 +192,7 @@ func (b *XMobileBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh float6
 	b.glctx.UseProgram(b.shd.ID)
 	b.glctx.Uniform1i(b.shd.Image, 0)
 	b.glctx.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	b.glctx.UniformMatrix3fv(b.shd.Matrix, mat3identity[:])
 	b.glctx.Uniform1f(b.shd.GlobalAlpha, float32(alpha))
 	b.glctx.Uniform1i(b.shd.UseAlphaTex, 0)
 	b.glctx.Uniform1i(b.shd.Func, shdFuncImage)

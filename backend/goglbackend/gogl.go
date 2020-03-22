@@ -258,9 +258,10 @@ func (b *GoGLBackendOffscreen) AsImage() backendbase.Image {
 	return &b.offscrImg
 }
 
-func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alphaTexSlot int32) (vertexLoc, alphaTexCoordLoc uint32) {
+func (b *GoGLBackend) useShader(style *backendbase.FillStyle, tf [9]float32, useAlpha bool, alphaTexSlot int32) (vertexLoc, alphaTexCoordLoc uint32) {
 	gl.UseProgram(b.shd.ID)
 	gl.Uniform2f(b.shd.CanvasSize, float32(b.fw), float32(b.fh))
+	gl.UniformMatrix3fv(b.shd.Matrix, 1, false, &tf[0])
 	if useAlpha {
 		gl.Uniform1i(b.shd.UseAlphaTex, 1)
 		gl.Uniform1i(b.shd.AlphaTex, alphaTexSlot)
@@ -382,3 +383,18 @@ func (b *GoGLBackend) enableTextureRenderTarget(offscr *offscreenBuffer) {
 
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
 }
+
+func mat3(m backendbase.Mat) (m3 [9]float32) {
+	m3[0] = float32(m[0])
+	m3[1] = float32(m[1])
+	m3[2] = 0
+	m3[3] = float32(m[2])
+	m3[4] = float32(m[3])
+	m3[5] = 0
+	m3[6] = float32(m[4])
+	m3[7] = float32(m[5])
+	m3[8] = 1
+	return
+}
+
+var mat3identity = [9]float32{1, 0, 0, 0, 1, 0, 0, 0, 1}
