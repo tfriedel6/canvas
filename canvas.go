@@ -27,9 +27,10 @@ type Canvas struct {
 	state      drawState
 	stateStack []drawState
 
-	images   map[interface{}]*Image
-	fonts    map[interface{}]*Font
-	fontCtxs map[fontKey]*frCache
+	images       map[interface{}]*Image
+	fonts        map[interface{}]*Font
+	fontCtxs     map[fontKey]*frCache
+	fontTriCache map[*Font]*fontTriCache
 
 	shadowBuf []backendbase.Vec
 }
@@ -138,11 +139,12 @@ var Performance = struct {
 // coordinates given here also use the bottom left as origin
 func New(backend backendbase.Backend) *Canvas {
 	cv := &Canvas{
-		b:          backend,
-		stateStack: make([]drawState, 0, 20),
-		images:     make(map[interface{}]*Image),
-		fonts:      make(map[interface{}]*Font),
-		fontCtxs:   make(map[fontKey]*frCache),
+		b:            backend,
+		stateStack:   make([]drawState, 0, 20),
+		images:       make(map[interface{}]*Image),
+		fonts:        make(map[interface{}]*Font),
+		fontCtxs:     make(map[fontKey]*frCache),
+		fontTriCache: make(map[*Font]*fontTriCache),
 	}
 	cv.state.lineWidth = 1
 	cv.state.lineAlpha = 1
@@ -479,6 +481,7 @@ func (cv *Canvas) reduceCache(keepSize, rec int) {
 	var total int
 	oldest := time.Now()
 	var oldestFontKey fontKey
+	var oldestFontKey2 *Font
 	var oldestImageKey interface{}
 	for src, img := range cv.images {
 		w, h := img.img.Size()
@@ -496,6 +499,15 @@ func (cv *Canvas) reduceCache(keepSize, rec int) {
 			oldestImageKey = nil
 		}
 	}
+	for fnt, cache := range cv.fontTriCache {
+		total += cache.size()
+		if cache.lastUsed.Before(oldest) {
+			oldest = cache.lastUsed
+			oldestFontKey2 = fnt
+			oldestFontKey = fontKey{}
+			oldestImageKey = nil
+		}
+	}
 	if total <= keepSize {
 		return
 	}
@@ -503,6 +515,8 @@ func (cv *Canvas) reduceCache(keepSize, rec int) {
 	if oldestImageKey != nil {
 		cv.images[oldestImageKey].Delete()
 		delete(cv.images, oldestImageKey)
+	} else if oldestFontKey2 != nil {
+		delete(cv.fontTriCache, oldestFontKey2)
 	} else {
 		cv.fontCtxs[oldestFontKey].ctx = nil
 		delete(cv.fontCtxs, oldestFontKey)
