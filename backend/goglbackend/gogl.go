@@ -2,7 +2,6 @@ package goglbackend
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/tfriedel6/canvas/backend/backendbase"
 	"github.com/tfriedel6/canvas/backend/goglbackend/gl"
@@ -274,11 +273,11 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alp
 		lg := lg.(*LinearGradient)
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, lg.tex)
-		from := vec{style.Gradient.X0, style.Gradient.Y0}
-		to := vec{style.Gradient.X1, style.Gradient.Y1}
-		dir := to.sub(from)
-		length := dir.len()
-		dir = dir.scale(1 / length)
+		from := backendbase.Vec{style.Gradient.X0, style.Gradient.Y0}
+		to := backendbase.Vec{style.Gradient.X1, style.Gradient.Y1}
+		dir := to.Sub(from)
+		length := dir.Len()
+		dir = dir.Mulf(1 / length)
 		gl.Uniform2f(b.shd.From, float32(from[0]), float32(from[1]))
 		gl.Uniform2f(b.shd.Dir, float32(dir[0]), float32(dir[1]))
 		gl.Uniform1f(b.shd.Len, float32(length))
@@ -290,10 +289,8 @@ func (b *GoGLBackend) useShader(style *backendbase.FillStyle, useAlpha bool, alp
 		rg := rg.(*RadialGradient)
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, rg.tex)
-		from := vec{style.Gradient.X0, style.Gradient.Y0}
-		to := vec{style.Gradient.X1, style.Gradient.Y1}
-		gl.Uniform2f(b.shd.From, float32(from[0]), float32(from[1]))
-		gl.Uniform2f(b.shd.To, float32(to[0]), float32(to[1]))
+		gl.Uniform2f(b.shd.From, float32(style.Gradient.X0), float32(style.Gradient.Y0))
+		gl.Uniform2f(b.shd.To, float32(style.Gradient.X1), float32(style.Gradient.Y1))
 		gl.Uniform1f(b.shd.RadFrom, float32(style.Gradient.RadFrom))
 		gl.Uniform1f(b.shd.RadTo, float32(style.Gradient.RadTo))
 		gl.Uniform1i(b.shd.Gradient, 0)
@@ -384,18 +381,4 @@ func (b *GoGLBackend) enableTextureRenderTarget(offscr *offscreenBuffer) {
 	}
 
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
-}
-
-type vec [2]float64
-
-func (v vec) sub(v2 vec) vec {
-	return vec{v[0] - v2[0], v[1] - v2[1]}
-}
-
-func (v vec) len() float64 {
-	return math.Sqrt(v[0]*v[0] + v[1]*v[1])
-}
-
-func (v vec) scale(f float64) vec {
-	return vec{v[0] * f, v[1] * f}
 }

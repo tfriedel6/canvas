@@ -3,6 +3,7 @@ package xmobilebackend
 import (
 	"unsafe"
 
+	"github.com/tfriedel6/canvas/backend/backendbase"
 	"golang.org/x/mobile/gl"
 )
 
@@ -13,7 +14,7 @@ func (b *XMobileBackend) ClearClip() {
 	b.glctx.Clear(gl.STENCIL_BUFFER_BIT)
 }
 
-func (b *XMobileBackend) Clip(pts [][2]float64) {
+func (b *XMobileBackend) Clip(pts []backendbase.Vec) {
 	b.activate()
 
 	b.ptsBuf = b.ptsBuf[:0]

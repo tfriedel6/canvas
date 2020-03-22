@@ -43,7 +43,7 @@ func halveImage(img image.Image) (*image.RGBA, int, int) {
 	return rimg, w, h
 }
 
-func (b *SoftwareBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh float64, pts [4][2]float64, alpha float64) {
+func (b *SoftwareBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh float64, pts [4]backendbase.Vec, alpha float64) {
 	simg := dimg.(*Image)
 	if simg.deleted {
 		return

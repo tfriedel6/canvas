@@ -299,7 +299,7 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 	}
 
 	// render textImage to the screen
-	var pts [4][2]float64
+	var pts [4]backendbase.Vec
 	pts[0] = cv.tf(backendbase.Vec{float64(textOffset.X)/scale + x, float64(textOffset.Y)/scale + y})
 	pts[1] = cv.tf(backendbase.Vec{float64(textOffset.X)/scale + x, float64(textOffset.Y)/scale + fstrHeight + y})
 	pts[2] = cv.tf(backendbase.Vec{float64(textOffset.X)/scale + fstrWidth + x, float64(textOffset.Y)/scale + fstrHeight + y})

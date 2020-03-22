@@ -97,7 +97,7 @@ func polygonContainsPoint(polygon []backendbase.Vec, p backendbase.Vec) bool {
 	return count%2 == 1
 }
 
-func triangulatePath(path []pathPoint, mat backendbase.Mat, target [][2]float64) [][2]float64 {
+func triangulatePath(path []pathPoint, mat backendbase.Mat, target []backendbase.Vec) []backendbase.Vec {
 	if path[0].pos == path[len(path)-1].pos {
 		path = path[:len(path)-1]
 	}

@@ -2,7 +2,6 @@ package xmobilebackend
 
 import (
 	"fmt"
-	"math"
 	"reflect"
 	"unsafe"
 
@@ -267,11 +266,11 @@ func (b *XMobileBackend) useShader(style *backendbase.FillStyle, useAlpha bool, 
 		lg := lg.(*LinearGradient)
 		b.glctx.ActiveTexture(gl.TEXTURE0)
 		b.glctx.BindTexture(gl.TEXTURE_2D, lg.tex)
-		from := vec{style.Gradient.X0, style.Gradient.Y0}
-		to := vec{style.Gradient.X1, style.Gradient.Y1}
-		dir := to.sub(from)
-		length := dir.len()
-		dir = dir.scale(1 / length)
+		from := backendbase.Vec{style.Gradient.X0, style.Gradient.Y0}
+		to := backendbase.Vec{style.Gradient.X1, style.Gradient.Y1}
+		dir := to.Sub(from)
+		length := dir.Len()
+		dir = dir.Mulf(1 / length)
 		b.glctx.Uniform2f(b.shd.From, float32(from[0]), float32(from[1]))
 		b.glctx.Uniform2f(b.shd.Dir, float32(dir[0]), float32(dir[1]))
 		b.glctx.Uniform1f(b.shd.Len, float32(length))
@@ -283,10 +282,8 @@ func (b *XMobileBackend) useShader(style *backendbase.FillStyle, useAlpha bool, 
 		rg := rg.(*RadialGradient)
 		b.glctx.ActiveTexture(gl.TEXTURE0)
 		b.glctx.BindTexture(gl.TEXTURE_2D, rg.tex)
-		from := vec{style.Gradient.X0, style.Gradient.Y0}
-		to := vec{style.Gradient.X1, style.Gradient.Y1}
-		b.glctx.Uniform2f(b.shd.From, float32(from[0]), float32(from[1]))
-		b.glctx.Uniform2f(b.shd.To, float32(to[0]), float32(to[1]))
+		b.glctx.Uniform2f(b.shd.From, float32(style.Gradient.X0), float32(style.Gradient.Y0))
+		b.glctx.Uniform2f(b.shd.To, float32(style.Gradient.X1), float32(style.Gradient.Y1))
 		b.glctx.Uniform1f(b.shd.RadFrom, float32(style.Gradient.RadFrom))
 		b.glctx.Uniform1f(b.shd.RadTo, float32(style.Gradient.RadTo))
 		b.glctx.Uniform1i(b.shd.Gradient, 0)
@@ -377,20 +374,6 @@ func (b *XMobileBackend) enableTextureRenderTarget(offscr *offscreenBuffer) {
 	}
 
 	b.glctx.Clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
-}
-
-type vec [2]float64
-
-func (v vec) sub(v2 vec) vec {
-	return vec{v[0] - v2[0], v[1] - v2[1]}
-}
-
-func (v vec) len() float64 {
-	return math.Sqrt(v[0]*v[0] + v[1]*v[1])
-}
-
-func (v vec) scale(f float64) vec {
-	return vec{v[0] * f, v[1] * f}
 }
 
 func byteSlice(ptr unsafe.Pointer, size int) []byte {

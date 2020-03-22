@@ -31,7 +31,7 @@ type Canvas struct {
 	fonts    map[interface{}]*Font
 	fontCtxs map[fontKey]*frCache
 
-	shadowBuf [][2]float64
+	shadowBuf []backendbase.Vec
 }
 
 type drawState struct {
@@ -455,7 +455,7 @@ func (cv *Canvas) IsPointInStroke(x, y float64) bool {
 		return false
 	}
 
-	var triBuf [500][2]float64
+	var triBuf [500]backendbase.Vec
 	tris := cv.strokeTris(&cv.path, cv.state.transform.Invert(), true, triBuf[:0])
 
 	pt := backendbase.Vec{x, y}

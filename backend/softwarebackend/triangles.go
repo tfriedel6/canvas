@@ -3,9 +3,11 @@ package softwarebackend
 import (
 	"image/color"
 	"math"
+
+	"github.com/tfriedel6/canvas/backend/backendbase"
 )
 
-func triangleLR(tri [][2]float64, y float64) (l, r float64, outside bool) {
+func triangleLR(tri []backendbase.Vec, y float64) (l, r float64, outside bool) {
 	a, b, c := tri[0], tri[1], tri[2]
 
 	// sort by y
@@ -46,7 +48,7 @@ func triangleLR(tri [][2]float64, y float64) (l, r float64, outside bool) {
 	return
 }
 
-func (b *SoftwareBackend) fillTriangleNoAA(tri [][2]float64, fn func(x, y int)) {
+func (b *SoftwareBackend) fillTriangleNoAA(tri []backendbase.Vec, fn func(x, y int)) {
 	minY := int(math.Floor(math.Min(math.Min(tri[0][1], tri[1][1]), tri[2][1])))
 	maxY := int(math.Ceil(math.Max(math.Max(tri[0][1], tri[1][1]), tri[2][1])))
 	if minY < 0 {
@@ -94,7 +96,7 @@ type msaaPixel struct {
 	tx, ty float64
 }
 
-func (b *SoftwareBackend) fillTriangleMSAA(tri [][2]float64, msaaLevel int, msaaPixels []msaaPixel, fn func(x, y int)) []msaaPixel {
+func (b *SoftwareBackend) fillTriangleMSAA(tri []backendbase.Vec, msaaLevel int, msaaPixels []msaaPixel, fn func(x, y int)) []msaaPixel {
 	msaaStep := 1.0 / float64(msaaLevel+1)
 
 	minY := int(math.Floor(math.Min(math.Min(tri[0][1], tri[1][1]), tri[2][1])))
@@ -194,13 +196,13 @@ func addMSAAPixel(msaaPixels []msaaPixel, px msaaPixel) []msaaPixel {
 	return append(msaaPixels, px)
 }
 
-func quadArea(quad [4][2]float64) float64 {
-	leftv := [2]float64{quad[1][0] - quad[0][0], quad[1][1] - quad[0][1]}
-	topv := [2]float64{quad[3][0] - quad[0][0], quad[3][1] - quad[0][1]}
+func quadArea(quad [4]backendbase.Vec) float64 {
+	leftv := backendbase.Vec{quad[1][0] - quad[0][0], quad[1][1] - quad[0][1]}
+	topv := backendbase.Vec{quad[3][0] - quad[0][0], quad[3][1] - quad[0][1]}
 	return math.Abs(leftv[0]*topv[1] - leftv[1]*topv[0])
 }
 
-func (b *SoftwareBackend) fillQuadNoAA(quad [4][2]float64, fn func(x, y int, tx, ty float64)) {
+func (b *SoftwareBackend) fillQuadNoAA(quad [4]backendbase.Vec, fn func(x, y int, tx, ty float64)) {
 	minY := int(math.Floor(math.Min(math.Min(quad[0][1], quad[1][1]), math.Min(quad[2][1], quad[3][1]))))
 	maxY := int(math.Ceil(math.Max(math.Max(quad[0][1], quad[1][1]), math.Max(quad[2][1], quad[3][1]))))
 	if minY < 0 {
@@ -214,17 +216,17 @@ func (b *SoftwareBackend) fillQuadNoAA(quad [4][2]float64, fn func(x, y int, tx,
 		maxY = b.h - 1
 	}
 
-	leftv := [2]float64{quad[1][0] - quad[0][0], quad[1][1] - quad[0][1]}
+	leftv := backendbase.Vec{quad[1][0] - quad[0][0], quad[1][1] - quad[0][1]}
 	leftLen := math.Sqrt(leftv[0]*leftv[0] + leftv[1]*leftv[1])
 	leftv[0] /= leftLen
 	leftv[1] /= leftLen
-	topv := [2]float64{quad[3][0] - quad[0][0], quad[3][1] - quad[0][1]}
+	topv := backendbase.Vec{quad[3][0] - quad[0][0], quad[3][1] - quad[0][1]}
 	topLen := math.Sqrt(topv[0]*topv[0] + topv[1]*topv[1])
 	topv[0] /= topLen
 	topv[1] /= topLen
 
-	tri1 := [3][2]float64{quad[0], quad[1], quad[2]}
-	tri2 := [3][2]float64{quad[0], quad[2], quad[3]}
+	tri1 := [3]backendbase.Vec{quad[0], quad[1], quad[2]}
+	tri2 := [3]backendbase.Vec{quad[0], quad[2], quad[3]}
 	for y := minY; y <= maxY; y++ {
 		lf1, rf1, out1 := triangleLR(tri1[:], float64(y)+0.5)
 		lf2, rf2, out2 := triangleLR(tri2[:], float64(y)+0.5)
@@ -270,7 +272,7 @@ func (b *SoftwareBackend) fillQuadNoAA(quad [4][2]float64, fn func(x, y int, tx,
 	}
 }
 
-func (b *SoftwareBackend) fillQuadMSAA(quad [4][2]float64, msaaLevel int, msaaPixels []msaaPixel, fn func(x, y int, tx, ty float64)) []msaaPixel {
+func (b *SoftwareBackend) fillQuadMSAA(quad [4]backendbase.Vec, msaaLevel int, msaaPixels []msaaPixel, fn func(x, y int, tx, ty float64)) []msaaPixel {
 	msaaStep := 1.0 / float64(msaaLevel+1)
 
 	minY := int(math.Floor(math.Min(math.Min(quad[0][1], quad[1][1]), math.Min(quad[2][1], quad[3][1]))))
@@ -286,17 +288,17 @@ func (b *SoftwareBackend) fillQuadMSAA(quad [4][2]float64, msaaLevel int, msaaPi
 		maxY = b.h - 1
 	}
 
-	leftv := [2]float64{quad[1][0] - quad[0][0], quad[1][1] - quad[0][1]}
+	leftv := backendbase.Vec{quad[1][0] - quad[0][0], quad[1][1] - quad[0][1]}
 	leftLen := math.Sqrt(leftv[0]*leftv[0] + leftv[1]*leftv[1])
 	leftv[0] /= leftLen
 	leftv[1] /= leftLen
-	topv := [2]float64{quad[3][0] - quad[0][0], quad[3][1] - quad[0][1]}
+	topv := backendbase.Vec{quad[3][0] - quad[0][0], quad[3][1] - quad[0][1]}
 	topLen := math.Sqrt(topv[0]*topv[0] + topv[1]*topv[1])
 	topv[0] /= topLen
 	topv[1] /= topLen
 
-	tri1 := [3][2]float64{quad[0], quad[1], quad[2]}
-	tri2 := [3][2]float64{quad[0], quad[2], quad[3]}
+	tri1 := [3]backendbase.Vec{quad[0], quad[1], quad[2]}
+	tri2 := [3]backendbase.Vec{quad[0], quad[2], quad[3]}
 	for y := minY; y <= maxY; y++ {
 		var l, r [5]float64
 		allOut := true
@@ -400,7 +402,7 @@ func (b *SoftwareBackend) fillQuadMSAA(quad [4][2]float64, msaaLevel int, msaaPi
 	return msaaPixels
 }
 
-func (b *SoftwareBackend) fillQuad(pts [4][2]float64, fn func(x, y, tx, ty float64) color.RGBA) {
+func (b *SoftwareBackend) fillQuad(pts [4]backendbase.Vec, fn func(x, y, tx, ty float64) color.RGBA) {
 	b.clearStencil()
 
 	if b.MSAA > 0 {
@@ -470,9 +472,9 @@ func (b *SoftwareBackend) fillQuad(pts [4][2]float64, fn func(x, y, tx, ty float
 	}
 }
 
-func iterateTriangles(pts [][2]float64, fn func(tri [][2]float64)) {
+func iterateTriangles(pts []backendbase.Vec, fn func(tri []backendbase.Vec)) {
 	if len(pts) == 4 {
-		var buf [3][2]float64
+		var buf [3]backendbase.Vec
 		buf[0] = pts[0]
 		buf[1] = pts[1]
 		buf[2] = pts[2]
@@ -487,8 +489,8 @@ func iterateTriangles(pts [][2]float64, fn func(tri [][2]float64)) {
 	}
 }
 
-func (b *SoftwareBackend) fillTrianglesNoAA(pts [][2]float64, fn func(x, y float64) color.RGBA) {
-	iterateTriangles(pts[:], func(tri [][2]float64) {
+func (b *SoftwareBackend) fillTrianglesNoAA(pts []backendbase.Vec, fn func(x, y float64) color.RGBA) {
+	iterateTriangles(pts[:], func(tri []backendbase.Vec) {
 		b.fillTriangleNoAA(tri, func(x, y int) {
 			if b.clip.AlphaAt(x, y).A == 0 {
 				return
@@ -505,11 +507,11 @@ func (b *SoftwareBackend) fillTrianglesNoAA(pts [][2]float64, fn func(x, y float
 	})
 }
 
-func (b *SoftwareBackend) fillTrianglesMSAA(pts [][2]float64, msaaLevel int, fn func(x, y float64) color.RGBA) {
+func (b *SoftwareBackend) fillTrianglesMSAA(pts []backendbase.Vec, msaaLevel int, fn func(x, y float64) color.RGBA) {
 	var msaaPixelBuf [500]msaaPixel
 	msaaPixels := msaaPixelBuf[:0]
 
-	iterateTriangles(pts[:], func(tri [][2]float64) {
+	iterateTriangles(pts[:], func(tri []backendbase.Vec) {
 		msaaPixels = b.fillTriangleMSAA(tri, msaaLevel, msaaPixels, func(x, y int) {
 			if b.clip.AlphaAt(x, y).A == 0 {
 				return
@@ -558,7 +560,7 @@ func (b *SoftwareBackend) fillTrianglesMSAA(pts [][2]float64, msaaLevel int, fn 
 	}
 }
 
-func (b *SoftwareBackend) fillTriangles(pts [][2]float64, fn func(x, y float64) color.RGBA) {
+func (b *SoftwareBackend) fillTriangles(pts []backendbase.Vec, fn func(x, y float64) color.RGBA) {
 	b.clearStencil()
 
 	if b.MSAA > 0 {

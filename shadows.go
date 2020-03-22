@@ -7,7 +7,7 @@ import (
 	"github.com/tfriedel6/canvas/backend/backendbase"
 )
 
-func (cv *Canvas) drawShadow(pts [][2]float64, mask *image.Alpha, canOverlap bool) {
+func (cv *Canvas) drawShadow(pts []backendbase.Vec, mask *image.Alpha, canOverlap bool) {
 	if cv.state.shadowColor.A == 0 {
 		return
 	}
@@ -16,12 +16,12 @@ func (cv *Canvas) drawShadow(pts [][2]float64, mask *image.Alpha, canOverlap boo
 	}
 
 	if cv.shadowBuf == nil || cap(cv.shadowBuf) < len(pts) {
-		cv.shadowBuf = make([][2]float64, 0, len(pts)+1000)
+		cv.shadowBuf = make([]backendbase.Vec, 0, len(pts)+1000)
 	}
 	cv.shadowBuf = cv.shadowBuf[:0]
 
 	for _, pt := range pts {
-		cv.shadowBuf = append(cv.shadowBuf, [2]float64{
+		cv.shadowBuf = append(cv.shadowBuf, backendbase.Vec{
 			pt[0] + cv.state.shadowOffsetX,
 			pt[1] + cv.state.shadowOffsetY,
 		})
@@ -34,7 +34,7 @@ func (cv *Canvas) drawShadow(pts [][2]float64, mask *image.Alpha, canOverlap boo
 		if len(cv.shadowBuf) != 4 {
 			panic("invalid number of points to fill with mask, must be 4")
 		}
-		var quad [4][2]float64
+		var quad [4]backendbase.Vec
 		copy(quad[:], cv.shadowBuf)
 		cv.b.FillImageMask(&style, mask, quad)
 	} else {

@@ -3,6 +3,7 @@ package goglbackend
 import (
 	"unsafe"
 
+	"github.com/tfriedel6/canvas/backend/backendbase"
 	"github.com/tfriedel6/canvas/backend/goglbackend/gl"
 )
 
@@ -13,7 +14,7 @@ func (b *GoGLBackend) ClearClip() {
 	gl.Clear(gl.STENCIL_BUFFER_BIT)
 }
 
-func (b *GoGLBackend) Clip(pts [][2]float64) {
+func (b *GoGLBackend) Clip(pts []backendbase.Vec) {
 	b.activate()
 
 	b.ptsBuf = b.ptsBuf[:0]

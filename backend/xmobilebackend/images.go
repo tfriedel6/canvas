@@ -154,7 +154,7 @@ func (img *Image) Replace(src image.Image) error {
 	return nil
 }
 
-func (b *XMobileBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh float64, pts [4][2]float64, alpha float64) {
+func (b *XMobileBackend) DrawImage(dimg backendbase.Image, sx, sy, sw, sh float64, pts [4]backendbase.Vec, alpha float64) {
 	b.activate()
 
 	img := dimg.(*Image)

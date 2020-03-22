@@ -9,7 +9,7 @@ import (
 	"golang.org/x/mobile/gl"
 )
 
-func (b *XMobileBackend) Clear(pts [4][2]float64) {
+func (b *XMobileBackend) Clear(pts [4]backendbase.Vec) {
 	b.activate()
 
 	// first check if the four points are aligned to form a nice rectangle, which can be more easily
@@ -71,7 +71,7 @@ func (b *XMobileBackend) clearRect(x, y, w, h int) {
 	b.glctx.Disable(gl.SCISSOR_TEST)
 }
 
-func extent(pts [][2]float64) (min, max vec) {
+func extent(pts []backendbase.Vec) (min, max backendbase.Vec) {
 	max[0] = -math.MaxFloat64
 	max[1] = -math.MaxFloat64
 	min[0] = math.MaxFloat64
@@ -85,7 +85,7 @@ func extent(pts [][2]float64) (min, max vec) {
 	return
 }
 
-func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts [][2]float64, canOverlap bool) {
+func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Vec, canOverlap bool) {
 	b.activate()
 
 	if style.Blur > 0 {
@@ -164,7 +164,7 @@ func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts [][2]float64, ca
 	}
 }
 
-func (b *XMobileBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Alpha, pts [4][2]float64) {
+func (b *XMobileBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Alpha, pts [4]backendbase.Vec) {
 	b.activate()
 
 	w, h := mask.Rect.Dx(), mask.Rect.Dy()
@@ -226,7 +226,7 @@ func (b *XMobileBackend) FillImageMask(style *backendbase.FillStyle, mask *image
 	}
 }
 
-func (b *XMobileBackend) drawBlurred(size float64, min, max vec) {
+func (b *XMobileBackend) drawBlurred(size float64, min, max backendbase.Vec) {
 	b.offscr1.alpha = true
 	b.offscr2.alpha = true
 

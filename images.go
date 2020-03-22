@@ -181,7 +181,7 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 		dw, dh = coords[6], coords[7]
 	}
 
-	var data [4][2]float64
+	var data [4]backendbase.Vec
 	data[0] = cv.tf(backendbase.Vec{dx, dy})
 	data[1] = cv.tf(backendbase.Vec{dx, dy + dh})
 	data[2] = cv.tf(backendbase.Vec{dx + dw, dy + dh})

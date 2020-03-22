@@ -17,13 +17,13 @@ type Backend interface {
 	LoadLinearGradient(data Gradient) LinearGradient
 	LoadRadialGradient(data Gradient) RadialGradient
 
-	Clear(pts [4][2]float64)
-	Fill(style *FillStyle, pts [][2]float64, canOverlap bool)
-	DrawImage(dimg Image, sx, sy, sw, sh float64, pts [4][2]float64, alpha float64)
-	FillImageMask(style *FillStyle, mask *image.Alpha, pts [4][2]float64) // pts must have four points
+	Clear(pts [4]Vec)
+	Fill(style *FillStyle, pts []Vec, canOverlap bool)
+	DrawImage(dimg Image, sx, sy, sw, sh float64, pts [4]Vec, alpha float64)
+	FillImageMask(style *FillStyle, mask *image.Alpha, pts [4]Vec) // pts must have four points
 
 	ClearClip()
-	Clip(pts [][2]float64)
+	Clip(pts []Vec)
 
 	GetImageData(x, y, w, h int) *image.RGBA
 	PutImageData(img *image.RGBA, x, y int)

@@ -465,7 +465,7 @@ func (p *Path2D) IsPointInStroke(x, y float64) bool {
 		return false
 	}
 
-	var triBuf [500][2]float64
+	var triBuf [500]backendbase.Vec
 	tris := p.cv.strokeTris(p, backendbase.Mat{}, false, triBuf[:0])
 
 	pt := backendbase.Vec{x, y}
