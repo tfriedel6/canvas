@@ -35,7 +35,7 @@ type Canvas struct {
 }
 
 type drawState struct {
-	transform     mat
+	transform     backendbase.Mat
 	fill          drawStyle
 	stroke        drawStyle
 	font          *Font
@@ -150,7 +150,7 @@ func New(backend backendbase.Backend) *Canvas {
 	cv.state.globalAlpha = 1
 	cv.state.fill.color = color.RGBA{A: 255}
 	cv.state.stroke.color = color.RGBA{A: 255}
-	cv.state.transform = matIdentity
+	cv.state.transform = backendbase.MatIdentity
 	cv.path.cv = cv
 	return cv
 }
@@ -170,8 +170,8 @@ func (cv *Canvas) Height() int {
 // Size returns the internal width and height of the canvas
 func (cv *Canvas) Size() (int, int) { return cv.b.Size() }
 
-func (cv *Canvas) tf(v vec) vec {
-	return v.mulMat(cv.state.transform)
+func (cv *Canvas) tf(v backendbase.Vec) backendbase.Vec {
+	return v.MulMat(cv.state.transform)
 }
 
 const alphaTexSize = 2048
@@ -380,7 +380,7 @@ func (cv *Canvas) Restore() {
 	cv.b.ClearClip()
 	for _, st := range cv.stateStack {
 		if len(st.clip.p) > 0 {
-			cv.clip(&st.clip, matIdentity)
+			cv.clip(&st.clip, backendbase.MatIdentity)
 		}
 	}
 	cv.state = cv.stateStack[l-1]
@@ -389,27 +389,27 @@ func (cv *Canvas) Restore() {
 
 // Scale updates the current transformation with a scaling by the given values
 func (cv *Canvas) Scale(x, y float64) {
-	cv.state.transform = matScale(vec{x, y}).mul(cv.state.transform)
+	cv.state.transform = backendbase.MatScale(backendbase.Vec{x, y}).Mul(cv.state.transform)
 }
 
 // Translate updates the current transformation with a translation by the given values
 func (cv *Canvas) Translate(x, y float64) {
-	cv.state.transform = matTranslate(vec{x, y}).mul(cv.state.transform)
+	cv.state.transform = backendbase.MatTranslate(backendbase.Vec{x, y}).Mul(cv.state.transform)
 }
 
 // Rotate updates the current transformation with a rotation by the given angle
 func (cv *Canvas) Rotate(angle float64) {
-	cv.state.transform = matRotate(angle).mul(cv.state.transform)
+	cv.state.transform = backendbase.MatRotate(angle).Mul(cv.state.transform)
 }
 
 // Transform updates the current transformation with the given matrix
 func (cv *Canvas) Transform(a, b, c, d, e, f float64) {
-	cv.state.transform = mat{a, b, c, d, e, f}.mul(cv.state.transform)
+	cv.state.transform = backendbase.Mat{a, b, c, d, e, f}.Mul(cv.state.transform)
 }
 
 // SetTransform replaces the current transformation with the given matrix
 func (cv *Canvas) SetTransform(a, b, c, d, e, f float64) {
-	cv.state.transform = mat{a, b, c, d, e, f}
+	cv.state.transform = backendbase.Mat{a, b, c, d, e, f}
 }
 
 // SetShadowColor sets the color of the shadow. If it is fully transparent (default)
@@ -456,14 +456,14 @@ func (cv *Canvas) IsPointInStroke(x, y float64) bool {
 	}
 
 	var triBuf [500][2]float64
-	tris := cv.strokeTris(&cv.path, cv.state.transform.invert(), true, triBuf[:0])
+	tris := cv.strokeTris(&cv.path, cv.state.transform.Invert(), true, triBuf[:0])
 
-	pt := vec{x, y}
+	pt := backendbase.Vec{x, y}
 
 	for i := 0; i < len(tris); i += 3 {
-		a := vec{tris[i][0], tris[i][1]}
-		b := vec{tris[i+1][0], tris[i+1][1]}
-		c := vec{tris[i+2][0], tris[i+2][1]}
+		a := backendbase.Vec{tris[i][0], tris[i][1]}
+		b := backendbase.Vec{tris[i+1][0], tris[i+1][1]}
+		c := backendbase.Vec{tris[i+2][0], tris[i+2][1]}
 		if triangleContainsPoint(a, b, c, pt) {
 			return true
 		}

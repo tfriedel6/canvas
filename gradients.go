@@ -13,7 +13,7 @@ import (
 // will correspond to a straight line
 type LinearGradient struct {
 	cv       *Canvas
-	from, to vec
+	from, to backendbase.Vec
 	created  bool
 	loaded   bool
 	opaque   bool
@@ -27,7 +27,7 @@ type LinearGradient struct {
 // will correspond to a circle
 type RadialGradient struct {
 	cv       *Canvas
-	from, to vec
+	from, to backendbase.Vec
 	radFrom  float64
 	radTo    float64
 	created  bool
@@ -44,8 +44,8 @@ func (cv *Canvas) CreateLinearGradient(x0, y0, x1, y1 float64) *LinearGradient {
 	lg := &LinearGradient{
 		cv:     cv,
 		opaque: true,
-		from:   vec{x0, y0},
-		to:     vec{x1, y1},
+		from:   backendbase.Vec{x0, y0},
+		to:     backendbase.Vec{x1, y1},
 		data:   make(backendbase.Gradient, 0, 20),
 	}
 	runtime.SetFinalizer(lg, func(*LinearGradient) {
@@ -62,8 +62,8 @@ func (cv *Canvas) CreateRadialGradient(x0, y0, r0, x1, y1, r1 float64) *RadialGr
 	rg := &RadialGradient{
 		cv:      cv,
 		opaque:  true,
-		from:    vec{x0, y0},
-		to:      vec{x1, y1},
+		from:    backendbase.Vec{x0, y0},
+		to:      backendbase.Vec{x1, y1},
 		radFrom: r0,
 		radTo:   r1,
 		data:    make(backendbase.Gradient, 0, 20),

@@ -3,11 +3,13 @@ package canvas
 import (
 	"math"
 	"sort"
+
+	"github.com/tfriedel6/canvas/backend/backendbase"
 )
 
 const samePointTolerance = 1e-20
 
-func pointIsRightOfLine(a, b, p vec) (bool, bool) {
+func pointIsRightOfLine(a, b, p backendbase.Vec) (bool, bool) {
 	if a[1] == b[1] {
 		return false, false
 	}
@@ -19,13 +21,13 @@ func pointIsRightOfLine(a, b, p vec) (bool, bool) {
 	if p[1] < a[1] || p[1] >= b[1] {
 		return false, false
 	}
-	v := b.sub(a)
+	v := b.Sub(a)
 	r := (p[1] - a[1]) / v[1]
 	x := a[0] + r*v[0]
 	return p[0] > x, dir
 }
 
-func triangleContainsPoint(a, b, c, p vec) bool {
+func triangleContainsPoint(a, b, c, p backendbase.Vec) bool {
 	// if point is outside triangle bounds, return false
 	if p[0] < a[0] && p[0] < b[0] && p[0] < c[0] {
 		return false
@@ -56,12 +58,12 @@ func triangleContainsPoint(a, b, c, p vec) bool {
 
 const parallelTolerance = 1e-10
 
-func parallel(a1, b1, a2, b2 vec) bool {
-	ang := b1.sub(a1).angleTo(b2.sub(a2))
+func parallel(a1, b1, a2, b2 backendbase.Vec) bool {
+	ang := b1.Sub(a1).AngleTo(b2.Sub(a2))
 	return math.Abs(ang) < parallelTolerance || math.Abs(ang-math.Pi) < parallelTolerance
 }
 
-func polygonContainsLine(polygon []vec, ia, ib int, a, b vec) bool {
+func polygonContainsLine(polygon []backendbase.Vec, ia, ib int, a, b backendbase.Vec) bool {
 	for i := range polygon {
 		if i == ia || i == ib {
 			continue
@@ -80,7 +82,7 @@ func polygonContainsLine(polygon []vec, ia, ib int, a, b vec) bool {
 
 const onLineToleranceSqr = 1e-20
 
-func polygonContainsPoint(polygon []vec, p vec) bool {
+func polygonContainsPoint(polygon []backendbase.Vec, p backendbase.Vec) bool {
 	a := polygon[len(polygon)-1]
 	count := 0
 	for _, b := range polygon {
@@ -95,15 +97,15 @@ func polygonContainsPoint(polygon []vec, p vec) bool {
 	return count%2 == 1
 }
 
-func triangulatePath(path []pathPoint, mat mat, target [][2]float64) [][2]float64 {
+func triangulatePath(path []pathPoint, mat backendbase.Mat, target [][2]float64) [][2]float64 {
 	if path[0].pos == path[len(path)-1].pos {
 		path = path[:len(path)-1]
 	}
 
-	var buf [500]vec
+	var buf [500]backendbase.Vec
 	polygon := buf[:0]
 	for _, p := range path {
-		polygon = append(polygon, p.pos.mulMat(mat))
+		polygon = append(polygon, p.pos.MulMat(mat))
 	}
 
 	for len(polygon) > 3 {
@@ -117,7 +119,7 @@ func triangulatePath(path []pathPoint, mat mat, target [][2]float64) [][2]float6
 			if isSamePoint(a, c, math.SmallestNonzeroFloat64) {
 				break
 			}
-			if len(polygon) > 3 && !polygonContainsPoint(polygon, a.add(c).divf(2)) {
+			if len(polygon) > 3 && !polygonContainsPoint(polygon, a.Add(c).Divf(2)) {
 				continue
 			}
 			if !polygonContainsLine(polygon, i, ic, a, c) {
@@ -156,7 +158,7 @@ type tessNet struct {
 }
 
 type tessVert struct {
-	pos      vec
+	pos      backendbase.Vec
 	attached []int
 	count    int
 }
@@ -183,7 +185,7 @@ func cutIntersections(path []pathPoint) tessNet {
 	type cut struct {
 		from, to int
 		ratio    float64
-		point    vec
+		point    backendbase.Vec
 	}
 
 	var cutBuf [50]cut
@@ -296,8 +298,8 @@ func cutIntersections(path []pathPoint) tessNet {
 func setPathLeftRightInside(net *tessNet) {
 	for i, e1 := range net.edges {
 		a1, b1 := net.verts[e1.a], net.verts[e1.b]
-		diff := b1.pos.sub(a1.pos)
-		mid := a1.pos.add(diff.mulf(0.5))
+		diff := b1.pos.Sub(a1.pos)
+		mid := a1.pos.Add(diff.Mulf(0.5))
 
 		left, right := 0, 0
 		if math.Abs(diff[1]) > math.Abs(diff[0]) {
@@ -315,7 +317,7 @@ func setPathLeftRightInside(net *tessNet) {
 				if mid[1] < a2[1] || mid[1] > b2[1] {
 					continue
 				}
-				v := b2.sub(a2)
+				v := b2.Sub(a2)
 				r := (mid[1] - a2[1]) / v[1]
 				x := a2[0] + r*v[0]
 				if mid[0] > x {
@@ -342,7 +344,7 @@ func setPathLeftRightInside(net *tessNet) {
 				if mid[0] < a2[0] || mid[0] > b2[0] {
 					continue
 				}
-				v := b2.sub(a2)
+				v := b2.Sub(a2)
 				r := (mid[0] - a2[0]) / v[0]
 				y := a2[1] + r*v[1]
 				if mid[1] > y {
@@ -404,7 +406,7 @@ func selfIntersectingPathParts(p []pathPoint, partFn func(sp []pathPoint) bool) 
 			for limit := 0; limit < len(net.edges); limit++ {
 				ecur := net.edges[from]
 				acur, bcur := net.verts[ecur.a], net.verts[ecur.b]
-				dir := bcur.pos.sub(acur.pos)
+				dir := bcur.pos.Sub(acur.pos)
 				dirAngle := math.Atan2(dir[1], dir[0])
 				minAngleDiff := math.Pi * 2
 				var next, nextEdge int
@@ -421,7 +423,7 @@ func selfIntersectingPathParts(p []pathPoint, partFn func(sp []pathPoint) bool) 
 					if e.b == cur {
 						na, nb = nb, na
 					}
-					ndir := nb.pos.sub(na.pos)
+					ndir := nb.pos.Sub(na.pos)
 					nextAngle := math.Atan2(ndir[1], ndir[0]) + math.Pi
 					if nextAngle < dirAngle {
 						nextAngle += math.Pi * 2

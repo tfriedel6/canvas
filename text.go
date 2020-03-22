@@ -12,6 +12,7 @@ import (
 
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
+	"github.com/tfriedel6/canvas/backend/backendbase"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 )
@@ -117,8 +118,8 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		return
 	}
 
-	scaleX := vec{cv.state.transform[0], cv.state.transform[1]}.len()
-	scaleY := vec{cv.state.transform[2], cv.state.transform[3]}.len()
+	scaleX := backendbase.Vec{cv.state.transform[0], cv.state.transform[1]}.Len()
+	scaleY := backendbase.Vec{cv.state.transform[2], cv.state.transform[3]}.Len()
 	scale := (scaleX + scaleY) * 0.5
 	fontSize := fixed.Int26_6(math.Round(float64(cv.state.fontSize) * scale))
 
@@ -213,10 +214,10 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 		w, h := cv.b.Size()
 		fw, fh := float64(w), float64(h)
 
-		p0 := cv.tf(vec{float64(bounds.Min.X)/scale + curX, float64(bounds.Min.Y)/scale + y})
-		p1 := cv.tf(vec{float64(bounds.Min.X)/scale + curX, float64(bounds.Max.Y)/scale + y})
-		p2 := cv.tf(vec{float64(bounds.Max.X)/scale + curX, float64(bounds.Max.Y)/scale + y})
-		p3 := cv.tf(vec{float64(bounds.Max.X)/scale + curX, float64(bounds.Min.Y)/scale + y})
+		p0 := cv.tf(backendbase.Vec{float64(bounds.Min.X)/scale + curX, float64(bounds.Min.Y)/scale + y})
+		p1 := cv.tf(backendbase.Vec{float64(bounds.Min.X)/scale + curX, float64(bounds.Max.Y)/scale + y})
+		p2 := cv.tf(backendbase.Vec{float64(bounds.Max.X)/scale + curX, float64(bounds.Max.Y)/scale + y})
+		p3 := cv.tf(backendbase.Vec{float64(bounds.Max.X)/scale + curX, float64(bounds.Min.Y)/scale + y})
 		inside := (p0[0] >= 0 || p1[0] >= 0 || p2[0] >= 0 || p3[0] >= 0) &&
 			(p0[1] >= 0 || p1[1] >= 0 || p2[1] >= 0 || p3[1] >= 0) &&
 			(p0[0] < fw || p1[0] < fw || p2[0] < fw || p3[0] < fw) &&
@@ -299,10 +300,10 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 
 	// render textImage to the screen
 	var pts [4][2]float64
-	pts[0] = cv.tf(vec{float64(textOffset.X)/scale + x, float64(textOffset.Y)/scale + y})
-	pts[1] = cv.tf(vec{float64(textOffset.X)/scale + x, float64(textOffset.Y)/scale + fstrHeight + y})
-	pts[2] = cv.tf(vec{float64(textOffset.X)/scale + fstrWidth + x, float64(textOffset.Y)/scale + fstrHeight + y})
-	pts[3] = cv.tf(vec{float64(textOffset.X)/scale + fstrWidth + x, float64(textOffset.Y)/scale + y})
+	pts[0] = cv.tf(backendbase.Vec{float64(textOffset.X)/scale + x, float64(textOffset.Y)/scale + y})
+	pts[1] = cv.tf(backendbase.Vec{float64(textOffset.X)/scale + x, float64(textOffset.Y)/scale + fstrHeight + y})
+	pts[2] = cv.tf(backendbase.Vec{float64(textOffset.X)/scale + fstrWidth + x, float64(textOffset.Y)/scale + fstrHeight + y})
+	pts[3] = cv.tf(backendbase.Vec{float64(textOffset.X)/scale + fstrWidth + x, float64(textOffset.Y)/scale + y})
 
 	mask := textImage.SubImage(image.Rect(0, 0, strWidth, strHeight)).(*image.Alpha)
 
@@ -345,7 +346,7 @@ func (cv *Canvas) StrokeText(str string, x, y float64) {
 			continue
 		}
 
-		cv.runePath(rn, vec{x, y})
+		cv.runePath(rn, backendbase.Vec{x, y})
 
 		x += float64(advance) / 64
 	}
@@ -354,7 +355,7 @@ func (cv *Canvas) StrokeText(str string, x, y float64) {
 	cv.path = prevPath
 }
 
-func (cv *Canvas) runePath(rn rune, pos vec) {
+func (cv *Canvas) runePath(rn rune, pos backendbase.Vec) {
 	gb := &truetype.GlyphBuf{}
 	gb.Load(cv.state.font.font, cv.state.fontSize, cv.state.font.font.Index(rn), font.HintingNone)
 

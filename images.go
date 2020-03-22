@@ -182,10 +182,10 @@ func (cv *Canvas) DrawImage(image interface{}, coords ...float64) {
 	}
 
 	var data [4][2]float64
-	data[0] = cv.tf(vec{dx, dy})
-	data[1] = cv.tf(vec{dx, dy + dh})
-	data[2] = cv.tf(vec{dx + dw, dy + dh})
-	data[3] = cv.tf(vec{dx + dw, dy})
+	data[0] = cv.tf(backendbase.Vec{dx, dy})
+	data[1] = cv.tf(backendbase.Vec{dx, dy + dh})
+	data[2] = cv.tf(backendbase.Vec{dx + dw, dy + dh})
+	data[3] = cv.tf(backendbase.Vec{dx + dw, dy})
 
 	cv.drawShadow(data[:], nil, false)
 
@@ -207,7 +207,7 @@ func (cv *Canvas) PutImageData(img *image.RGBA, x, y int) {
 type ImagePattern struct {
 	cv  *Canvas
 	img *Image
-	tf  mat
+	tf  backendbase.Mat
 	rep imagePatternRepeat
 	ip  backendbase.ImagePattern
 }
@@ -222,8 +222,8 @@ const (
 	NoRepeat                    = imagePatternRepeat(backendbase.NoRepeat)
 )
 
-func (ip *ImagePattern) data(tf mat) backendbase.ImagePatternData {
-	m := tf.invert().mul(ip.tf.invert())
+func (ip *ImagePattern) data(tf backendbase.Mat) backendbase.ImagePatternData {
+	m := tf.Invert().Mul(ip.tf.Invert())
 	return backendbase.ImagePatternData{
 		Image: ip.img.img,
 		Transform: [9]float64{
@@ -239,7 +239,7 @@ func (ip *ImagePattern) data(tf mat) backendbase.ImagePatternData {
 // to the given matrix. The matrix is a 3x3 matrix, but three
 // of the values are always identity values
 func (ip *ImagePattern) SetTransform(tf [6]float64) {
-	ip.tf = mat(tf)
+	ip.tf = backendbase.Mat(tf)
 }
 
 // CreatePattern creates a new image pattern with the specified
@@ -249,7 +249,7 @@ func (cv *Canvas) CreatePattern(src interface{}, repeat imagePatternRepeat) *Ima
 		cv:  cv,
 		img: cv.getImage(src),
 		rep: repeat,
-		tf:  mat{1, 0, 0, 1, 0, 0},
+		tf:  backendbase.Mat{1, 0, 0, 1, 0, 0},
 	}
 	if ip.img != nil {
 		ip.ip = cv.b.LoadImagePattern(ip.data(cv.state.transform))
