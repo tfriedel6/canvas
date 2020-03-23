@@ -203,7 +203,7 @@ func (b *GoGLBackend) FillImageMask(style *backendbase.FillStyle, mask *image.Al
 	var buf [16]float32
 	data := buf[:0]
 	for _, pt := range pts {
-		data = append(data, float32(pt[0]), float32(pt[1]))
+		data = append(data, float32(math.Round(pt[0])), float32(math.Round(pt[1])))
 	}
 	data = append(data, 0, 0, 0, float32(th), float32(tw), float32(th), float32(tw), 0)
 
