@@ -282,25 +282,8 @@ func (cv *Canvas) StrokeText(str string, x, y float64) {
 		return
 	}
 
-	// calculate offsets
-	if cv.state.textAlign == Center {
-		x -= float64(strWidth) * 0.5
-	} else if cv.state.textAlign == Right || cv.state.textAlign == End {
-		x -= float64(strWidth)
-	}
-	metrics := cv.state.fontMetrics
-	switch cv.state.textBaseline {
-	case Alphabetic:
-	case Middle:
-		y += (-float64(metrics.Descent)/64 + float64(metrics.Height)*0.5/64)
-	case Top, Hanging:
-		y += (-float64(metrics.Descent)/64 + float64(metrics.Height)/64)
-	case Bottom, Ideographic:
-		y += -float64(metrics.Descent) / 64
-	}
-
 	scale := float64(cv.state.fontSize) / float64(baseFontSize)
-	basetf := backendbase.MatScale(backendbase.Vec{scale, scale}).Mul(cv.state.transform)
+	scaleMat := backendbase.MatScale(backendbase.Vec{scale, scale})
 
 	prev, hasPrev := truetype.Index(0), false
 	for _, rn := range str {
@@ -322,8 +305,8 @@ func (cv *Canvas) StrokeText(str string, x, y float64) {
 		}
 
 		path := cv.runePath(rn)
-		tf := backendbase.MatTranslate(backendbase.Vec{x, y}).Mul(basetf)
-		cv.strokePath(path, tf, false)
+		tf := scaleMat.Mul(backendbase.MatTranslate(backendbase.Vec{x, y})).Mul(cv.state.transform)
+		cv.strokePath(path, tf, true)
 
 		x += float64(advance) / 64
 	}
