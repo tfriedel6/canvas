@@ -16,6 +16,8 @@ type Path2D struct {
 
 	standalone bool
 	fillCache  []backendbase.Vec
+
+	noSelfIntersection bool
 }
 
 type pathPoint struct {
@@ -104,9 +106,12 @@ func (p *Path2D) lineTo(x, y float64, checkSelfIntersection bool) {
 		}
 	}
 
+	csi := checkSelfIntersection && !Performance.IgnoreSelfIntersections && !p.noSelfIntersection
+
 	if prev.flags&pathSelfIntersects > 0 {
 		newp.flags |= pathSelfIntersects
-	} else if newp.flags&pathIsConvex == 0 && newp.flags&pathSelfIntersects == 0 && checkSelfIntersection && !Performance.IgnoreSelfIntersections {
+	} else if newp.flags&pathIsConvex == 0 && newp.flags&pathSelfIntersects == 0 && csi {
+
 		cuts := false
 		var cutPoint backendbase.Vec
 		b0, b1 := prev.pos, backendbase.Vec{x, y}

@@ -489,7 +489,7 @@ func (cv *Canvas) runePath(rn rune) *Path2D {
 		}
 	}
 
-	path := &Path2D{cv: cv, p: make([]pathPoint, 0, 50), standalone: true}
+	path := &Path2D{cv: cv, p: make([]pathPoint, 0, 50), standalone: true, noSelfIntersection: true}
 
 	const scale = 1.0 / 64.0
 
