@@ -141,7 +141,8 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 	fontSize := fixed.Int26_6(math.Round(float64(cv.state.fontSize) * scale))
 
 	// if fontSize > fixed.I(30) {
-	// 	cv.fillText2(str, x, y, fontSize)
+	// if time.Now().Second()%2 == 0 {
+	// 	cv.fillText2(str, x, y)
 	// 	return
 	// }
 
@@ -210,9 +211,9 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 	// render textImage to the screen
 	var pts [4]backendbase.Vec
 	pts[0] = cv.tf(backendbase.Vec{float64(textOffset.X)/scale + x, float64(textOffset.Y)/scale + y})
-	pts[1] = cv.tf(backendbase.Vec{float64(textOffset.X)/scale + x, float64(textOffset.Y)/scale + float64(strHeight) + y})
-	pts[2] = cv.tf(backendbase.Vec{float64(textOffset.X)/scale + float64(strWidth) + x, float64(textOffset.Y)/scale + float64(strHeight) + y})
-	pts[3] = cv.tf(backendbase.Vec{float64(textOffset.X)/scale + float64(strWidth) + x, float64(textOffset.Y)/scale + y})
+	pts[1] = cv.tf(backendbase.Vec{float64(textOffset.X)/scale + x, float64(textOffset.Y)/scale + float64(strHeight)/scale + y})
+	pts[2] = cv.tf(backendbase.Vec{float64(textOffset.X)/scale + float64(strWidth)/scale + x, float64(textOffset.Y)/scale + float64(strHeight)/scale + y})
+	pts[3] = cv.tf(backendbase.Vec{float64(textOffset.X)/scale + float64(strWidth)/scale + x, float64(textOffset.Y)/scale + y})
 
 	mask := textImage.SubImage(image.Rect(0, 0, strWidth, strHeight)).(*image.Alpha)
 
@@ -222,12 +223,12 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 	cv.b.FillImageMask(&stl, mask, pts)
 }
 
-func (cv *Canvas) fillText2(str string, x, y float64, fontSize fixed.Int26_6) {
+func (cv *Canvas) fillText2(str string, x, y float64) {
 	if cv.state.font == nil {
 		return
 	}
 
-	frc := cv.getFRContext(cv.state.font, fontSize)
+	frc := cv.getFRContext(cv.state.font, cv.state.fontSize)
 	fnt := cv.state.font.font
 
 	strWidth, strHeight, _, str := cv.measureTextRendering(str, &x, &y, frc, 1)
@@ -235,7 +236,7 @@ func (cv *Canvas) fillText2(str string, x, y float64, fontSize fixed.Int26_6) {
 		return
 	}
 
-	scale := float64(fontSize) / float64(baseFontSize)
+	scale := float64(cv.state.fontSize) / float64(baseFontSize)
 	scaleMat := backendbase.MatScale(backendbase.Vec{scale, scale})
 
 	prev, hasPrev := truetype.Index(0), false
@@ -246,7 +247,7 @@ func (cv *Canvas) fillText2(str string, x, y float64, fontSize fixed.Int26_6) {
 		}
 
 		if hasPrev {
-			kern := fnt.Kern(fontSize, prev, idx)
+			kern := fnt.Kern(cv.state.fontSize, prev, idx)
 			if frc.hinting != font.HintingNone {
 				kern = (kern + 32) &^ 63
 			}
@@ -366,11 +367,11 @@ func (cv *Canvas) measureTextRendering(str string, x, y *float64, frc *frContext
 	switch cv.state.textBaseline {
 	case Alphabetic:
 	case Middle:
-		*y += (-float64(metrics.Descent)/64 + float64(metrics.Height)*0.5/64) / scale
+		*y += -float64(metrics.Descent)/64 + float64(metrics.Height)*0.5/64
 	case Top, Hanging:
-		*y += (-float64(metrics.Descent)/64 + float64(metrics.Height)/64) / scale
+		*y += -float64(metrics.Descent)/64 + float64(metrics.Height)/64
 	case Bottom, Ideographic:
-		*y += -float64(metrics.Descent) / 64 / scale
+		*y += -float64(metrics.Descent) / 64
 	}
 
 	// find out which characters are inside the visible area
