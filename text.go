@@ -307,7 +307,7 @@ func (cv *Canvas) StrokeText(str string, x, y float64) {
 
 		path := cv.runePath(rn)
 		tf := scaleMat.Mul(backendbase.MatTranslate(backendbase.Vec{x, y})).Mul(cv.state.transform)
-		cv.strokePath(path, tf, true)
+		cv.strokePath(path, tf, backendbase.Mat{}, false)
 
 		x += float64(advance) / 64
 	}

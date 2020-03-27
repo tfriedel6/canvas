@@ -86,7 +86,7 @@ func (cv *Canvas) ClosePath() {
 
 // Stroke uses the current StrokeStyle to draw the current path
 func (cv *Canvas) Stroke() {
-	cv.strokePath(&cv.path, cv.state.transform.Invert(), true)
+	cv.strokePath(&cv.path, cv.state.transform, cv.state.transform.Invert(), true)
 }
 
 // StrokePath uses the current StrokeStyle to draw the given path
@@ -96,16 +96,16 @@ func (cv *Canvas) StrokePath(path *Path2D) {
 		p: make([]pathPoint, len(path.p)),
 	}
 	copy(path2.p, path.p)
-	cv.strokePath(&path2, backendbase.Mat{}, false)
+	cv.strokePath(&path2, cv.state.transform, backendbase.Mat{}, false)
 }
 
-func (cv *Canvas) strokePath(path *Path2D, inv backendbase.Mat, doInv bool) {
+func (cv *Canvas) strokePath(path *Path2D, tf backendbase.Mat, inv backendbase.Mat, doInv bool) {
 	if len(path.p) == 0 {
 		return
 	}
 
 	var triBuf [500]backendbase.Vec
-	tris := cv.strokeTris(path, inv, doInv, triBuf[:0])
+	tris := cv.strokeTris(path, tf, inv, doInv, triBuf[:0])
 
 	cv.drawShadow(tris, nil, true)
 
@@ -113,7 +113,7 @@ func (cv *Canvas) strokePath(path *Path2D, inv backendbase.Mat, doInv bool) {
 	cv.b.Fill(&stl, tris, backendbase.MatIdentity, true)
 }
 
-func (cv *Canvas) strokeTris(path *Path2D, inv backendbase.Mat, doInv bool, target []backendbase.Vec) []backendbase.Vec {
+func (cv *Canvas) strokeTris(path *Path2D, tf backendbase.Mat, inv backendbase.Mat, doInv bool, target []backendbase.Vec) []backendbase.Vec {
 	if len(path.p) == 0 {
 		return target
 	}
@@ -164,7 +164,7 @@ func (cv *Canvas) strokeTris(path *Path2D, inv backendbase.Mat, doInv bool, targ
 				lp0 = lp0.Sub(v0)
 				lp2 = lp2.Sub(v0)
 			case Round:
-				target = cv.addCircleTris(p0, cv.state.lineWidth*0.5, target)
+				target = cv.addCircleTris(p0, cv.state.lineWidth*0.5, tf, target)
 			}
 		}
 
@@ -176,14 +176,14 @@ func (cv *Canvas) strokeTris(path *Path2D, inv backendbase.Mat, doInv bool, targ
 				lp1 = lp1.Add(v0)
 				lp3 = lp3.Add(v0)
 			case Round:
-				target = cv.addCircleTris(p1, cv.state.lineWidth*0.5, target)
+				target = cv.addCircleTris(p1, cv.state.lineWidth*0.5, tf, target)
 			}
 		}
 
-		target = append(target, cv.tf(lp0), cv.tf(lp1), cv.tf(lp3), cv.tf(lp0), cv.tf(lp3), cv.tf(lp2))
+		target = append(target, lp0.MulMat(tf), lp1.MulMat(tf), lp3.MulMat(tf), lp0.MulMat(tf), lp3.MulMat(tf), lp2.MulMat(tf))
 
 		if p.flags&pathAttach != 0 && cv.state.lineWidth > 1 {
-			target = cv.lineJoint(p0, p1, p.next, lp0, lp1, lp2, lp3, target)
+			target = cv.lineJoint(p0, p1, p.next, lp0, lp1, lp2, lp3, tf, target)
 		}
 
 		p0 = p1
@@ -249,7 +249,7 @@ func (cv *Canvas) applyLineDash(path []pathPoint) []pathPoint {
 	return path2
 }
 
-func (cv *Canvas) lineJoint(p0, p1, p2, l0p0, l0p1, l0p2, l0p3 backendbase.Vec, tris []backendbase.Vec) []backendbase.Vec {
+func (cv *Canvas) lineJoint(p0, p1, p2, l0p0, l0p1, l0p2, l0p3 backendbase.Vec, tf backendbase.Mat, tris []backendbase.Vec) []backendbase.Vec {
 	v2 := p1.Sub(p2).Norm()
 	v3 := backendbase.Vec{v2[1], -v2[0]}.Mulf(cv.state.lineWidth * 0.5)
 
@@ -275,8 +275,8 @@ func (cv *Canvas) lineJoint(p0, p1, p2, l0p0, l0p1, l0p2, l0p3 backendbase.Vec, 
 			l1p1 := p1.Sub(v3)
 			l1p3 := p1.Add(v3)
 
-			tris = append(tris, cv.tf(p1), cv.tf(l0p1), cv.tf(l1p1),
-				cv.tf(p1), cv.tf(l1p3), cv.tf(l0p3))
+			tris = append(tris, p1.MulMat(tf), l0p1.MulMat(tf), l1p1.MulMat(tf),
+				p1.MulMat(tf), l1p3.MulMat(tf), l0p3.MulMat(tf))
 			return tris
 		}
 
@@ -294,40 +294,40 @@ func (cv *Canvas) lineJoint(p0, p1, p2, l0p0, l0p1, l0p2, l0p3 backendbase.Vec, 
 			l1p1 := p1.Sub(v3)
 			l1p3 := p1.Add(v3)
 
-			tris = append(tris, cv.tf(p1), cv.tf(l0p1), cv.tf(l1p1),
-				cv.tf(p1), cv.tf(l1p3), cv.tf(l0p3))
+			tris = append(tris, p1.MulMat(tf), l0p1.MulMat(tf), l1p1.MulMat(tf),
+				p1.MulMat(tf), l1p3.MulMat(tf), l0p3.MulMat(tf))
 			return tris
 		}
 
-		tris = append(tris, cv.tf(p1), cv.tf(l0p1), cv.tf(ip0),
-			cv.tf(p1), cv.tf(ip0), cv.tf(l1p1),
-			cv.tf(p1), cv.tf(l1p3), cv.tf(ip1),
-			cv.tf(p1), cv.tf(ip1), cv.tf(l0p3))
+		tris = append(tris, p1.MulMat(tf), l0p1.MulMat(tf), ip0.MulMat(tf),
+			p1.MulMat(tf), ip0.MulMat(tf), l1p1.MulMat(tf),
+			p1.MulMat(tf), l1p3.MulMat(tf), ip1.MulMat(tf),
+			p1.MulMat(tf), ip1.MulMat(tf), l0p3.MulMat(tf))
 	case Bevel:
 		l1p1 := p1.Sub(v3)
 		l1p3 := p1.Add(v3)
 
-		tris = append(tris, cv.tf(p1), cv.tf(l0p1), cv.tf(l1p1),
-			cv.tf(p1), cv.tf(l1p3), cv.tf(l0p3))
+		tris = append(tris, p1.MulMat(tf), l0p1.MulMat(tf), l1p1.MulMat(tf),
+			p1.MulMat(tf), l1p3.MulMat(tf), l0p3.MulMat(tf))
 	case Round:
-		tris = cv.addCircleTris(p1, cv.state.lineWidth*0.5, tris)
+		tris = cv.addCircleTris(p1, cv.state.lineWidth*0.5, tf, tris)
 	}
 
 	return tris
 }
 
-func (cv *Canvas) addCircleTris(center backendbase.Vec, radius float64, tris []backendbase.Vec) []backendbase.Vec {
+func (cv *Canvas) addCircleTris(center backendbase.Vec, radius float64, tf backendbase.Mat, tris []backendbase.Vec) []backendbase.Vec {
 	step := 6 / radius
 	if step > 0.8 {
 		step = 0.8
 	} else if step < 0.05 {
 		step = 0.05
 	}
-	centertf := cv.tf(center)
-	p0 := cv.tf(backendbase.Vec{center[0], center[1] + radius})
+	centertf := center.MulMat(tf)
+	p0 := backendbase.Vec{center[0], center[1] + radius}.MulMat(tf)
 	for angle := step; angle <= math.Pi*2+step; angle += step {
 		s, c := math.Sincos(angle)
-		p1 := cv.tf(backendbase.Vec{center[0] + s*radius, center[1] + c*radius})
+		p1 := backendbase.Vec{center[0] + s*radius, center[1] + c*radius}.MulMat(tf)
 		tris = append(tris, centertf, p0, p1)
 		p0 = p1
 	}
@@ -501,7 +501,7 @@ func (cv *Canvas) StrokeRect(x, y, w, h float64) {
 	p[3] = pathPoint{pos: v3, next: v0, flags: pathAttach}
 	p[4] = pathPoint{pos: v0, next: v1, flags: pathAttach}
 	path := Path2D{p: p[:]}
-	cv.strokePath(&path, backendbase.Mat{}, false)
+	cv.strokePath(&path, cv.state.transform, backendbase.Mat{}, false)
 }
 
 // FillRect fills a rectangle with the active fill style

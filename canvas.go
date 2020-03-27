@@ -458,7 +458,7 @@ func (cv *Canvas) IsPointInStroke(x, y float64) bool {
 	}
 
 	var triBuf [500]backendbase.Vec
-	tris := cv.strokeTris(&cv.path, cv.state.transform.Invert(), true, triBuf[:0])
+	tris := cv.strokeTris(&cv.path, cv.state.transform, cv.state.transform.Invert(), true, triBuf[:0])
 
 	pt := backendbase.Vec{x, y}
 
