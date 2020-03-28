@@ -494,30 +494,24 @@ func (cv *Canvas) runePath(rn rune) *Path2D {
 
 	const scale = 1.0 / 64.0
 
-	gb := &truetype.GlyphBuf{}
-	gb.Load(cv.state.font.font, baseFontSize, idx, font.HintingNone)
+	var gb truetype.GlyphBuf
+	gb.Load(cv.state.font.font, baseFontSize, idx, font.HintingFull)
 
 	from := 0
 	for _, to := range gb.Ends {
 		ps := gb.Points[from:to]
 
-		start := fixed.Point26_6{
-			X: ps[0].X,
-			Y: ps[0].Y,
-		}
+		start := ps[0]
 		others := []truetype.Point(nil)
 		if ps[0].Flags&0x01 != 0 {
 			others = ps[1:]
 		} else {
-			last := fixed.Point26_6{
-				X: ps[len(ps)-1].X,
-				Y: ps[len(ps)-1].Y,
-			}
+			last := ps[len(ps)-1]
 			if ps[len(ps)-1].Flags&0x01 != 0 {
 				start = last
 				others = ps[:len(ps)-1]
 			} else {
-				start = fixed.Point26_6{
+				start = truetype.Point{
 					X: (start.X + last.X) / 2,
 					Y: (start.Y + last.Y) / 2,
 				}
@@ -525,7 +519,7 @@ func (cv *Canvas) runePath(rn rune) *Path2D {
 			}
 		}
 
-		p0, on0 := gb.Points[from], false
+		p0, on0 := start, true
 		path.MoveTo(float64(p0.X)*scale, -float64(p0.Y)*scale)
 		for _, p := range others {
 			on := p.Flags&0x01 != 0
