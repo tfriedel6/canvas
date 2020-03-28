@@ -27,10 +27,11 @@ type Canvas struct {
 	state      drawState
 	stateStack []drawState
 
-	images       map[interface{}]*Image
-	fonts        map[interface{}]*Font
-	fontCtxs     map[fontKey]*frCache
-	fontTriCache map[*Font]*fontTriCache
+	images        map[interface{}]*Image
+	fonts         map[interface{}]*Font
+	fontCtxs      map[fontKey]*frCache
+	fontPathCache map[*Font]*fontPathCache
+	fontTriCache  map[*Font]*fontTriCache
 
 	shadowBuf []backendbase.Vec
 }
@@ -139,12 +140,13 @@ var Performance = struct {
 // coordinates given here also use the bottom left as origin
 func New(backend backendbase.Backend) *Canvas {
 	cv := &Canvas{
-		b:            backend,
-		stateStack:   make([]drawState, 0, 20),
-		images:       make(map[interface{}]*Image),
-		fonts:        make(map[interface{}]*Font),
-		fontCtxs:     make(map[fontKey]*frCache),
-		fontTriCache: make(map[*Font]*fontTriCache),
+		b:             backend,
+		stateStack:    make([]drawState, 0, 20),
+		images:        make(map[interface{}]*Image),
+		fonts:         make(map[interface{}]*Font),
+		fontCtxs:      make(map[fontKey]*frCache),
+		fontPathCache: make(map[*Font]*fontPathCache),
+		fontTriCache:  make(map[*Font]*fontTriCache),
 	}
 	cv.state.lineWidth = 1
 	cv.state.lineAlpha = 1
@@ -482,6 +484,7 @@ func (cv *Canvas) reduceCache(keepSize, rec int) {
 	oldest := time.Now()
 	var oldestFontKey fontKey
 	var oldestFontKey2 *Font
+	var oldestFontKey3 *Font
 	var oldestImageKey interface{}
 	for src, img := range cv.images {
 		w, h := img.img.Size()
@@ -499,11 +502,21 @@ func (cv *Canvas) reduceCache(keepSize, rec int) {
 			oldestImageKey = nil
 		}
 	}
-	for fnt, cache := range cv.fontTriCache {
+	for fnt, cache := range cv.fontPathCache {
 		total += cache.size()
 		if cache.lastUsed.Before(oldest) {
 			oldest = cache.lastUsed
 			oldestFontKey2 = fnt
+			oldestFontKey = fontKey{}
+			oldestImageKey = nil
+		}
+	}
+	for fnt, cache := range cv.fontTriCache {
+		total += cache.size()
+		if cache.lastUsed.Before(oldest) {
+			oldest = cache.lastUsed
+			oldestFontKey3 = fnt
+			oldestFontKey2 = nil
 			oldestFontKey = fontKey{}
 			oldestImageKey = nil
 		}
@@ -516,7 +529,9 @@ func (cv *Canvas) reduceCache(keepSize, rec int) {
 		cv.images[oldestImageKey].Delete()
 		delete(cv.images, oldestImageKey)
 	} else if oldestFontKey2 != nil {
-		delete(cv.fontTriCache, oldestFontKey2)
+		delete(cv.fontPathCache, oldestFontKey2)
+	} else if oldestFontKey3 != nil {
+		delete(cv.fontTriCache, oldestFontKey3)
 	} else {
 		cv.fontCtxs[oldestFontKey].ctx = nil
 		delete(cv.fontCtxs, oldestFontKey)
