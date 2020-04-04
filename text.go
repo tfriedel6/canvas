@@ -596,7 +596,7 @@ func (cv *Canvas) runeTris(rn rune) []backendbase.Vec {
 	var gb truetype.GlyphBuf
 	gb.Load(cv.state.font.font, baseFontSize, idx, font.HintingFull)
 
-	polyWithHoles := make([][]backendbase.Vec, 0, len(gb.Ends))
+	contours := make([][]backendbase.Vec, 0, len(gb.Ends))
 
 	from := 0
 	for _, to := range gb.Ends {
@@ -608,7 +608,7 @@ func (cv *Canvas) runeTris(rn rune) []backendbase.Vec {
 			others = ps[1:]
 		} else {
 			last := ps[len(ps)-1]
-			if ps[len(ps)-1].Flags&0x01 != 0 {
+			if last.Flags&0x01 != 0 {
 				start = last
 				others = ps[:len(ps)-1]
 			} else {
@@ -652,29 +652,62 @@ func (cv *Canvas) runeTris(rn rune) []backendbase.Vec {
 		}
 		path.ClosePath()
 
-		poly := make([]backendbase.Vec, len(path.p))
+		contour := make([]backendbase.Vec, len(path.p))
 		for i, pt := range path.p {
-			poly[i] = pt.pos
+			contour[i] = pt.pos
 		}
 
-		polyWithHoles = append(polyWithHoles, poly)
+		contours = append(contours, contour)
 
 		from = to
 	}
 
-	var ec earcut
-	ec.run(polyWithHoles)
+	idxs := sortFontContours(contours)
+	sortedContours := make([][]backendbase.Vec, 0, len(idxs))
+	trisList := make([][]backendbase.Vec, 0, len(contours))
 
-	tris := make([]backendbase.Vec, len(ec.indices))
-	for i, idx := range ec.indices {
-		pidx := 0
-		poly := polyWithHoles[pidx]
-		for idx >= len(poly) {
-			idx -= len(poly)
-			pidx++
-			poly = polyWithHoles[pidx]
+	for i := 0; i < len(idxs); {
+		var j int
+		for j = i; j < len(idxs); j++ {
+			if idxs[j] == -1 {
+				break
+			}
 		}
-		tris[i] = poly[idx]
+
+		sortedContours = sortedContours[:j-i]
+		for k, idx := range idxs[i:j] {
+			sortedContours[k] = contours[idx]
+		}
+
+		var ec earcut
+		ec.run(sortedContours)
+
+		tris := make([]backendbase.Vec, len(ec.indices))
+		for i, idx := range ec.indices {
+			pidx := 0
+			poly := sortedContours[pidx]
+			for idx >= len(poly) {
+				idx -= len(poly)
+				pidx++
+				poly = sortedContours[pidx]
+			}
+			tris[i] = poly[idx]
+		}
+		trisList = append(trisList, tris)
+
+		i = j + 1
+	}
+
+	count := 0
+	for _, tris := range trisList {
+		count += len(tris)
+	}
+
+	allTris := make([]backendbase.Vec, count)
+	pos := 0
+	for _, tris := range trisList {
+		copy(allTris[pos:], tris)
+		pos += len(tris)
 	}
 
 	cache, ok := cv.fontTriCache[cv.state.font]
@@ -683,9 +716,9 @@ func (cv *Canvas) runeTris(rn rune) []backendbase.Vec {
 		cv.fontTriCache[cv.state.font] = cache
 	}
 	cache.lastUsed = time.Now()
-	cache.cache[idx] = tris
+	cache.cache[idx] = allTris
 
-	return tris
+	return allTris
 }
 
 // TextMetrics is the result of a MeasureText call

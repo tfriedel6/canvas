@@ -799,3 +799,109 @@ func (ec *earcut) removeNode(p *node) {
 		p.nextZ.prevZ = p.prevZ
 	}
 }
+
+// sortFontContours takes the contours of a font glyph
+// and checks whether each contour is the outside or a
+// hole, and returns an array that is sorted so that
+// it contains an index of an outer contour followed by
+// any number of indices of hole contours followed by
+// a terminating -1
+func sortFontContours(contours [][]backendbase.Vec) []int {
+	type cut struct {
+		idx   int
+		count int
+	}
+	type info struct {
+		cuts     []cut
+		cutTotal int
+		outer    bool
+	}
+
+	cutBuf := make([]cut, len(contours)*len(contours))
+	cinf := make([]info, len(contours))
+	for i := range contours {
+		cinf[i].cuts = cutBuf[i*len(contours) : i*len(contours)]
+	}
+
+	// go through each contour, pick one point on it, and
+	// project that point to the right. count the number of
+	// other contours that it cuts
+	for i, p1 := range contours {
+		pt := p1[0]
+		for j, p2 := range contours {
+			if i == j {
+				continue
+			}
+
+			for k := range p2 {
+				a, b := p2[k], p2[(k+1)%len(p2)]
+				if a == b {
+					continue
+				}
+
+				minY := math.Min(a[1], b[1])
+				maxY := math.Max(a[1], b[1])
+
+				if pt[1] <= minY || pt[1] > maxY {
+					continue
+				}
+
+				r := (pt[1] - a[1]) / (b[1] - a[1])
+				x := (b[0]-a[0])*r + a[0]
+				if x <= pt[0] {
+					continue
+				}
+
+				found := false
+				for l := range cinf[i].cuts {
+					if cinf[i].cuts[l].idx == j {
+						cinf[i].cuts[l].count++
+						found = true
+						break
+					}
+				}
+				if !found {
+					cinf[i].cuts = append(cinf[i].cuts, cut{idx: j, count: 1})
+				}
+				cinf[i].cutTotal++
+			}
+		}
+	}
+
+	// any contour with an even number of cuts is outer,
+	// odd number of cuts means it is a hole
+	for i := range cinf {
+		cinf[i].outer = cinf[i].cutTotal%2 == 0
+	}
+
+	// go through them again, pick any outer contour, then
+	// find any hole where the first outer contour it cuts
+	// an odd number of times is the picked contour and add
+	// it to the list of its holes
+	result := make([]int, 0, len(contours)*2)
+	for i := range cinf {
+		if !cinf[i].outer {
+			continue
+		}
+		result = append(result, i)
+
+		for j := range cinf {
+			if cinf[j].outer {
+				continue
+			}
+			for _, cut := range cinf[j].cuts {
+				if cut.count%2 == 0 {
+					continue
+				}
+				if cut.idx == i {
+					result = append(result, j)
+					break
+				}
+			}
+		}
+
+		result = append(result, -1)
+	}
+
+	return result
+}
