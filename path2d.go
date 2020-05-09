@@ -372,9 +372,6 @@ func (p *Path2D) ClosePath() {
 	if len(p.p) < 2 {
 		return
 	}
-	if isSamePoint(p.p[len(p.p)-1].pos, p.p[0].pos, 0.1) {
-		return
-	}
 	closeIdx := 0
 	for i := len(p.p) - 1; i >= 0; i-- {
 		if p.p[i].flags&pathMove != 0 {
@@ -382,7 +379,9 @@ func (p *Path2D) ClosePath() {
 			break
 		}
 	}
-	p.LineTo(p.p[closeIdx].pos[0], p.p[closeIdx].pos[1])
+	if !isSamePoint(p.p[len(p.p)-1].pos, p.p[0].pos, 0.1) {
+		p.LineTo(p.p[closeIdx].pos[0], p.p[closeIdx].pos[1])
+	}
 	p.p[len(p.p)-1].next = p.p[closeIdx].next
 	p.p[len(p.p)-1].flags |= pathAttach
 }
