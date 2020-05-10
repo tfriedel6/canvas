@@ -141,6 +141,12 @@ func (img *Image) Delete() {
 
 // Replace replaces the image with the new one
 func (img *Image) Replace(src interface{}) error {
+	if img.src == src {
+		if origImg, ok := img.src.(image.Image); ok {
+			img.img.Replace(origImg)
+			return nil
+		}
+	}
 	newImg, err := img.cv.LoadImage(src)
 	if err != nil {
 		return err
