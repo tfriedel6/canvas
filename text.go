@@ -153,7 +153,14 @@ func (cv *Canvas) FillText(str string, x, y float64) {
 	scale := (scaleX + scaleY) * 0.5
 	fontSize := fixed.Int26_6(math.Round(float64(cv.state.fontSize) * scale))
 
+	// if the font size is large or rotated or skewed in some way, use the
+	// triangulated font rendering
 	if fontSize > fixed.I(25) {
+		cv.fillText2(str, x, y)
+		return
+	}
+	mat := cv.state.transform
+	if mat[1] != 0 || mat[2] != 0 || mat[0] != mat[3] {
 		cv.fillText2(str, x, y)
 		return
 	}
