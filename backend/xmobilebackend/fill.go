@@ -49,9 +49,12 @@ func (b *XMobileBackend) Clear(pts [4]backendbase.Vec) {
 	b.glctx.StencilFunc(gl.EQUAL, 0, 0xFF)
 
 	b.glctx.VertexAttribPointer(b.shd.Vertex, 2, gl.FLOAT, false, 0, 0)
+	b.glctx.VertexAttribPointer(b.shd.TexCoord, 2, gl.FLOAT, false, 0, 0)
 	b.glctx.EnableVertexAttribArray(b.shd.Vertex)
+	b.glctx.EnableVertexAttribArray(b.shd.TexCoord)
 	b.glctx.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 	b.glctx.DisableVertexAttribArray(b.shd.Vertex)
+	b.glctx.DisableVertexAttribArray(b.shd.TexCoord)
 
 	b.glctx.StencilFunc(gl.ALWAYS, 0, 0xFF)
 
@@ -120,9 +123,12 @@ func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Ve
 
 		b.glctx.StencilFunc(gl.EQUAL, 0, 0xFF)
 		b.glctx.EnableVertexAttribArray(vertex)
+		b.glctx.EnableVertexAttribArray(b.shd.TexCoord)
 		b.glctx.VertexAttribPointer(vertex, 2, gl.FLOAT, false, 0, 0)
+		b.glctx.VertexAttribPointer(b.shd.TexCoord, 2, gl.FLOAT, false, 0, 0)
 		b.glctx.DrawArrays(mode, 4, len(pts))
 		b.glctx.DisableVertexAttribArray(vertex)
+		b.glctx.DisableVertexAttribArray(b.shd.TexCoord)
 		b.glctx.StencilFunc(gl.ALWAYS, 0, 0xFF)
 	} else {
 		b.glctx.ColorMask(false, false, false, false)
@@ -140,9 +146,12 @@ func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Ve
 		b.glctx.Uniform1i(b.shd.Func, shdFuncSolid)
 
 		b.glctx.EnableVertexAttribArray(b.shd.Vertex)
+		b.glctx.EnableVertexAttribArray(b.shd.TexCoord)
 		b.glctx.VertexAttribPointer(b.shd.Vertex, 2, gl.FLOAT, false, 0, 0)
+		b.glctx.VertexAttribPointer(b.shd.TexCoord, 2, gl.FLOAT, false, 0, 0)
 		b.glctx.DrawArrays(mode, 4, len(pts))
 		b.glctx.DisableVertexAttribArray(b.shd.Vertex)
+		b.glctx.DisableVertexAttribArray(b.shd.TexCoord)
 
 		b.glctx.ColorMask(true, true, true, true)
 
@@ -150,10 +159,13 @@ func (b *XMobileBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Ve
 
 		vertex, _ := b.useShader(style, mat3identity, false, 0)
 		b.glctx.EnableVertexAttribArray(vertex)
+		b.glctx.EnableVertexAttribArray(b.shd.TexCoord)
 		b.glctx.VertexAttribPointer(vertex, 2, gl.FLOAT, false, 0, 0)
+		b.glctx.VertexAttribPointer(b.shd.TexCoord, 2, gl.FLOAT, false, 0, 0)
 
 		b.glctx.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 		b.glctx.DisableVertexAttribArray(vertex)
+		b.glctx.DisableVertexAttribArray(b.shd.TexCoord)
 
 		b.glctx.StencilOp(gl.KEEP, gl.KEEP, gl.KEEP)
 		b.glctx.StencilFunc(gl.ALWAYS, 0, 0xFF)
@@ -203,7 +215,7 @@ func (b *XMobileBackend) FillImageMask(style *backendbase.FillStyle, mask *image
 	var buf [16]float32
 	data := buf[:0]
 	for _, pt := range pts {
-		data = append(data, float32(pt[0]), float32(pt[1]))
+		data = append(data, float32(math.Round(pt[0])), float32(math.Round(pt[1])))
 	}
 	data = append(data, 0, 0, 0, float32(th), float32(tw), float32(th), float32(tw), 0)
 

@@ -35,6 +35,7 @@ func (b *XMobileBackend) Clip(pts []backendbase.Vec) {
 	b.glctx.BindBuffer(gl.ARRAY_BUFFER, b.buf)
 	b.glctx.BufferData(gl.ARRAY_BUFFER, byteSlice(unsafe.Pointer(&b.ptsBuf[0]), len(b.ptsBuf)*4), gl.STREAM_DRAW)
 	b.glctx.VertexAttribPointer(b.shd.Vertex, 2, gl.FLOAT, false, 0, 0)
+	b.glctx.VertexAttribPointer(b.shd.TexCoord, 2, gl.FLOAT, false, 0, 0)
 
 	b.glctx.UseProgram(b.shd.ID)
 	b.glctx.Uniform4f(b.shd.Color, 1, 1, 1, 1)
@@ -44,6 +45,7 @@ func (b *XMobileBackend) Clip(pts []backendbase.Vec) {
 	b.glctx.Uniform1i(b.shd.UseAlphaTex, 0)
 	b.glctx.Uniform1i(b.shd.Func, shdFuncSolid)
 	b.glctx.EnableVertexAttribArray(b.shd.Vertex)
+	b.glctx.EnableVertexAttribArray(b.shd.TexCoord)
 
 	b.glctx.ColorMask(false, false, false, false)
 
@@ -66,6 +68,7 @@ func (b *XMobileBackend) Clip(pts []backendbase.Vec) {
 	b.glctx.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 
 	b.glctx.DisableVertexAttribArray(b.shd.Vertex)
+	b.glctx.DisableVertexAttribArray(b.shd.TexCoord)
 
 	b.glctx.ColorMask(true, true, true, true)
 	b.glctx.StencilOp(gl.KEEP, gl.KEEP, gl.KEEP)
