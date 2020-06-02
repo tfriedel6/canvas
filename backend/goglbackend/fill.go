@@ -49,9 +49,12 @@ func (b *GoGLBackend) Clear(pts [4]backendbase.Vec) {
 	gl.StencilFunc(gl.EQUAL, 0, 0xFF)
 
 	gl.VertexAttribPointer(b.shd.Vertex, 2, gl.FLOAT, false, 0, nil)
+	gl.VertexAttribPointer(b.shd.TexCoord, 2, gl.FLOAT, false, 0, nil)
 	gl.EnableVertexAttribArray(b.shd.Vertex)
+	gl.EnableVertexAttribArray(b.shd.TexCoord)
 	gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 	gl.DisableVertexAttribArray(b.shd.Vertex)
+	gl.DisableVertexAttribArray(b.shd.TexCoord)
 
 	gl.StencilFunc(gl.ALWAYS, 0, 0xFF)
 
@@ -120,9 +123,12 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Vec, 
 
 		gl.StencilFunc(gl.EQUAL, 0, 0xFF)
 		gl.EnableVertexAttribArray(vertex)
+		gl.EnableVertexAttribArray(b.shd.TexCoord)
 		gl.VertexAttribPointer(vertex, 2, gl.FLOAT, false, 0, nil)
+		gl.VertexAttribPointer(b.shd.TexCoord, 2, gl.FLOAT, false, 0, nil)
 		gl.DrawArrays(mode, 4, int32(len(pts)))
 		gl.DisableVertexAttribArray(vertex)
+		gl.DisableVertexAttribArray(b.shd.TexCoord)
 		gl.StencilFunc(gl.ALWAYS, 0, 0xFF)
 	} else {
 		gl.ColorMask(false, false, false, false)
@@ -140,9 +146,12 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Vec, 
 		gl.Uniform1i(b.shd.Func, shdFuncSolid)
 
 		gl.EnableVertexAttribArray(b.shd.Vertex)
+		gl.EnableVertexAttribArray(b.shd.TexCoord)
 		gl.VertexAttribPointer(b.shd.Vertex, 2, gl.FLOAT, false, 0, nil)
+		gl.VertexAttribPointer(b.shd.TexCoord, 2, gl.FLOAT, false, 0, nil)
 		gl.DrawArrays(mode, 4, int32(len(pts)))
 		gl.DisableVertexAttribArray(b.shd.Vertex)
+		gl.DisableVertexAttribArray(b.shd.TexCoord)
 
 		gl.ColorMask(true, true, true, true)
 
@@ -150,10 +159,13 @@ func (b *GoGLBackend) Fill(style *backendbase.FillStyle, pts []backendbase.Vec, 
 
 		vertex, _ := b.useShader(style, mat3identity, false, 0)
 		gl.EnableVertexAttribArray(vertex)
+		gl.EnableVertexAttribArray(b.shd.TexCoord)
 		gl.VertexAttribPointer(vertex, 2, gl.FLOAT, false, 0, nil)
+		gl.VertexAttribPointer(b.shd.TexCoord, 2, gl.FLOAT, false, 0, nil)
 
 		gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 		gl.DisableVertexAttribArray(vertex)
+		gl.DisableVertexAttribArray(b.shd.TexCoord)
 
 		gl.StencilOp(gl.KEEP, gl.KEEP, gl.KEEP)
 		gl.StencilFunc(gl.ALWAYS, 0, 0xFF)

@@ -35,6 +35,7 @@ func (b *GoGLBackend) Clip(pts []backendbase.Vec) {
 	gl.BindBuffer(gl.ARRAY_BUFFER, b.buf)
 	gl.BufferData(gl.ARRAY_BUFFER, len(b.ptsBuf)*4, unsafe.Pointer(&b.ptsBuf[0]), gl.STREAM_DRAW)
 	gl.VertexAttribPointer(b.shd.Vertex, 2, gl.FLOAT, false, 0, nil)
+	gl.VertexAttribPointer(b.shd.TexCoord, 2, gl.FLOAT, false, 0, nil)
 
 	gl.UseProgram(b.shd.ID)
 	gl.Uniform4f(b.shd.Color, 1, 1, 1, 1)
@@ -44,6 +45,7 @@ func (b *GoGLBackend) Clip(pts []backendbase.Vec) {
 	gl.Uniform1i(b.shd.UseAlphaTex, 0)
 	gl.Uniform1i(b.shd.Func, shdFuncSolid)
 	gl.EnableVertexAttribArray(b.shd.Vertex)
+	gl.EnableVertexAttribArray(b.shd.TexCoord)
 
 	gl.ColorMask(false, false, false, false)
 
@@ -66,6 +68,7 @@ func (b *GoGLBackend) Clip(pts []backendbase.Vec) {
 	gl.DrawArrays(gl.TRIANGLE_FAN, 0, 4)
 
 	gl.DisableVertexAttribArray(b.shd.Vertex)
+	gl.DisableVertexAttribArray(b.shd.TexCoord)
 
 	gl.ColorMask(true, true, true, true)
 	gl.StencilOp(gl.KEEP, gl.KEEP, gl.KEEP)
