@@ -199,14 +199,16 @@ func parseColor(value ...interface{}) (c color.RGBA, ok bool) {
 				}
 			} else {
 				v = strings.Replace(v, " ", "", -1)
-				var ir, ig, ib, ia int
+				var ir, ig, ib int
 				n, err := fmt.Sscanf(v, "rgb(%d,%d,%d)", &ir, &ig, &ib)
 				if err == nil && n == 3 {
 					return color.RGBA{R: uint8(ir), G: uint8(ig), B: uint8(ib), A: 255}, true
 				}
-				n, err = fmt.Sscanf(v, "rgba(%d,%d,%d,%d)", &ir, &ig, &ib, &ia)
+				var fa float64
+				n, err = fmt.Sscanf(v, "rgba(%d,%d,%d,%f)", &ir, &ig, &ib, &fa)
+				fa = math.Max(0, math.Min(1, fa))
 				if err == nil && n == 4 {
-					return color.RGBA{R: uint8(ir), G: uint8(ig), B: uint8(ib), A: uint8(ia)}, true
+					return color.RGBA{R: uint8(ir), G: uint8(ig), B: uint8(ib), A: uint8(fa * 255)}, true
 				}
 			}
 		}
