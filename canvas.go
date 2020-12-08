@@ -365,6 +365,11 @@ func (cv *Canvas) SetMiterLimit(limit float64) {
 	cv.state.miterLimitSqr = limit * limit
 }
 
+// GetGlobalAlpha returns the current global alpha value
+func (cv *Canvas) GetGlobalAlpha() float64 {
+	return cv.state.globalAlpha
+}
+
 // SetGlobalAlpha sets the global alpha value
 func (cv *Canvas) SetGlobalAlpha(alpha float64) {
 	cv.state.globalAlpha = alpha

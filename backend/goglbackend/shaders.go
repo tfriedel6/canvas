@@ -1,12 +1,14 @@
 package goglbackend
 
 var unifiedVS = `
-attribute vec2 vertex, texCoord;
+#version 150
+
+in vec2 vertex, texCoord;
 
 uniform vec2 canvasSize;
 uniform mat3 matrix;
 
-varying vec2 v_cp, v_tc;
+out vec2 v_cp, v_tc;
 
 void main() {
 	v_tc = texCoord;
@@ -18,11 +20,13 @@ void main() {
 }
 `
 var unifiedFS = `
+#version 150
+
 #ifdef GL_ES
 precision mediump float;
 #endif
 
-varying vec2 v_cp, v_tc;
+in vec2 v_cp, v_tc;
 
 uniform int func;
 
@@ -46,6 +50,8 @@ uniform bool boxVertical;
 uniform float boxScale;
 uniform float boxOffset;
 
+out vec4 outColor;
+
 bool isNaN(float v) {
   return v < 0.0 || 0.0 < v || v == 0.0 ? false : true;
 }
@@ -58,15 +64,15 @@ void main() {
 		if (boxVertical) {
 			vec2 start = v_tc - vec2(0.0, (float(boxSize) * 0.5 + boxOffset) * boxScale);
 			for (int i=0; i <= boxSize; i++) {
-				sum += texture2D(image, start + vec2(0.0, float(i) * boxScale));
+				sum += texture(image, start + vec2(0.0, float(i) * boxScale));
 			}
 		} else {
 			vec2 start = v_tc - vec2((float(boxSize) * 0.5 + boxOffset) * boxScale, 0.0);
 			for (int i=0; i <= boxSize; i++) {
-				sum += texture2D(image, start + vec2(float(i) * boxScale, 0.0));
+				sum += texture(image, start + vec2(float(i) * boxScale, 0.0));
 			}
 		}
-		gl_FragColor = sum / float(boxSize+1);
+		outColor = sum / float(boxSize+1);
 		return;
 	}
 
@@ -74,7 +80,7 @@ void main() {
 		vec2 v = v_cp - from;
 		float r = dot(v, dir) / len;
 		r = clamp(r, 0.0, 1.0);
-		col = texture2D(gradient, vec2(r, 0.0));
+		col = texture(gradient, vec2(r, 0.0));
 	} else if (func == 2) {
 		float o_a = 0.5 * sqrt(
 			pow(-2.0*from.x*from.x+2.0*from.x*to.x+2.0*from.x*v_cp.x-2.0*to.x*v_cp.x-2.0*from.y*from.y+2.0*from.y*to.y+2.0*from.y*v_cp.y-2.0*to.y*v_cp.y+2.0*radFrom*radFrom-2.0*radFrom*radTo, 2.0)
@@ -86,16 +92,16 @@ void main() {
 		float o1 = (-o_a + o_b) / o_c;
 		float o2 = (o_a + o_b) / o_c;
 		if (isNaN(o1) && isNaN(o2)) {
-			gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+			outColor = vec4(0.0, 0.0, 0.0, 0.0);
 			return;
 		}
 		float o = max(o1, o2);
 		o = clamp(o, 0.0, 1.0);
-		col = texture2D(gradient, vec2(o, 0.0));
+		col = texture(gradient, vec2(o, 0.0));
 	} else if (func == 3) {
 		vec3 tfpt = vec3(v_cp, 1.0) * imageTransform;
 		vec2 imgpt = tfpt.xy / imageSize;
-		col = texture2D(image, mod(imgpt, 1.0));
+		col = texture(image, mod(imgpt, 1.0));
 		if (imgpt.x < 0.0 || imgpt.x > 1.0) {
 			col *= repeat.x;
 		}
@@ -103,16 +109,16 @@ void main() {
 			col *= repeat.y;
 		}
 	} else if (func == 4) {
-		col = texture2D(image, v_tc);
+		col = texture(image, v_tc);
 	}
 
 	if (useAlphaTex) {
-		col.a *= texture2D(alphaTex, v_tc).a * globalAlpha;
+		col.a *= texture(alphaTex, v_tc).a * globalAlpha;
 	} else {
 		col.a *= globalAlpha;
 	}
 
-    gl_FragColor = col;
+    outColor = col;
 }
 `
 
