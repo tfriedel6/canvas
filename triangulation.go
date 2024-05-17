@@ -134,7 +134,7 @@ func triangulatePath(path []pathPoint, mat backendbase.Mat, target []backendbase
 		remove := (i + 1) % len(polygon)
 		polygon = append(polygon[:remove], polygon[remove+1:]...)
 	}
-	target = append(target, polygon[0], polygon[1], polygon[2])
+	target = append(target, polygon...)
 	return target
 }
 

@@ -2,12 +2,11 @@ package canvas
 
 import (
 	"errors"
-	"fmt"
 	"image"
 	"image/draw"
 	"io/ioutil"
 	"math"
-	"os"
+	"strings"
 	"time"
 	"unsafe"
 
@@ -116,7 +115,6 @@ func (cv *Canvas) getFont(src interface{}) *Font {
 	f, err := cv.LoadFont(src)
 	if err != nil {
 		cv.fonts[src] = nil
-		fmt.Fprintf(os.Stderr, "Error loading font: %v\n", err)
 	} else {
 		cv.fonts[src] = f
 	}
@@ -787,4 +785,38 @@ func (cv *Canvas) MeasureText(str string) TextMetrics {
 		ActualBoundingBoxAscent:  -minY,
 		ActualBoundingBoxDescent: +maxY,
 	}
+}
+
+func ParseTextAlign(v string) textAlign {
+	switch strings.ToLower(v) {
+	case `left`:
+		return Left
+	case `right`:
+		return Right
+	case `center`:
+		return Center
+	case `start`:
+		return Start
+	case `end`:
+		return End
+	}
+	return Left //sure, why not
+}
+
+func ParseTextBaseline(v string) textBaseline {
+	switch strings.ToLower(v) {
+	case `alphabetic`:
+		return Alphabetic
+	case `top`:
+		return Top
+	case `hanging`:
+		return Hanging
+	case `middle`:
+		return Middle
+	case `ideographic`:
+		return Ideographic
+	case `bottom`:
+		return Bottom
+	}
+	return Alphabetic
 }

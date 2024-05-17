@@ -197,6 +197,8 @@ func parseColor(value ...interface{}) (c color.RGBA, ok bool) {
 				} else {
 					return
 				}
+			} else if c, ok := namedColors[strings.ToLower(v)]; ok {
+				return c, true
 			} else {
 				v = strings.Replace(v, " ", "", -1)
 				var ir, ig, ib int

@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/color"
 	"math"
+	"strings"
 	"time"
 
 	"github.com/golang/freetype/truetype"
@@ -290,6 +291,27 @@ func (cv *Canvas) SetLineWidth(width float64) {
 	}
 }
 
+func (cv *Canvas) SetFontByName(name string, size float64) {
+	if defaultFont != nil && defaultFont.font.Name(truetype.NameIDFontFullName) == name {
+		cv.state.font = defaultFont
+	} else {
+		var found bool
+		for _, v := range cv.fonts {
+			if v != nil && v.font != nil && v.font.Name(truetype.NameIDFontFullName) == name {
+				cv.state.font = v
+				found = true
+				break
+			}
+		}
+		if !found && defaultFont != nil && defaultFont.font.Name(truetype.NameIDFontFullName) == name {
+			cv.state.font = defaultFont
+		}
+	}
+
+	fontFace := truetype.NewFace(cv.state.font.font, &truetype.Options{Size: size})
+	cv.state.fontMetrics = fontFace.Metrics()
+}
+
 // SetFont sets the font and font size. The font parameter can be a font loaded
 // with the LoadFont function, a filename for a font to load (which will be
 // cached), or nil, in which case the first loaded font will be used
@@ -298,7 +320,9 @@ func (cv *Canvas) SetFont(src interface{}, size float64) {
 	if src == nil {
 		cv.state.font = defaultFont
 	} else {
-		cv.state.font = cv.getFont(src)
+		if cv.state.font = cv.getFont(src); cv.state.font == nil {
+			cv.state.font = defaultFont
+		}
 	}
 
 	fontFace := truetype.NewFace(cv.state.font.font, &truetype.Options{Size: size})
@@ -538,4 +562,24 @@ func (cv *Canvas) reduceCache(keepSize, rec int) {
 	}
 
 	cv.reduceCache(keepSize, rec+1)
+}
+
+func ParseLineJoin(v string) lineJoin {
+	switch strings.ToLower(v) {
+	case `miter`:
+		return Miter
+	case `bevel`:
+		return Bevel
+	case `round`:
+		return Round
+	case `square`:
+		return Square
+	case `butt`:
+		return Butt
+	}
+	return Miter //sure...
+}
+
+func ParseLineCap(v string) lineCap {
+	return lineCap(ParseLineJoin(v))
 }
